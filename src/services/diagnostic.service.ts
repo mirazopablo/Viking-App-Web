@@ -47,4 +47,13 @@ export const diagnosticService = {
 
     return response.data;
   },
+
+  /**
+   * Deletes a specific diagnostic point and its associated evidence image by UUID.
+   * @param id - Diagnostic point UUID.
+   */
+  deleteDiagnosticPoint: async (id: string): Promise<void> => {
+    await apiClient.delete(`/diagnostic-points/${id}`);
+  },
 };
+

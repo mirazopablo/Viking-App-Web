@@ -288,7 +288,18 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
                 <Skeleton className="h-20 w-3/4 bg-secondary" />
               </div>
             ) : (
-              <DiagnosticTimeline points={diagnosticPoints} />
+              <DiagnosticTimeline
+                points={diagnosticPoints}
+                onDelete={async (pointId) => {
+                  try {
+                    await diagnosticService.deleteDiagnosticPoint(pointId);
+                    toast.success("Hito técnico eliminado");
+                    queryClient.invalidateQueries({ queryKey: ["diagnostic-points", workOrderId] });
+                  } catch (err: any) {
+                    toast.error("Error al eliminar", { description: "No se pudo borrar el hito en el servidor." });
+                  }
+                }}
+              />
             )}
           </div>
         </CardContent>

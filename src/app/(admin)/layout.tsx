@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
-import { Shield, Wrench, PlusCircle, List, LogOut } from "lucide-react";
+import { Shield, Wrench, PlusCircle, List, LogOut, Users, Smartphone } from "lucide-react";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -52,7 +52,7 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
           </Link>
 
           {/* Navigation Actions */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
             <Link href="/work-orders">
               <Button
                 variant={pathname === "/work-orders" ? "default" : "ghost"}
@@ -64,7 +64,37 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
                 }`}
               >
                 <List className="w-3.5 h-3.5 mr-1.5 text-tertiary" />
-                <span className="hidden sm:inline">Órdenes</span>
+                <span className="hidden md:inline">Órdenes</span>
+              </Button>
+            </Link>
+
+            <Link href="/clients">
+              <Button
+                variant={pathname.startsWith("/clients") ? "default" : "ghost"}
+                size="sm"
+                className={`text-xs font-mono tracking-wider uppercase ${
+                  pathname.startsWith("/clients")
+                    ? "bg-secondary text-foreground font-bold border border-border"
+                    : "text-typography hover:text-foreground"
+                }`}
+              >
+                <Users className="w-3.5 h-3.5 mr-1.5 text-info" />
+                <span className="hidden md:inline">Clientes</span>
+              </Button>
+            </Link>
+
+            <Link href="/devices">
+              <Button
+                variant={pathname.startsWith("/devices") ? "default" : "ghost"}
+                size="sm"
+                className={`text-xs font-mono tracking-wider uppercase ${
+                  pathname.startsWith("/devices")
+                    ? "bg-secondary text-foreground font-bold border border-border"
+                    : "text-typography hover:text-foreground"
+                }`}
+              >
+                <Smartphone className="w-3.5 h-3.5 mr-1.5 text-success" />
+                <span className="hidden md:inline">Equipos</span>
               </Button>
             </Link>
 
