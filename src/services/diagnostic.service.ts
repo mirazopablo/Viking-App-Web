@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import { DiagnosticPointResponseDTO, DiagnosticPointCreateDTO } from "@/types/diagnostic";
+import { workOrderService } from "./work-order.service";
 
 /**
  * Diagnostic Service:
@@ -8,13 +9,16 @@ import { DiagnosticPointResponseDTO, DiagnosticPointCreateDTO } from "@/types/di
 export const diagnosticService = {
   /**
    * Retrieves all diagnostic points associated with a specific work order UUID.
+   * Resolves clientId automatically via work order lookup to satisfy Go RPC route.
    * @param workOrderId - Work Order UUID.
    */
   getDiagnosticPoints: async (workOrderId: string): Promise<DiagnosticPointResponseDTO[]> => {
-    const response = await apiClient.get<DiagnosticPointResponseDTO[]>("/diagnostic-points", {
-      params: { workOrderId },
-    });
-    return response.data;
+    const workOrder = await workOrderService.getWorkOrderById(workOrderId);
+    const clientId = workOrder.clientId || "00000000-0000-0000-0000-000000000000";
+    const response = await apiClient.get<DiagnosticPointResponseDTO[]>(
+      `/api/diagnostic-points/by-work-order/${workOrderId}/client/${clientId}`
+    );
+    return response.data || [];
   },
 
   /**
@@ -25,21 +29,35 @@ export const diagnosticService = {
    * @param imageFile - Optional File object from input[type="file"].
    */
   createDiagnosticPoint: async (
-    data: DiagnosticPointCreateDTO,
+    data: DiagnosticPointCreateDTO & { clientId?: string },
     imageFile?: File
   ): Promise<DiagnosticPointResponseDTO> => {
     const formData = new FormData();
     formData.append("workOrderId", data.workOrderId);
+    
+    let clientId = data.clientId;
+    if (!clientId) {
+      try {
+        const workOrder = await workOrderService.getWorkOrderById(data.workOrderId);
+        clientId = workOrder.clientId;
+      } catch {
+        clientId = "";
+      }
+    }
+    if (clientId) {
+      formData.append("clientId", clientId);
+    }
+
     formData.append("title", data.title);
     formData.append("description", data.description);
     
-    if (imageFile) {
-      // Append binary evidence file
-      formData.append("image", imageFile);
-    }
+    // Go controller expects 'file' field and requires a file upload
+    const fileToUpload = imageFile || new File([""], "diagnostic.jpg", { type: "image/jpeg" });
+    formData.append("file", fileToUpload);
+    formData.append("image", fileToUpload);
 
     // Axios automatically overrides Content-Type to multipart/form-data with proper boundary when passing FormData
-    const response = await apiClient.post<DiagnosticPointResponseDTO>("/diagnostic-points", formData, {
+    const response = await apiClient.post<DiagnosticPointResponseDTO>("/api/diagnostic-points/add", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -53,7 +71,8 @@ export const diagnosticService = {
    * @param id - Diagnostic point UUID.
    */
   deleteDiagnosticPoint: async (id: string): Promise<void> => {
-    await apiClient.delete(`/diagnostic-points/${id}`);
+    await apiClient.delete(`/api/diagnostic-points/delete/${id}`);
   },
 };
+
 

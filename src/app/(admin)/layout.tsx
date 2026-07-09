@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
-import { Shield, Wrench, PlusCircle, List, LogOut, Users, Smartphone } from "lucide-react";
+import { Wrench, PlusCircle, List, LogOut, Users, Smartphone } from "lucide-react";
+import { BrandLogo } from "@/components/shared/brand-logo";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -38,15 +39,13 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
       <header className="w-full border-b border-border/60 bg-card/90 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 py-3.5">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/work-orders" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-tertiary/20 border border-tertiary/40 flex items-center justify-center group-hover:bg-tertiary/30 transition-colors">
-              <Shield className="w-6 h-6 text-tertiary" />
-            </div>
+            <BrandLogo size="sm" />
             <div>
               <span className="font-bold tracking-wider uppercase text-foreground text-sm sm:text-base block">
                 Viking App <span className="text-tertiary">Workshop</span>
               </span>
               <span className="text-[10px] font-mono text-typography tracking-widest block uppercase">
-                Panel Técnico & Triage
+                Panel Técnico
               </span>
             </div>
           </Link>
@@ -57,11 +56,10 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
               <Button
                 variant={pathname === "/work-orders" ? "default" : "ghost"}
                 size="sm"
-                className={`text-xs font-mono tracking-wider uppercase ${
-                  pathname === "/work-orders"
+                className={`text-xs font-mono tracking-wider uppercase ${pathname === "/work-orders"
                     ? "bg-secondary text-foreground font-bold border border-border"
                     : "text-typography hover:text-foreground"
-                }`}
+                  }`}
               >
                 <List className="w-3.5 h-3.5 mr-1.5 text-tertiary" />
                 <span className="hidden md:inline">Órdenes</span>
@@ -72,11 +70,10 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
               <Button
                 variant={pathname.startsWith("/clients") ? "default" : "ghost"}
                 size="sm"
-                className={`text-xs font-mono tracking-wider uppercase ${
-                  pathname.startsWith("/clients")
+                className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/clients")
                     ? "bg-secondary text-foreground font-bold border border-border"
                     : "text-typography hover:text-foreground"
-                }`}
+                  }`}
               >
                 <Users className="w-3.5 h-3.5 mr-1.5 text-info" />
                 <span className="hidden md:inline">Clientes</span>
@@ -87,11 +84,10 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
               <Button
                 variant={pathname.startsWith("/devices") ? "default" : "ghost"}
                 size="sm"
-                className={`text-xs font-mono tracking-wider uppercase ${
-                  pathname.startsWith("/devices")
+                className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/devices")
                     ? "bg-secondary text-foreground font-bold border border-border"
                     : "text-typography hover:text-foreground"
-                }`}
+                  }`}
               >
                 <Smartphone className="w-3.5 h-3.5 mr-1.5 text-success" />
                 <span className="hidden md:inline">Equipos</span>
@@ -102,11 +98,10 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
               <Button
                 variant={pathname === "/work-orders/new" ? "default" : "outline"}
                 size="sm"
-                className={`text-xs font-mono tracking-wider uppercase ${
-                  pathname === "/work-orders/new"
+                className={`text-xs font-mono tracking-wider uppercase ${pathname === "/work-orders/new"
                     ? "bg-tertiary text-tertiary-foreground font-bold shadow-md shadow-tertiary/20"
                     : "border-tertiary/40 text-tertiary hover:bg-tertiary/10"
-                }`}
+                  }`}
               >
                 <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
                 <span>Nueva Orden</span>
