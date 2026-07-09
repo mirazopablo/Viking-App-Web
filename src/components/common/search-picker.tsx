@@ -23,12 +23,13 @@ interface SearchPickerProps {
   onAddNew?: () => void;
   addNewLabel?: string;
   disabled?: boolean;
+  minChars?: number;
 }
 
 /**
  * SearchPicker Component:
  * Reusable debounced autocomplete selector for relational entities (Clients & Devices).
- * Features live search queries with TanStack Query and an integrated "Crear Nuevo" action.
+ * Features live search queries with TanStack Query, minimum 2-digit filtering rule, and an integrated "Crear Nuevo" action.
  */
 export const SearchPicker: React.FC<SearchPickerProps> = ({
   label,
@@ -39,6 +40,7 @@ export const SearchPicker: React.FC<SearchPickerProps> = ({
   onAddNew,
   addNewLabel = "Crear Nuevo",
   disabled = false,
+  minChars = 2,
 }) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [debouncedTerm, setDebouncedTerm] = useState<string>("");
@@ -53,10 +55,12 @@ export const SearchPicker: React.FC<SearchPickerProps> = ({
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
+  const hasEnoughChars = debouncedTerm.trim().length >= minChars;
+
   const { data: options = [], isLoading, isError } = useQuery({
     queryKey: ["search-picker", label, debouncedTerm],
     queryFn: () => fetchOptions(debouncedTerm),
-    enabled: isOpen && !disabled,
+    enabled: isOpen && !disabled && hasEnoughChars,
     staleTime: 30000,
   });
 
@@ -146,7 +150,13 @@ export const SearchPicker: React.FC<SearchPickerProps> = ({
 
           <Card className="absolute z-30 w-full mt-1 bg-card border-border shadow-2xl max-h-60 overflow-y-auto animate-fadeIn">
             <CardContent className="p-1 space-y-1">
-              {isLoading ? (
+              {!hasEnoughChars ? (
+                <div className="p-4 text-center space-y-2">
+                  <p className="text-xs text-warning font-mono">
+                    Escriba al menos {minChars} caracteres (ej. 2 primeros dígitos del DNI o serie) para filtrar...
+                  </p>
+                </div>
+              ) : isLoading ? (
                 <div className="p-4 text-center text-xs text-typography flex items-center justify-center gap-2 font-mono">
                   <Loader2 className="w-4 h-4 animate-spin text-tertiary" />
                   <span>Buscando registros en el sistema...</span>
