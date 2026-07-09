@@ -2,9 +2,9 @@ import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from "ax
 
 /**
  * Base URL for the Viking App Backend API.
- * Configured via environment variable or defaults to standard local backend port 8080.
+ * Configured via environment variable or defaults to empty string ("") for same-origin relative routing.
  */
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
