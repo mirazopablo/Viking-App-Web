@@ -7,9 +7,10 @@ import { workOrderService } from "@/services/work-order.service";
 import { WorkOrderResponseDTO } from "@/types/work-order";
 import { StatusBadge } from "@/components/common/status-badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { VikingCard } from "@/components/shared/viking-card";
+import { VikingSearchBar } from "@/components/shared/viking-search-bar";
+import { VikingLoader } from "@/components/shared/viking-loader";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Plus, Wrench, Smartphone, User, ArrowRight, RefreshCw, AlertCircle } from "lucide-react";
 
 /**
@@ -86,16 +87,13 @@ export default function WorkOrdersDashboardPage() {
 
       {/* Search Bar & Filter Pills (Matching screen 120612) */}
       <div className="space-y-4">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3.5 top-3 h-4 w-4 text-typography" />
-          <Input
-            type="text"
-            placeholder="Buscar por código WOVIK, cliente o modelo..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-secondary/20 border-border focus:border-tertiary focus:ring-1 focus:ring-tertiary font-mono text-sm h-10"
-          />
-        </div>
+        <VikingSearchBar
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Buscar por código WOVIK, cliente o modelo..."
+          variant="order"
+          minChars={2}
+        />
 
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           {filterPills.map((pill) => (
@@ -118,18 +116,7 @@ export default function WorkOrdersDashboardPage() {
 
       {/* Work Orders Grid / List */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="bg-card/50 border-border/60 p-5 space-y-4">
-              <div className="flex justify-between items-center">
-                <Skeleton className="h-5 w-24 bg-secondary" />
-                <Skeleton className="h-6 w-28 bg-secondary" />
-              </div>
-              <Skeleton className="h-4 w-48 bg-secondary" />
-              <Skeleton className="h-12 w-full bg-secondary" />
-            </Card>
-          ))}
-        </div>
+        <VikingLoader count={4} columns={2} />
       ) : isError ? (
         <Card className="bg-error/10 border-error/30 p-8 text-center space-y-3">
           <AlertCircle className="w-10 h-10 text-error mx-auto" />
@@ -160,11 +147,7 @@ export default function WorkOrdersDashboardPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
           {filteredOrders.map((order) => (
-            <Card
-              key={order.id}
-              className="bg-card/90 backdrop-blur-sm border-border/80 hover:border-tertiary/60 transition-all duration-300 shadow-sm hover:shadow-xl flex flex-col justify-between group overflow-hidden"
-            >
-              <div className="h-1 w-full bg-tertiary/30 group-hover:bg-tertiary transition-colors" />
+            <VikingCard key={order.id} variant="order">
               <CardHeader className="p-5 pb-3 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-mono font-bold text-tertiary tracking-widest bg-tertiary/10 px-2.5 py-1 rounded border border-tertiary/30">
@@ -205,7 +188,7 @@ export default function WorkOrdersDashboardPage() {
                   </Link>
                 </div>
               </CardContent>
-            </Card>
+            </VikingCard>
           ))}
         </div>
       )}

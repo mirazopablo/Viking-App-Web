@@ -26,8 +26,6 @@ import {
   ShieldCheck,
   Calendar,
   Phone,
-  Mail,
-  MapPin,
   RefreshCw,
 } from "lucide-react";
 
@@ -110,7 +108,7 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
           <Link href="/work-orders">
             <Button variant="outline" size="sm" className="text-xs font-mono tracking-wider uppercase border-border hover:border-tertiary">
               <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-              Triage
+              Main
             </Button>
           </Link>
           <div className="h-4 w-px bg-border/60 hidden sm:block" />
@@ -144,7 +142,7 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
       {/* Main Order Metadata Header Card */}
       <Card className="bg-card border-border shadow-2xl overflow-hidden">
         <div className="h-2 w-full bg-tertiary" />
-        <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <CardHeader className="pb-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-sm font-mono font-black text-tertiary tracking-widest bg-tertiary/15 px-3 py-1 rounded border border-tertiary/40 uppercase">
@@ -163,7 +161,7 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
             </CardDescription>
           </div>
 
-          <div className="text-right sm:max-w-xs w-full">
+          <div className="w-full lg:w-auto min-w-[360px] max-w-xl">
             <StatusUpdater
               workOrderId={workOrder.id}
               currentStatus={workOrder.repairStatus}
@@ -201,16 +199,6 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
                     <Phone className="w-3 h-3 text-tertiary shrink-0" />
                     <span>Tel: {workOrder.clientPhone || "No registrado"}</span>
                   </p>
-                  <p className="flex items-center gap-2 truncate">
-                    <Mail className="w-3 h-3 text-tertiary shrink-0" />
-                    <span className="truncate">{workOrder.clientEmail || "sin-correo@viking.com"}</span>
-                  </p>
-                  {workOrder.clientAddress && (
-                    <p className="flex items-center gap-2">
-                      <MapPin className="w-3 h-3 text-tertiary shrink-0" />
-                      <span>{workOrder.clientAddress}</span>
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
@@ -249,7 +237,7 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
           <div className="space-y-2 p-4 rounded-xl bg-secondary/10 border border-border/60">
             <div className="flex items-center gap-2 text-xs font-bold text-foreground uppercase tracking-wider">
               <AlertCircle className="w-4 h-4 text-tertiary" />
-              <span>Motivo de Ingreso / Triage Inicial</span>
+              <span>Motivo de Ingreso </span>
             </div>
             <p className="text-sm text-foreground/90 italic leading-relaxed pl-6 border-l-2 border-tertiary/60">
               "{workOrder.issueDescription}"

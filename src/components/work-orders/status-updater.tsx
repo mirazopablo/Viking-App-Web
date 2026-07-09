@@ -67,12 +67,12 @@ export const StatusUpdater: React.FC<StatusUpdaterProps> = ({
         <span className="text-xs font-mono uppercase tracking-wider text-typography">Transición:</span>
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 min-w-[260px]">
         <select
           value={selectedStatus}
           onChange={(e) => setSelectedStatus(e.target.value as RepairStatus)}
           disabled={isLoading}
-          className="w-full rounded-md bg-card border border-border focus:border-tertiary p-2 text-xs text-foreground font-mono uppercase font-semibold transition-all cursor-pointer"
+          className="w-full rounded-md bg-card border border-border focus:border-tertiary py-2.5 pl-3 pr-8 text-xs text-foreground font-mono uppercase font-semibold transition-all cursor-pointer text-ellipsis overflow-hidden"
         >
           {statusOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
