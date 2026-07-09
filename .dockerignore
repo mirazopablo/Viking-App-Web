@@ -1,0 +1,38 @@
+# Docker ignore file
+# Exclude files and folders that should not be included in the Docker build context
+
+# Git and IDE
+.git
+.gitignore
+.github
+.vscode
+.idea
+
+# Build artifacts and dependencies
+node_modules
+.next
+out
+coverage
+build
+
+# Environment files with sensitive or local config
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Documentation and scratch files
+*.md
+docs
+app_screens
+logo_cod.txt
+implementation_plan.md
+to_web.md
+problem_multiples_clicks.md
+new_search_params.md
+doc.json
+openapi.yaml
+
+# OS generated files
+.DS_Store
+Thumbs.db
