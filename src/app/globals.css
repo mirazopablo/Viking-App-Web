@@ -1,0 +1,143 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-outfit-sans), sans-serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+  --color-secondary: rgb(var(--secondary));
+  --color-secondary-foreground: rgb(var(--secondary-foreground));
+  --color-tertiary: rgb(var(--tertiary));
+  --color-tertiary-foreground: rgb(var(--tertiary-foreground));
+  --color-success: rgb(var(--success));
+  --color-warning: rgb(var(--warning));
+  --color-error: rgb(var(--error));
+  --color-info: rgb(var(--info));
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+  --color-typography: rgb(var(--typography));
+  --color-card: rgb(var(--card));
+  --color-card-foreground: rgb(var(--card-foreground));
+  --color-popover: rgb(var(--popover));
+  --color-popover-foreground: rgb(var(--popover-foreground));
+  --color-muted: rgb(var(--muted));
+  --color-muted-foreground: rgb(var(--muted-foreground));
+  --color-accent: rgb(var(--accent));
+  --color-accent-foreground: rgb(var(--accent-foreground));
+  --color-destructive: rgb(var(--destructive));
+  --color-destructive-foreground: rgb(var(--destructive-foreground));
+  --color-border: rgb(var(--border));
+  --color-input: rgb(var(--input));
+  --color-ring: rgb(var(--ring));
+  
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+
+  /* Viking App Custom Animations - Mapped to Crimson Red */
+  --animate-pulse-crimson: pulse-crimson 2s infinite ease-in-out;
+  --animate-pulse-amber: pulse-crimson 2s infinite ease-in-out;
+  @keyframes pulse-crimson {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.02); box-shadow: 0 0 15px rgb(var(--tertiary) / 0.4); }
+  }
+}
+
+/* Viking Official Color Palette in RGB Triplets (R G B) - Logo Based */
+:root {
+  /* Core Brand Colors - Light Mode */
+  --primary: 51 51 51;            /* #333333 - Brand dark neutral */
+  --primary-foreground: 255 255 255;
+  --secondary: 223 208 205;       /* #DFD0CD - Warm light gray surface */
+  --secondary-foreground: 51 51 51;
+  --tertiary: 181 37 36;          /* #B52524 - Viking Intense Crimson Red / Accent CTA */
+  --tertiary-foreground: 255 255 255;
+  
+  /* Semantic Status Colors */
+  --success: 52 131 82;           /* #348352 - DONE state / positive toasts */
+  --warning: 181 37 36;           /* #B52524 - IN_PROGRESS / IN_QUEUE mapped to brand red */
+  --error: 177 37 35;             /* #B12523 - WITHDRAWN / DELETE actions */
+  --info: 13 166 242;             /* #0DA6F2 - RECEIVED state / info links */
+  
+  /* Base Surfaces & Typography */
+  --background: 255 255 255;      /* #FFFFFF - Application background */
+  --foreground: 51 51 51;
+  --typography: 140 140 140;      /* #8C8C8C - Secondary body text */
+  
+  /* shadcn/ui Component Mappings */
+  --card: 255 255 255;
+  --card-foreground: 51 51 51;
+  --popover: 255 255 255;
+  --popover-foreground: 51 51 51;
+  --muted: 233 226 224;           /* #E9E2E0 - Off-white muted surface */
+  --muted-foreground: 140 140 140;
+  --accent: 177 37 35;            /* #B12523 - Deep Crimson Red hover */
+  --accent-foreground: 255 255 255;
+  --destructive: 177 37 35;
+  --destructive-foreground: 255 255 255;
+  --border: 189 162 155;          /* #BDA29B - Pastel Brown / Sand border */
+  --input: 189 162 155;
+  --ring: 181 37 36;              /* #B52524 - Crimson focus ring */
+  --radius: 0.625rem;
+}
+
+.dark {
+  /* Core Brand Colors - Dark Mode (OLED support) */
+  --primary: 230 222 220;         /* #E6DEDC - Off-white warm text */
+  --primary-foreground: 18 18 18;
+  --secondary: 63 64 64;          /* #3F4040 - Dark cards & navigation */
+  --secondary-foreground: 230 222 220;
+  --tertiary: 181 37 36;          /* #B52524 - Viking Intense Crimson Red */
+  --tertiary-foreground: 255 255 255;
+  
+  /* Semantic Status Colors */
+  --success: 72 151 102;          /* #489766 - DONE state */
+  --warning: 181 37 36;           /* #B52524 - IN_PROGRESS */
+  --error: 177 37 35;             /* #B12523 - Destructive */
+  --info: 50 180 244;             /* #32B4F4 - RECEIVED */
+  
+  /* Base Surfaces & Typography */
+  --background: 18 18 18;         /* #121212 - Deep OLED dark background */
+  --foreground: 230 222 220;      /* #E6DEDC - Warm off-white */
+  --typography: 207 185 180;      /* #CFB9B4 - Rose / Nude muted text */
+  
+  /* shadcn/ui Component Mappings */
+  --card: 30 30 30;
+  --card-foreground: 230 222 220;
+  --popover: 30 30 30;
+  --popover-foreground: 230 222 220;
+  --muted: 45 45 45;
+  --muted-foreground: 207 185 180;
+  --accent: 181 37 36;            /* #B52524 */
+  --accent-foreground: 255 255 255;
+  --destructive: 177 37 35;
+  --destructive-foreground: 255 255 255;
+  --border: 189 162 155;          /* #BDA29B - Sand border */
+  --input: 189 162 155;
+  --ring: 181 37 36;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased selection:bg-tertiary/20 selection:text-tertiary;
+  }
+
+  /* WCAG 2.1 AA Focus Rings for Keyboard Navigation */
+  :focus-visible {
+    @apply outline-none ring-2 ring-tertiary ring-offset-2 ring-offset-background transition-all duration-150;
+  }
+
+  /* OLED Dark Mode High Contrast Enhancements */
+  .dark .card, .dark .bg-card {
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.7);
+  }
+}
