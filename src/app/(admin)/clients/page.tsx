@@ -9,11 +9,13 @@ import { userService } from "@/services/user.service";
 import { UserResponseDTO } from "@/types/user";
 import { QuickClientModal } from "@/components/clients/quick-client-modal";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { VikingCard } from "@/components/shared/viking-card";
+import { VikingSearchBar } from "@/components/shared/viking-search-bar";
+import { VikingLoader } from "@/components/shared/viking-loader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Users, Search, Plus, Phone, Mail, MapPin, Edit3, ShieldAlert, Loader2, Save, RefreshCw } from "lucide-react";
 
@@ -41,9 +43,11 @@ export default function ClientsDirectoryPage() {
   const [clientToEdit, setClientToEdit] = useState<UserResponseDTO | null>(null);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
+  const debouncedSearch = searchTerm.trim().length >= 2 ? searchTerm.trim() : undefined;
+
   const { data: clients = [], isLoading, isError, refetch, isRefetching } = useQuery({
-    queryKey: ["users-directory"],
-    queryFn: () => userService.getUsers(),
+    queryKey: ["users-directory", debouncedSearch],
+    queryFn: () => userService.getUsers(debouncedSearch),
     staleTime: 30000,
   });
 
@@ -135,28 +139,17 @@ export default function ClientsDirectoryPage() {
       </div>
 
       {/* Search Input */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3.5 top-3 h-4 w-4 text-typography" />
-        <Input
-          type="text"
-          placeholder="Buscar por DNI, nombre, email o teléfono..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-secondary/20 border-border focus:border-info focus:ring-1 focus:ring-info font-mono text-sm h-10"
-        />
-      </div>
+      <VikingSearchBar
+        value={searchTerm}
+        onChange={setSearchTerm}
+        placeholder="Buscar por DNI, nombre, email o teléfono..."
+        variant="client"
+        minChars={2}
+      />
 
       {/* Directory Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="bg-card/50 border-border/60 p-5 space-y-4">
-              <Skeleton className="h-6 w-3/4 bg-secondary" />
-              <Skeleton className="h-4 w-1/2 bg-secondary" />
-              <Skeleton className="h-16 w-full bg-secondary" />
-            </Card>
-          ))}
-        </div>
+        <VikingLoader count={6} columns={3} />
       ) : filteredClients.length === 0 ? (
         <Card className="bg-secondary/15 border-border/60 p-12 text-center space-y-3">
           <Users className="w-12 h-12 text-typography/40 mx-auto" />
@@ -166,18 +159,11 @@ export default function ClientsDirectoryPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
           {filteredClients.map((client) => (
-            <Card
-              key={client.id}
-              className="bg-card/90 backdrop-blur-sm border-border/80 hover:border-info/60 transition-all duration-300 shadow-sm hover:shadow-xl flex flex-col justify-between group overflow-hidden"
-            >
-              <div className="h-1 w-full bg-info/40 group-hover:bg-info transition-colors" />
+            <VikingCard key={client.id} variant="client">
               <CardHeader className="p-5 pb-3 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono uppercase bg-secondary/60 text-typography px-2 py-0.5 rounded">
-                    DNI: <strong className="text-foreground">{client.dni}</strong>
-                  </span>
-                  <span className="text-[10px] font-mono uppercase bg-info/15 text-info px-2 py-0.5 rounded border border-info/30">
-                    {client.roleId || "CLIENT"}
+                  <span className="text-xs font-mono font-bold uppercase bg-info/15 text-info px-2.5 py-1 rounded border border-info/30 tracking-wider">
+                    DNI: {client.dni}
                   </span>
                 </div>
                 <CardTitle className="text-base font-bold text-foreground tracking-tight pt-1">
@@ -215,7 +201,7 @@ export default function ClientsDirectoryPage() {
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </VikingCard>
           ))}
         </div>
       )}

@@ -9,13 +9,15 @@ import { deviceService } from "@/services/device.service";
 import { userService } from "@/services/user.service";
 import { SearchPicker, SearchPickerOption } from "@/components/common/search-picker";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { VikingCard } from "@/components/shared/viking-card";
+import { VikingSearchBar } from "@/components/shared/viking-search-bar";
+import { VikingLoader } from "@/components/shared/viking-loader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Smartphone, Search, Plus, User, Hash, ShieldCheck, Loader2, Save, RefreshCw } from "lucide-react";
+import { Smartphone, Search, Plus, User, Hash, ShieldCheck, Loader2, Save, RefreshCw, Phone, CreditCard } from "lucide-react";
 
 const createDeviceSchema = z.object({
   userId: z.string().min(1, { message: "Debe seleccionar un cliente titular" }),
@@ -39,9 +41,11 @@ export default function DevicesInventoryPage() {
   const [isNewModalOpen, setIsNewModalOpen] = useState<boolean>(false);
   const [isCreating, setIsCreating] = useState<boolean>(false);
 
+  const debouncedSearch = searchTerm.trim().length >= 2 ? searchTerm.trim() : undefined;
+
   const { data: devices = [], isLoading, isError, refetch, isRefetching } = useQuery({
-    queryKey: ["devices-inventory"],
-    queryFn: () => deviceService.getDevices(),
+    queryKey: ["devices-inventory", debouncedSearch],
+    queryFn: () => deviceService.getDevices(undefined, debouncedSearch),
     staleTime: 30000,
   });
 
@@ -103,7 +107,10 @@ export default function DevicesInventoryPage() {
       d.brand.toLowerCase().includes(lower) ||
       d.model.toLowerCase().includes(lower) ||
       d.serialNumber.toLowerCase().includes(lower) ||
-      d.userId.toLowerCase().includes(lower)
+      d.userId.toLowerCase().includes(lower) ||
+      (d.userName && d.userName.toLowerCase().includes(lower)) ||
+      (d.userDni && d.userDni.toString().includes(lower)) ||
+      (d.userPhone && d.userPhone.toLowerCase().includes(lower))
     );
   });
 
@@ -144,28 +151,17 @@ export default function DevicesInventoryPage() {
       </div>
 
       {/* Search Bar */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3.5 top-3 h-4 w-4 text-typography" />
-        <Input
-          type="text"
-          placeholder="Buscar por marca, modelo o N° serie / IMEI..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-secondary/20 border-border focus:border-success focus:ring-1 focus:ring-success font-mono text-sm h-10"
-        />
-      </div>
+      <VikingSearchBar
+        value={searchTerm}
+        onChange={setSearchTerm}
+        placeholder="Buscar por marca, modelo o N° serie / IMEI..."
+        variant="device"
+        minChars={2}
+      />
 
       {/* Inventory Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="bg-card/50 border-border/60 p-5 space-y-4">
-              <Skeleton className="h-6 w-3/4 bg-secondary" />
-              <Skeleton className="h-4 w-1/2 bg-secondary" />
-              <Skeleton className="h-16 w-full bg-secondary" />
-            </Card>
-          ))}
-        </div>
+        <VikingLoader count={6} columns={3} />
       ) : filteredDevices.length === 0 ? (
         <Card className="bg-secondary/15 border-border/60 p-12 text-center space-y-3">
           <Smartphone className="w-12 h-12 text-typography/40 mx-auto" />
@@ -175,11 +171,7 @@ export default function DevicesInventoryPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
           {filteredDevices.map((dev) => (
-            <Card
-              key={dev.id}
-              className="bg-card/90 backdrop-blur-sm border-border/80 hover:border-success/60 transition-all duration-300 shadow-sm hover:shadow-xl flex flex-col justify-between group overflow-hidden"
-            >
-              <div className="h-1 w-full bg-success/40 group-hover:bg-success transition-colors" />
+            <VikingCard key={dev.id} variant="device">
               <CardHeader className="p-5 pb-3 space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono uppercase bg-secondary/60 text-typography px-2 py-0.5 rounded flex items-center gap-1">
@@ -196,16 +188,41 @@ export default function DevicesInventoryPage() {
               </CardHeader>
 
               <CardContent className="p-5 pt-0 space-y-4 flex-1 flex flex-col justify-between">
-                <div className="space-y-1.5 text-xs font-mono text-typography pt-1 bg-secondary/15 p-3 rounded-lg border border-border/40">
-                  <p className="flex items-center gap-2">
-                    <User className="w-3.5 h-3.5 text-success shrink-0" />
-                    <span>Titular UUID:</span>
-                  </p>
-                  <p className="text-foreground font-semibold truncate pl-5">{dev.userId}</p>
-                  <p className="flex items-center gap-1.5 text-[10px] text-typography/70 pt-1">
-                    <ShieldCheck className="w-3 h-3 text-tertiary" />
-                    <span>Verificado para órdenes en taller</span>
-                  </p>
+                <div className="space-y-2.5 text-xs font-mono text-typography pt-1 bg-secondary/15 p-3.5 rounded-lg border border-border/40 hover:border-success/40 transition-colors">
+                  <div className="flex items-center justify-between border-b border-border/40 pb-2">
+                    <span className="flex items-center gap-1.5 font-bold text-foreground truncate" title={dev.userName || dev.userId}>
+                      <User className="w-3.5 h-3.5 text-success shrink-0" />
+                      {dev.userName || "Cliente Titular"}
+                    </span>
+                    <span className="text-[10px] uppercase px-2 py-0.5 rounded bg-success/15 text-success font-semibold border border-success/30 shrink-0">
+                      Titular
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-0.5">
+                    <div className="flex items-center gap-1.5 text-typography">
+                      <CreditCard className="w-3.5 h-3.5 text-tertiary shrink-0" />
+                      <span className="truncate">
+                        DNI: <strong className="text-foreground">{dev.userDni ? dev.userDni.toLocaleString("es-AR") : "N/A"}</strong>
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-typography">
+                      <Phone className="w-3.5 h-3.5 text-tertiary shrink-0" />
+                      <span className="truncate">
+                        Tel: <strong className="text-foreground">{dev.userPhone || "N/A"}</strong>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10px] text-typography/70 pt-1.5 border-t border-border/30">
+                    <span className="flex items-center gap-1">
+                      <ShieldCheck className="w-3 h-3 text-tertiary shrink-0" />
+                      <span>Verificado en Taller</span>
+                    </span>
+                    <span className="truncate max-w-[110px] text-[9px] text-typography/50" title={`UUID Titular: ${dev.userId}`}>
+                      {dev.userId.slice(0, 8)}...
+                    </span>
+                  </div>
                 </div>
 
                 <div className="pt-2 border-t border-border/40 flex items-center justify-between text-[11px] font-mono text-typography">
@@ -213,7 +230,7 @@ export default function DevicesInventoryPage() {
                   <span className="text-success font-semibold">Repuesto OEM</span>
                 </div>
               </CardContent>
-            </Card>
+            </VikingCard>
           ))}
         </div>
       )}
