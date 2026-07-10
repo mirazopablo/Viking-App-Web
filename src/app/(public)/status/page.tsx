@@ -28,8 +28,13 @@ const statusQuerySchema = z.object({
     .regex(/^\d+$/, { message: "El DNI debe contener únicamente números" }),
   securityCode: z
     .string()
-    .min(5, { message: "El código de seguridad es requerido" })
-    .transform((val) => val.trim().toUpperCase()),
+    .min(1, { message: "El código de seguridad es requerido" })
+    .transform((val) => val.trim().toUpperCase())
+    .transform((val) => (val.startsWith("WOVIK-") ? val.slice(6) : val))
+    .refine((val) => val.length === 5, {
+      message: "Ingrese exactamente los 5 caracteres del código",
+    })
+    .transform((val) => `WOVIK-${val}`),
 });
 
 type StatusQueryFormValues = z.infer<typeof statusQuerySchema>;
@@ -47,7 +52,7 @@ export default function PublicStatusPage() {
     resolver: zodResolver(statusQuerySchema),
     defaultValues: {
       clientDni: "",
-      securityCode: "WOVIK-",
+      securityCode: "",
     },
   });
 
@@ -130,13 +135,17 @@ export default function PublicStatusPage() {
                 <Label htmlFor="securityCode" className="text-xs font-semibold uppercase tracking-wider text-foreground">
                   Código de Seguridad (*)
                 </Label>
-                <div className="relative">
-                  <ShieldCheck className="absolute left-3 top-2.5 h-4 w-4 text-tertiary" />
+                <div className="flex rounded-lg border border-border bg-secondary/20 focus-within:border-tertiary focus-within:ring-1 focus-within:ring-tertiary overflow-hidden">
+                  <div className="flex items-center gap-1.5 pl-3 pr-2.5 bg-secondary/40 border-r border-border text-xs font-mono font-bold tracking-wider text-foreground select-none shrink-0">
+                    <ShieldCheck className="h-4 w-4 text-tertiary shrink-0" />
+                    <span>WOVIK-</span>
+                  </div>
                   <Input
                     id="securityCode"
                     type="text"
-                    placeholder="WOVIK-XXXXX"
-                    className="pl-9 bg-secondary/20 border-border focus:border-tertiary focus:ring-1 focus:ring-tertiary font-mono uppercase font-bold tracking-widest text-tertiary"
+                    maxLength={5}
+                    placeholder="XXXXX"
+                    className="border-0 rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-transparent font-mono uppercase font-bold tracking-widest text-tertiary"
                     disabled={isLoading}
                     {...register("securityCode")}
                   />
