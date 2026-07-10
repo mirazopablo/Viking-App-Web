@@ -81,12 +81,17 @@ export const authService = {
   },
 
   /**
-   * Helper to clear local authentication session.
+   * Helper to clear local authentication session and optionally redirect with a reason code.
+   * @param reason - Optional query parameter (e.g. 'expired' or 'unauthorized').
    */
-  logout: (): void => {
+  logout: (reason?: string): void => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("viking_jwt_token");
-      window.location.href = "/login";
+      const targetUrl = reason
+        ? `/login?reason=${encodeURIComponent(reason)}`
+        : "/login";
+      window.location.href = targetUrl;
     }
   },
 };
+

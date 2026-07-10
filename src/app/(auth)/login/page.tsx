@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -12,6 +12,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Lock, Mail, Loader2, ArrowRight } from "lucide-react";
+
+/**
+ * Client subcomponent to display toast alert when redirected due to token expiration.
+ */
+function LoginReasonListener() {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const reason = searchParams.get("reason");
+    if (reason === "expired" || reason === "unauthorized") {
+      toast.error("Sesión Expirada", {
+        description:
+          "Tu turno de 4 horas ha finalizado o el token ha expirado. Por favor, ingresa nuevamente.",
+        duration: 6000,
+      });
+    }
+  }, [searchParams]);
+
+  return null;
+}
 
 /**
  * Zod validation schema for staff login form.
@@ -73,6 +93,9 @@ export default function LoginPage() {
 
   return (
     <Card className="w-full bg-card/90 backdrop-blur-md border-border shadow-xl">
+      <Suspense fallback={null}>
+        <LoginReasonListener />
+      </Suspense>
       <CardHeader className="space-y-1 text-center pb-6">
         <CardTitle className="text-xl font-bold tracking-tight text-foreground uppercase">
           Acceso Personal Técnico

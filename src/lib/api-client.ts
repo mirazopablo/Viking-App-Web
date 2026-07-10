@@ -41,9 +41,9 @@ apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError<{ message?: string }>) => {
     if (error.response?.status === 401 && typeof window !== "undefined") {
-      // Clear expired session and redirect to staff login
+      // Clear expired session and redirect to staff login with expired alert
       localStorage.removeItem("viking_jwt_token");
-      window.location.href = "/login?reason=unauthorized";
+      window.location.href = "/login?reason=expired";
     }
     return Promise.reject(error);
   }

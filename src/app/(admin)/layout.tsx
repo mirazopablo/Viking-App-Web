@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { authService } from "@/services/auth.service";
+import { getTokenRemainingTimeMs } from "@/lib/jwt-utils";
 import { Button } from "@/components/ui/button";
 import { Wrench, PlusCircle, List, LogOut, Users, Smartphone } from "lucide-react";
 import { BrandLogo } from "@/components/shared/brand-logo";
@@ -21,12 +22,26 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
   const [userName, setUserName] = useState<string>("Técnico Staff");
 
   useEffect(() => {
-    // Quick client-side check if token is present
+    if (typeof window === "undefined") return;
+
     const token = localStorage.getItem("viking_jwt_token");
-    if (!token && typeof window !== "undefined") {
-      // In production with real auth, uncomment to force redirect:
-      // window.location.href = "/login?reason=no_session";
+    if (!token) {
+      window.location.href = "/login?reason=expired";
+      return;
     }
+
+    const remainingMs = getTokenRemainingTimeMs(token);
+    if (remainingMs <= 0) {
+      authService.logout("expired");
+      return;
+    }
+
+    // Proactive timer to automatically alert and redirect when the 4-hour shift token expires
+    const expirationTimer = setTimeout(() => {
+      authService.logout("expired");
+    }, remainingMs);
+
+    return () => clearTimeout(expirationTimer);
   }, []);
 
   const handleLogout = () => {
