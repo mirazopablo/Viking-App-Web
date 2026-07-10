@@ -33,7 +33,17 @@
   --color-border: rgb(var(--border));
   --color-input: rgb(var(--input));
   --color-ring: rgb(var(--ring));
-  
+
+  /* Scaled Typography Tokens (+10% Boost for Testing & Calibration) */
+  --text-xs: 0.89rem;
+  --text-xs--line-height: 1.35rem;
+  --text-sm: 0.99rem;
+  --text-sm--line-height: 1.5rem;
+  --text-base: 1.19rem;
+  --text-base--line-height: 1.7rem;
+  --text-lg: 1.29rem;
+  --text-lg--line-height: 1.85rem;
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -43,70 +53,104 @@
   /* Viking App Custom Animations - Mapped to Crimson Red */
   --animate-pulse-crimson: pulse-crimson 2s infinite ease-in-out;
   --animate-pulse-amber: pulse-crimson 2s infinite ease-in-out;
+
   @keyframes pulse-crimson {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.85; transform: scale(1.02); box-shadow: 0 0 15px rgb(var(--tertiary) / 0.4); }
+
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 0.85;
+      transform: scale(1.02);
+      box-shadow: 0 0 15px rgb(var(--tertiary) / 0.4);
+    }
   }
 }
 
 /* Viking Official Color Palette in RGB Triplets (R G B) - Logo Based */
 :root {
   /* Core Brand Colors - Light Mode */
-  --primary: 51 51 51;            /* #333333 - Brand dark neutral */
+  --primary: 51 51 51;
+  /* #333333 - Brand dark neutral */
   --primary-foreground: 255 255 255;
-  --secondary: 223 208 205;       /* #DFD0CD - Warm light gray surface */
+  --secondary: 223 208 205;
+  /* #DFD0CD - Warm light gray surface */
   --secondary-foreground: 51 51 51;
-  --tertiary: 181 37 36;          /* #B52524 - Viking Intense Crimson Red / Accent CTA */
+  --tertiary: 181 37 36;
+  /* #B52524 - Viking Intense Crimson Red / Accent CTA */
   --tertiary-foreground: 255 255 255;
-  
+
   /* Semantic Status Colors */
-  --success: 52 131 82;           /* #348352 - DONE state / positive toasts */
-  --warning: 181 37 36;           /* #B52524 - IN_PROGRESS / IN_QUEUE mapped to brand red */
-  --error: 177 37 35;             /* #B12523 - WITHDRAWN / DELETE actions */
-  --info: 13 166 242;             /* #0DA6F2 - RECEIVED state / info links */
-  
+  --success: 52 131 82;
+  /* #348352 - DONE state / positive toasts */
+  --warning: 181 37 36;
+  /* #B52524 - IN_PROGRESS / IN_QUEUE mapped to brand red */
+  --error: 177 37 35;
+  /* #B12523 - WITHDRAWN / DELETE actions */
+  --info: 13 166 242;
+  /* #0DA6F2 - RECEIVED state / info links */
+
   /* Base Surfaces & Typography */
-  --background: 255 255 255;      /* #FFFFFF - Application background */
+  --background: 255 255 255;
+  /* #FFFFFF - Application background */
   --foreground: 51 51 51;
-  --typography: 140 140 140;      /* #8C8C8C - Secondary body text */
-  
+  --typography: 140 140 140;
+  /* #8C8C8C - Secondary body text */
+
   /* shadcn/ui Component Mappings */
   --card: 255 255 255;
   --card-foreground: 51 51 51;
   --popover: 255 255 255;
   --popover-foreground: 51 51 51;
-  --muted: 233 226 224;           /* #E9E2E0 - Off-white muted surface */
+  --muted: 233 226 224;
+  /* #E9E2E0 - Off-white muted surface */
   --muted-foreground: 140 140 140;
-  --accent: 177 37 35;            /* #B12523 - Deep Crimson Red hover */
+  --accent: 177 37 35;
+  /* #B12523 - Deep Crimson Red hover */
   --accent-foreground: 255 255 255;
   --destructive: 177 37 35;
   --destructive-foreground: 255 255 255;
-  --border: 189 162 155;          /* #BDA29B - Pastel Brown / Sand border */
+  --border: 189 162 155;
+  /* #BDA29B - Pastel Brown / Sand border */
   --input: 189 162 155;
-  --ring: 181 37 36;              /* #B52524 - Crimson focus ring */
+  --ring: 181 37 36;
+  /* #B52524 - Crimson focus ring */
   --radius: 0.625rem;
 }
 
 .dark {
   /* Core Brand Colors - Dark Mode (OLED support) */
-  --primary: 230 222 220;         /* #E6DEDC - Off-white warm text */
+  --primary: 230 222 220;
+  /* #E6DEDC - Off-white warm text */
   --primary-foreground: 18 18 18;
-  --secondary: 63 64 64;          /* #3F4040 - Dark cards & navigation */
+  --secondary: 63 64 64;
+  /* #3F4040 - Dark cards & navigation */
   --secondary-foreground: 230 222 220;
-  --tertiary: 181 37 36;          /* #B52524 - Viking Intense Crimson Red */
+  --tertiary: 181 37 36;
+  /* #B52524 - Viking Intense Crimson Red */
   --tertiary-foreground: 255 255 255;
-  
+
   /* Semantic Status Colors */
-  --success: 72 151 102;          /* #489766 - DONE state */
-  --warning: 181 37 36;           /* #B52524 - IN_PROGRESS */
-  --error: 177 37 35;             /* #B12523 - Destructive */
-  --info: 50 180 244;             /* #32B4F4 - RECEIVED */
-  
+  --success: 72 151 102;
+  /* #489766 - DONE state */
+  --warning: 181 37 36;
+  /* #B52524 - IN_PROGRESS */
+  --error: 177 37 35;
+  /* #B12523 - Destructive */
+  --info: 50 180 244;
+  /* #32B4F4 - RECEIVED */
+
   /* Base Surfaces & Typography */
-  --background: 18 18 18;         /* #121212 - Deep OLED dark background */
-  --foreground: 230 222 220;      /* #E6DEDC - Warm off-white */
-  --typography: 207 185 180;      /* #CFB9B4 - Rose / Nude muted text */
-  
+  --background: 18 18 18;
+  /* #121212 - Deep OLED dark background */
+  --foreground: 230 222 220;
+  /* #E6DEDC - Warm off-white */
+  --typography: 207 185 180;
+  /* #CFB9B4 - Rose / Nude muted text */
+
   /* shadcn/ui Component Mappings */
   --card: 30 30 30;
   --card-foreground: 230 222 220;
@@ -114,11 +158,13 @@
   --popover-foreground: 230 222 220;
   --muted: 45 45 45;
   --muted-foreground: 207 185 180;
-  --accent: 181 37 36;            /* #B52524 */
+  --accent: 181 37 36;
+  /* #B52524 */
   --accent-foreground: 255 255 255;
   --destructive: 177 37 35;
   --destructive-foreground: 255 255 255;
-  --border: 189 162 155;          /* #BDA29B - Sand border */
+  --border: 189 162 155;
+  /* #BDA29B - Sand border */
   --input: 189 162 155;
   --ring: 181 37 36;
 }
@@ -127,6 +173,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground font-sans antialiased selection:bg-tertiary/20 selection:text-tertiary;
   }
@@ -137,7 +184,8 @@
   }
 
   /* OLED Dark Mode High Contrast Enhancements */
-  .dark .card, .dark .bg-card {
+  .dark .card,
+  .dark .bg-card {
     box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.7);
   }
 }
