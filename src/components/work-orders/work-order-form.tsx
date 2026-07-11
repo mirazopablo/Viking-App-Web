@@ -11,6 +11,7 @@ import { WorkOrderResponseDTO } from "@/types/work-order";
 import { UserResponseDTO } from "@/types/user";
 import { DeviceResponseDTO } from "@/types/device";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SearchPicker, SearchPickerOption } from "@/components/common/search-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,9 +60,9 @@ export const WorkOrderForm: React.FC = () => {
   // PANTALLA 1: DNI Search & Client/Device Inline State
   // -------------------------------------------------------------
   const [dniQuery, setDniQuery] = useState<string>("");
-  const [debouncedDni, setDebouncedDni] = useState<string>("");
-  const [isSearchingClient, setIsSearchingClient] = useState<boolean>(false);
   const [foundClient, setFoundClient] = useState<UserResponseDTO | null>(null);
+  const [clientSearchCache, setClientSearchCache] = useState<Record<string, UserResponseDTO>>({});
+  const [isManualNewClient, setIsManualNewClient] = useState<boolean>(false);
 
   // Client inline fields (used if new client or for display)
   const [clientName, setClientName] = useState<string>("");
@@ -105,49 +106,56 @@ export const WorkOrderForm: React.FC = () => {
     staleTime: 1000 * 60 * 60,
   });
 
-  // Debounce DNI input ~300ms
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedDni(dniQuery.trim());
-    }, 300);
-    return () => clearTimeout(handler);
-  }, [dniQuery]);
+  // Live API Search via SearchPicker (min 2 chars query)
+  const handleFetchClients = async (term: string): Promise<SearchPickerOption[]> => {
+    const users = await userService.getUsers(term);
+    const cacheUpdate: Record<string, UserResponseDTO> = {};
+    users.forEach((u) => {
+      cacheUpdate[u.id] = u;
+    });
+    setClientSearchCache((prev) => ({ ...prev, ...cacheUpdate }));
+    return users.map((u) => ({
+      id: u.id,
+      title: u.name,
+      subtitle: `DNI: ${u.dni} - Tel: ${u.phoneNumber || "S/D"}`,
+      badge: "CLIENTE",
+    }));
+  };
 
-  // Trigger POST /api/user/search when debouncedDni changes
-  useEffect(() => {
-    const searchClientByDni = async () => {
-      if (!debouncedDni || debouncedDni.length < 6 || !/^\d+$/.test(debouncedDni)) {
-        setFoundClient(null);
-        setDeviceMode("NEW");
-        return;
-      }
-      setIsSearchingClient(true);
-      setStep1Error(null);
-      try {
-        const users = await userService.getUsers(debouncedDni, "dni");
-        const exactMatch =
-          users.find((u) => String(u.dni) === debouncedDni) || (users.length > 0 ? users[0] : null);
+  const handleSelectClientOption = (opt: SearchPickerOption | null) => {
+    if (!opt) {
+      setFoundClient(null);
+      setDniQuery("");
+      setClientName("");
+      setClientPhone("");
+      setClientEmail("");
+      setClientAddress("");
+      setDeviceMode("NEW");
+      setIsManualNewClient(false);
+      return;
+    }
+    const client = clientSearchCache[opt.id];
+    if (client) {
+      setFoundClient(client);
+      setDniQuery(String(client.dni));
+      setClientName(client.name || "");
+      setClientPhone(client.phoneNumber || "");
+      setClientEmail(client.email || "");
+      setClientAddress(client.address || "CABA");
+      setIsManualNewClient(false);
+    }
+  };
 
-        if (exactMatch) {
-          setFoundClient(exactMatch);
-          setClientName(exactMatch.name || "");
-          setClientPhone(exactMatch.phoneNumber || "");
-          setClientEmail(exactMatch.email || "");
-          setClientAddress(exactMatch.address || "Dirección no especificada");
-        } else {
-          setFoundClient(null);
-          setDeviceMode("NEW");
-        }
-      } catch {
-        setFoundClient(null);
-        setDeviceMode("NEW");
-      } finally {
-        setIsSearchingClient(false);
-      }
-    };
-
-    searchClientByDni();
-  }, [debouncedDni]);
+  const handleManualNewClient = () => {
+    setFoundClient(null);
+    setDniQuery("");
+    setClientName("");
+    setClientPhone("");
+    setClientEmail("");
+    setClientAddress("");
+    setDeviceMode("NEW");
+    setIsManualNewClient(true);
+  };
 
   // Query existing devices for found client
   const {
@@ -184,10 +192,12 @@ export const WorkOrderForm: React.FC = () => {
   const handleContinueToStep2 = async () => {
     setStep1Error(null);
 
-    // 1. Validate DNI
-    if (!dniQuery || dniQuery.trim().length < 7 || !/^\d+$/.test(dniQuery.trim())) {
-      setStep1Error("Ingrese un DNI numérico válido (mínimo 7 dígitos).");
-      return;
+    // 1. Validate Client selection or manual DNI input
+    if (!foundClient) {
+      if (!dniQuery || dniQuery.trim().length < 7 || !/^\d+$/.test(dniQuery.trim())) {
+        setStep1Error("Debe seleccionar un cliente existente de la búsqueda o ingresar un DNI numérico válido para el alta manual.");
+        return;
+      }
     }
 
     // 2. Validate Client inline fields if new client
@@ -405,50 +415,48 @@ export const WorkOrderForm: React.FC = () => {
           {/* ========================================================= */}
           {currentStep === 1 && (
             <div className="space-y-6">
-              {/* Sección A: Titular / Cliente por DNI */}
+              {/* Sección A: Titular / Cliente por Búsqueda (API) o Alta Manual */}
               <div className="p-4 rounded-xl bg-secondary/15 border border-border/60 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs font-bold text-tertiary uppercase tracking-wider">
                     <User className="w-4 h-4" />
                     <span>Titular / Cliente</span>
                   </div>
-                  {isSearchingClient ? (
-                    <span className="text-xs font-mono text-typography flex items-center gap-1.5">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-tertiary" />
-                      Consultando DNI...
-                    </span>
-                  ) : foundClient ? (
+                  {foundClient ? (
                     <span className="px-2.5 py-0.5 rounded text-[10px] font-mono uppercase bg-success/20 border border-success/40 text-success font-bold flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3" />
                       Cliente Encontrado
                     </span>
-                  ) : debouncedDni.length >= 7 ? (
+                  ) : isManualNewClient ? (
                     <span className="px-2.5 py-0.5 rounded text-[10px] font-mono uppercase bg-warning/20 border border-warning/40 text-warning font-bold">
-                      Nuevo Cliente
+                      Alta Manual de Cliente
                     </span>
                   ) : null}
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="dniInput" className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                    DNI / CUIT (*)
-                  </Label>
-                  <Input
-                    id="dniInput"
-                    value={dniQuery}
-                    onChange={(e) => setDniQuery(e.target.value)}
-                    placeholder="Escriba el número de DNI (Ej: 30123456)..."
-                    className="bg-secondary/20 border-border focus:border-tertiary font-mono"
+                {!isManualNewClient && (
+                  <SearchPicker
+                    label="Búsqueda Rápida en Base de Datos (Mín. 2 Caracteres) (*)"
+                    placeholder="Escriba nombre o DNI del cliente..."
+                    value={foundClient ? foundClient.id : ""}
+                    onSelect={handleSelectClientOption}
+                    fetchOptions={handleFetchClients}
+                    onAddNew={handleManualNewClient}
+                    addNewLabel="Alta Manual / Nuevo Cliente"
                     disabled={isSavingStep1}
                   />
-                </div>
+                )}
 
-                {/* Inline Fields: Read-only if existing client, open inputs if new */}
+                {/* Inline Fields: Read-only summary if existing client, manual form if new */}
                 {foundClient ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-lg bg-secondary/20 border border-border/50 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 p-3 rounded-lg bg-secondary/20 border border-border/50 text-xs">
                     <div>
                       <span className="text-[10px] font-mono uppercase text-typography block">Nombre Completo</span>
                       <strong className="text-foreground font-sans">{foundClient.name}</strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono uppercase text-typography block">DNI / CUIT</span>
+                      <strong className="text-foreground font-mono">{foundClient.dni}</strong>
                     </div>
                     <div>
                       <span className="text-[10px] font-mono uppercase text-typography block">Teléfono</span>
@@ -459,12 +467,37 @@ export const WorkOrderForm: React.FC = () => {
                       <strong className="text-foreground font-mono">{foundClient.email || "No registrado"}</strong>
                     </div>
                   </div>
-                ) : (
+                ) : isManualNewClient ? (
                   <div className="space-y-3 pt-2 border-t border-border/40 animate-fadeIn">
-                    <p className="text-[11px] font-mono text-typography">
-                      No se encontró un titular con el DNI indicado. Complete los datos para darlo de alta en este mismo paso:
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] font-mono text-typography">
+                        Complete los datos para registrar al nuevo titular en este mismo paso:
+                      </p>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsManualNewClient(false)}
+                        className="h-7 text-xs font-mono uppercase text-tertiary hover:bg-tertiary/10"
+                      >
+                        Volver a Búsqueda
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="space-y-1">
+                        <Label htmlFor="dniInput" className="text-[11px] font-semibold uppercase text-foreground">
+                          DNI / CUIT (*)
+                        </Label>
+                        <Input
+                          id="dniInput"
+                          value={dniQuery}
+                          onChange={(e) => setDniQuery(e.target.value)}
+                          placeholder="Ej: 30123456"
+                          className="bg-secondary/20 border-border h-9 text-xs font-mono"
+                          disabled={isSavingStep1}
+                        />
+                      </div>
                       <div className="space-y-1">
                         <Label htmlFor="clientName" className="text-[11px] font-semibold uppercase text-foreground">
                           Nombre Completo (*)
@@ -522,7 +555,7 @@ export const WorkOrderForm: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                )}
+                ) : null}
               </div>
 
               {/* Sección B: Dispositivo del Titular */}
@@ -628,10 +661,10 @@ export const WorkOrderForm: React.FC = () => {
                           value={deviceType}
                           onChange={(e) => setDeviceType(e.target.value)}
                           disabled={isSavingStep1}
-                          className="w-full rounded-md bg-secondary/20 border border-border focus:border-tertiary h-9 px-3 text-xs font-semibold text-foreground cursor-pointer"
+                          className="w-full rounded-md bg-neutral-900 border border-border focus:border-tertiary h-9 px-3 text-xs font-semibold text-foreground cursor-pointer"
                         >
                           {DEVICE_TYPES.map((t) => (
-                            <option key={t.value} value={t.value} className="bg-card text-foreground">
+                            <option key={t.value} value={t.value} className="bg-neutral-900 text-foreground">
                               {t.label}
                             </option>
                           ))}
@@ -888,8 +921,8 @@ export const WorkOrderForm: React.FC = () => {
                     setCreatedOrder(null);
                     setCurrentStep(1);
                     setDniQuery("");
-                    setDebouncedDni("");
                     setFoundClient(null);
+                    setIsManualNewClient(false);
                     setIssueDescription("");
                     setNotes("");
                   }}

@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { workOrderService } from "@/services/work-order.service";
 import { diagnosticService } from "@/services/diagnostic.service";
+import { WorkOrderResponseDTO } from "@/types/work-order";
 import { StatusBadge } from "@/components/common/status-badge";
 import { DiagnosticTimeline } from "@/components/work-orders/diagnostic-timeline";
 import { StatusUpdater } from "@/components/work-orders/status-updater";
 import { AddDiagnosticPointModal } from "@/components/work-orders/add-diagnostic-point-modal";
+import { SecurityCodeModal } from "@/components/work-orders/security-code-modal";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -45,6 +47,8 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
   const workOrderId = resolvedParams.id;
 
   const [isDiagnosticModalOpen, setIsDiagnosticModalOpen] = useState<boolean>(false);
+  const [regeneratedOrder, setRegeneratedOrder] = useState<WorkOrderResponseDTO | null>(null);
+  const [isRegeneratingCode, setIsRegeneratingCode] = useState<boolean>(false);
 
   // 1. Fetch Work Order Details
   const {
@@ -73,6 +77,24 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
     refetchOrder();
     refetchPoints();
     toast.info("Datos actualizados");
+  };
+
+  const handleRegenerateCode = async () => {
+    try {
+      setIsRegeneratingCode(true);
+      const updated = await workOrderService.regenerateSecurityCode(workOrderId);
+      setRegeneratedOrder(updated);
+      toast.success("Código de seguridad regenerado", {
+        description: `Nuevo código: ${updated.securityCode || updated.id}`,
+      });
+      queryClient.setQueryData(["work-order", workOrderId], updated);
+      queryClient.invalidateQueries({ queryKey: ["work-orders"] });
+    } catch (err: unknown) {
+      console.error("Regenerate code failed:", err);
+      toast.error("Error al regenerar código de seguridad");
+    } finally {
+      setIsRegeneratingCode(false);
+    }
   };
 
   if (isOrderLoading) {
@@ -117,7 +139,19 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRegenerateCode}
+            disabled={isRegeneratingCode}
+            className="text-xs font-mono uppercase h-9 px-3 border-warning/50 text-warning hover:bg-warning/10"
+            title="Regenerar Código de Seguridad (Staff y Admin)"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isRegeneratingCode ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Regenerar Código</span>
+          </Button>
+
           <Button
             variant="outline"
             size="sm"
@@ -139,7 +173,6 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
         </div>
       </div>
 
-      {/* Main Order Metadata Header Card */}
       <Card className="bg-card border-border shadow-2xl overflow-hidden">
         <div className="h-2 w-full bg-tertiary" />
         <CardHeader className="pb-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -154,7 +187,7 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
               {workOrder.deviceBrand} {workOrder.deviceModel}
             </CardTitle>
             <CardDescription className="text-xs font-mono text-typography flex items-center gap-4">
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1" suppressHydrationWarning>
                 <Calendar className="w-3 h-3 text-tertiary" />
                 Ingresado: {new Date(workOrder.createdAt).toLocaleString("es-AR")}
               </span>
@@ -293,7 +326,7 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
         </CardContent>
       </Card>
 
-      {/* Multipart Upload Modal */}
+      {/* Multipart Upload Modal */ }
       <AddDiagnosticPointModal
         isOpen={isDiagnosticModalOpen}
         onClose={() => setIsDiagnosticModalOpen(false)}
@@ -303,6 +336,14 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
           queryClient.invalidateQueries({ queryKey: ["work-order", workOrderId] });
         }}
       />
-    </div>
+
+      <SecurityCodeModal
+        isOpen={!!regeneratedOrder}
+        onClose={() => setRegeneratedOrder(null)}
+        securityCode={regeneratedOrder?.securityCode || ""}
+        clientName={regeneratedOrder?.clientName || workOrder?.clientName || "Cliente"}
+        workOrderId={regeneratedOrder?.id || workOrderId}
+      />
+    </div >
   );
 }

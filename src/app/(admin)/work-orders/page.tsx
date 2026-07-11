@@ -2,16 +2,19 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { workOrderService } from "@/services/work-order.service";
 import { WorkOrderResponseDTO } from "@/types/work-order";
 import { StatusBadge } from "@/components/common/status-badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { VikingCard } from "@/components/shared/viking-card";
 import { VikingSearchBar } from "@/components/shared/viking-search-bar";
 import { VikingLoader } from "@/components/shared/viking-loader";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, Wrench, Smartphone, User, ArrowRight, RefreshCw, AlertCircle } from "lucide-react";
+import { Search, Plus, Wrench, Smartphone, User, ArrowRight, RefreshCw, AlertCircle, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { useUserRole } from "@/hooks/use-user-role";
+import { SecurityCodeModal } from "@/components/work-orders/security-code-modal";
 
 /**
  * Work Orders Dashboard (/work-orders):
@@ -19,8 +22,12 @@ import { Search, Plus, Wrench, Smartphone, User, ArrowRight, RefreshCw, AlertCir
  * Features debounced search, status filter pills, and quick access to order details.
  */
 export default function WorkOrdersDashboardPage() {
+  const queryClient = useQueryClient();
+  const { isAdmin } = useUserRole();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedFilter, setSelectedFilter] = useState<string>("ALL");
+  const [regeneratedOrder, setRegeneratedOrder] = useState<WorkOrderResponseDTO | null>(null);
+  const [isRegeneratingId, setIsRegeneratingId] = useState<string | null>(null);
 
   const { data: orders = [], isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ["work-orders", selectedFilter],
@@ -43,12 +50,52 @@ export default function WorkOrdersDashboardPage() {
   });
 
   const filterPills = [
-    { id: "ALL", label: "TODAS" },
-    { id: "IN_QUEUE", label: "EN ESPERA" },
-    { id: "IN_PROGRESS", label: "EN REPARACIÓN" },
-    { id: "DONE", label: "LISTO PARA RETIRO" },
-    { id: "RECEIVED", label: "RECEPCIONADOS" },
+    { label: "Todas", value: "ALL" },
+    { label: "Ingresado", value: "RECEIVED" },
+    { label: "En Diagnóstico", value: "IN_QUEUE" },
+    { label: "En Reparación", value: "IN_PROGRESS" },
+    { label: "Listo para Retirar", value: "DONE" },
+    { label: "Entregado", value: "WITHDRAWN" },
   ];
+
+  const handleDeleteOrder = async (order: WorkOrderResponseDTO) => {
+    const confirmed = window.confirm(
+      `¿Está seguro de eliminar la Orden de Trabajo "${order.securityCode || order.id}"? Esta operación es irreversible.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await workOrderService.deleteWorkOrder(order.id);
+      toast.success("Orden eliminada", {
+        description: `La orden de trabajo fue removida exitosamente.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["work-orders"] });
+    } catch (err: unknown) {
+      console.error("Delete work order failed:", err);
+      toast.error("Error al eliminar la orden", {
+        description: "No se pudo completar la eliminación en el servidor.",
+      });
+    }
+  };
+
+  const handleRegenerateCode = async (order: WorkOrderResponseDTO) => {
+    try {
+      setIsRegeneratingId(order.id);
+      const updated = await workOrderService.regenerateSecurityCode(order.id);
+      setRegeneratedOrder(updated);
+      toast.success("Código de seguridad regenerado", {
+        description: `Nuevo código generado para la orden ${updated.securityCode || updated.id}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["work-orders"] });
+    } catch (err: unknown) {
+      console.error("Regenerate security code failed:", err);
+      toast.error("Error al regenerar código", {
+        description: "No se pudo regenerar el código en el servidor.",
+      });
+    } finally {
+      setIsRegeneratingId(null);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -98,15 +145,14 @@ export default function WorkOrdersDashboardPage() {
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           {filterPills.map((pill) => (
             <Button
-              key={pill.id}
-              variant={selectedFilter === pill.id ? "default" : "outline"}
+              key={pill.value}
+              variant={selectedFilter === pill.value ? "default" : "outline"}
               size="sm"
-              onClick={() => setSelectedFilter(pill.id)}
-              className={`text-xs font-mono uppercase tracking-wider whitespace-nowrap px-4 py-1.5 transition-all ${
-                selectedFilter === pill.id
-                  ? "bg-tertiary text-tertiary-foreground font-bold border-tertiary shadow-sm shadow-tertiary/20"
-                  : "bg-secondary/20 text-typography border-border/60 hover:border-tertiary/40 hover:text-foreground"
-              }`}
+              onClick={() => setSelectedFilter(pill.value)}
+              className={`text-xs font-mono uppercase tracking-wider whitespace-nowrap px-4 py-1.5 transition-all ${selectedFilter === pill.value
+                ? "bg-tertiary text-tertiary-foreground font-bold border-tertiary shadow-sm shadow-tertiary/20"
+                : "bg-secondary/20 text-typography border-border/60 hover:border-tertiary/40 hover:text-foreground"
+                }`}
             >
               {pill.label}
             </Button>
@@ -147,51 +193,78 @@ export default function WorkOrdersDashboardPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
           {filteredOrders.map((order) => (
-            <VikingCard key={order.id} variant="order">
-              <CardHeader className="p-5 pb-3 space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-mono font-bold text-tertiary tracking-widest bg-tertiary/10 px-2.5 py-1 rounded border border-tertiary/30">
-                    {order.securityCode || "WOVIK-----"}
-                  </span>
-                  <StatusBadge status={order.repairStatus} />
-                </div>
-
-                <CardTitle className="text-base font-bold text-foreground tracking-tight pt-1 flex items-center justify-between">
-                  <span>{order.deviceBrand} {order.deviceModel}</span>
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent className="p-5 pt-0 space-y-4 flex-1 flex flex-col justify-between">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-mono text-typography">
-                    <User className="w-3.5 h-3.5 text-tertiary shrink-0" />
-                    <span className="font-semibold text-foreground">{order.clientName || "Cliente Taller"}</span>
-                    <span>({order.clientDni || "---"})</span>
-                  </div>
-
-                  <p className="text-xs text-foreground/80 italic leading-relaxed bg-secondary/20 p-2.5 rounded border border-border/40 line-clamp-2">
-                    "{order.issueDescription}"
-                  </p>
-                </div>
-
-                <div className="pt-3 border-t border-border/40 flex items-center justify-between text-[11px] font-mono text-typography">
-                  <span>Ingreso: {new Date(order.createdAt).toLocaleDateString("es-AR")}</span>
-                  <Link href={`/work-orders/${order.id}`}>
+            <VikingCard
+              key={order.id}
+              variant="order"
+              badgeLeft={
+                <span className="text-xs font-mono font-bold text-tertiary tracking-widest bg-tertiary/10 px-2.5 py-1 rounded border border-tertiary/30">
+                  {order.securityCode || "WOVIK-----"}
+                </span>
+              }
+              badgeRight={<StatusBadge status={order.repairStatus} />}
+              title={`${order.deviceBrand} ${order.deviceModel}`}
+              footer={
+                <div className="flex items-center justify-between w-full">
+                  <span suppressHydrationWarning>Ingreso: {new Date(order.createdAt).toLocaleDateString("es-AR")}</span>
+                  <div className="flex items-center gap-1.5">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 px-2.5 text-tertiary hover:text-tertiary/80 hover:bg-tertiary/10 uppercase tracking-wider font-semibold text-[11px] group-hover:translate-x-1 transition-all"
+                      onClick={() => handleRegenerateCode(order)}
+                      disabled={isRegeneratingId === order.id}
+                      className="h-8 px-2 text-warning hover:text-warning hover:bg-warning/10 uppercase tracking-wider font-semibold text-[11px]"
+                      title="Regenerar Código de Seguridad (Staff y Admin)"
                     >
-                      <span>Gestionar Triage</span>
-                      <ArrowRight className="ml-1 w-3 h-3" />
+                      <RefreshCw className={`w-3.5 h-3.5 ${isRegeneratingId === order.id ? "animate-spin" : ""}`} />
                     </Button>
-                  </Link>
+                    {isAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteOrder(order)}
+                        className="h-8 px-2 text-error hover:text-error hover:bg-error/10 uppercase tracking-wider font-semibold text-[11px]"
+                        title="Eliminar Orden (Sólo Administrador)"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                    <Link href={`/work-orders/${order.id}`}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2.5 text-tertiary hover:text-tertiary/80 hover:bg-tertiary/10 uppercase tracking-wider font-semibold text-[11px] group-hover:translate-x-1 transition-all"
+                      >
+                        <span>Gestionar Orden</span>
+                        <ArrowRight className="ml-1 w-3 h-3" />
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
-              </CardContent>
+              }
+            >
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-xs font-mono text-typography">
+                  <User className="w-3.5 h-3.5 text-tertiary shrink-0" />
+                  <span className="font-semibold text-foreground">{order.clientName || "Cliente Taller"}</span>
+                  <span>({order.clientDni || "---"})</span>
+                </div>
+
+                <p className="text-xs text-foreground/80 italic leading-relaxed bg-secondary/20 p-2.5 rounded border border-border/40 line-clamp-2">
+                  "{order.issueDescription}"
+                </p>
+              </div>
             </VikingCard>
           ))}
         </div>
       )}
+
+      <SecurityCodeModal
+        isOpen={!!regeneratedOrder}
+        onClose={() => setRegeneratedOrder(null)}
+        securityCode={regeneratedOrder?.securityCode || ""}
+        clientName={regeneratedOrder?.clientName || "Cliente"}
+        workOrderId={regeneratedOrder?.id}
+      />
     </div>
   );
 }

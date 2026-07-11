@@ -72,10 +72,10 @@ export const StatusUpdater: React.FC<StatusUpdaterProps> = ({
           value={selectedStatus}
           onChange={(e) => setSelectedStatus(e.target.value as RepairStatus)}
           disabled={isLoading}
-          className="w-full rounded-md bg-card border border-border focus:border-tertiary py-2.5 pl-3 pr-8 text-xs text-foreground font-mono uppercase font-semibold transition-all cursor-pointer text-ellipsis overflow-hidden"
+          className="w-full rounded-md bg-neutral-900 border border-border focus:border-tertiary py-2.5 pl-3 pr-8 text-xs text-foreground font-mono uppercase font-semibold transition-all cursor-pointer text-ellipsis overflow-hidden"
         >
           {statusOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
+            <option key={opt.value} value={opt.value} className="bg-neutral-900 text-foreground">
               {opt.label}
             </option>
           ))}
