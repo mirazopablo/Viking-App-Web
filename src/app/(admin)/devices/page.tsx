@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { deviceService } from "@/services/device.service";
 import { userService } from "@/services/user.service";
+import type { DeviceResponseDTO } from "@/types/device";
 import { SearchPicker, SearchPickerOption } from "@/components/common/search-picker";
 import { Card } from "@/components/ui/card";
 import { VikingCard } from "@/components/shared/viking-card";
