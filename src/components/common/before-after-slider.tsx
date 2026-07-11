@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
 import { MoveHorizontal, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export interface BeforeAfterSliderProps {
-  beforeImage: string;
-  afterImage: string;
+  beforeImage: string | StaticImageData;
+  afterImage: string | StaticImageData;
   beforeLabel?: string;
   afterLabel?: string;
   title: string;
@@ -51,6 +51,7 @@ export function BeforeAfterSlider({
                 src={afterImage}
                 alt={afterLabel}
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 className="object-cover"
                 onError={() => setImageError((prev) => ({ ...prev, after: true }))}
               />
@@ -77,6 +78,7 @@ export function BeforeAfterSlider({
                   src={beforeImage}
                   alt={beforeLabel}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover"
                   onError={() => setImageError((prev) => ({ ...prev, before: true }))}
                 />
