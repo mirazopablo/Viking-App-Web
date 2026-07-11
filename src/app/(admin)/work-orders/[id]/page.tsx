@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { workOrderService } from "@/services/work-order.service";
 import { diagnosticService } from "@/services/diagnostic.service";
-import { WorkOrderResponseDTO } from "@/types/work-order";
+import { WorkOrderResponseDTO, SecurityCodeResponseDTO } from "@/types/work-order";
 import { StatusBadge } from "@/components/common/status-badge";
 import { DiagnosticTimeline } from "@/components/work-orders/diagnostic-timeline";
 import { StatusUpdater } from "@/components/work-orders/status-updater";
@@ -47,7 +47,7 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
   const workOrderId = resolvedParams.id;
 
   const [isDiagnosticModalOpen, setIsDiagnosticModalOpen] = useState<boolean>(false);
-  const [regeneratedOrder, setRegeneratedOrder] = useState<WorkOrderResponseDTO | null>(null);
+  const [regeneratedOrder, setRegeneratedOrder] = useState<SecurityCodeResponseDTO | WorkOrderResponseDTO | null>(null);
   const [isRegeneratingCode, setIsRegeneratingCode] = useState<boolean>(false);
 
   // 1. Fetch Work Order Details

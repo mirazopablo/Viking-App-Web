@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { workOrderService } from "@/services/work-order.service";
-import { WorkOrderResponseDTO } from "@/types/work-order";
+import { WorkOrderResponseDTO, SecurityCodeResponseDTO } from "@/types/work-order";
 import { StatusBadge } from "@/components/common/status-badge";
 import { Card } from "@/components/ui/card";
 import { VikingCard } from "@/components/shared/viking-card";
@@ -26,7 +26,7 @@ export default function WorkOrdersDashboardPage() {
   const { isAdmin } = useUserRole();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedFilter, setSelectedFilter] = useState<string>("ALL");
-  const [regeneratedOrder, setRegeneratedOrder] = useState<WorkOrderResponseDTO | null>(null);
+  const [regeneratedOrder, setRegeneratedOrder] = useState<SecurityCodeResponseDTO | WorkOrderResponseDTO | null>(null);
   const [isRegeneratingId, setIsRegeneratingId] = useState<string | null>(null);
 
   const { data: orders = [], isLoading, isError, refetch, isRefetching } = useQuery({

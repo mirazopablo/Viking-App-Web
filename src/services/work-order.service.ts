@@ -1,5 +1,10 @@
 import { apiClient } from "@/lib/api-client";
-import { WorkOrderResponseDTO, WorkOrderCreateDTO, WorkOrderStatusUpdateDTO } from "@/types/work-order";
+import {
+  WorkOrderResponseDTO,
+  WorkOrderCreateDTO,
+  WorkOrderStatusUpdateDTO,
+  SecurityCodeResponseDTO,
+} from "@/types/work-order";
 
 /**
  * Work Order Service:
@@ -48,16 +53,12 @@ export const workOrderService = {
   },
 
   /**
-   * Retrieves a single work order by ID.
+   * Retrieves a single work order directly by ID.
    * @param id - Work Order UUID.
    */
   getWorkOrderById: async (id: string): Promise<WorkOrderResponseDTO> => {
-    const orders = await workOrderService.getWorkOrders();
-    const order = orders.find((o) => o.id === id);
-    if (!order) {
-      throw new Error(`Work order with id ${id} not found.`);
-    }
-    return order;
+    const response = await apiClient.get<WorkOrderResponseDTO>(`/api/work-order/${id}`);
+    return response.data;
   },
 
   /**
@@ -84,8 +85,8 @@ export const workOrderService = {
    * Regenerates the WOVIK security tracking code for a work order.
    * @param id - Work Order UUID.
    */
-  regenerateSecurityCode: async (id: string): Promise<WorkOrderResponseDTO> => {
-    const response = await apiClient.patch<WorkOrderResponseDTO>(`/api/work-order/regenerate-code/${id}`);
+  regenerateSecurityCode: async (id: string): Promise<SecurityCodeResponseDTO> => {
+    const response = await apiClient.patch<SecurityCodeResponseDTO>(`/api/work-order/regenerate-code/${id}`);
     return response.data;
   },
 

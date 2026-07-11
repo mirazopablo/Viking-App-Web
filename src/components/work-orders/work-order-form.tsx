@@ -60,8 +60,8 @@ export const WorkOrderForm: React.FC = () => {
   // PANTALLA 1: DNI Search & Client/Device Inline State
   // -------------------------------------------------------------
   const [dniQuery, setDniQuery] = useState<string>("");
-  const [foundClient, setFoundClient] = useState<UserResponseDTO | null>(null);
-  const [clientSearchCache, setClientSearchCache] = useState<Record<string, UserResponseDTO>>({});
+  const [foundClient, setFoundClient] = useState<any | null>(null);
+  const [clientSearchCache, setClientSearchCache] = useState<Record<string, any>>({});
   const [isManualNewClient, setIsManualNewClient] = useState<boolean>(false);
 
   // Client inline fields (used if new client or for display)
@@ -108,8 +108,8 @@ export const WorkOrderForm: React.FC = () => {
 
   // Live API Search via SearchPicker (min 2 chars query)
   const handleFetchClients = async (term: string): Promise<SearchPickerOption[]> => {
-    const users = await userService.getUsers(term);
-    const cacheUpdate: Record<string, UserResponseDTO> = {};
+    const users = await userService.autocompleteUsers(term);
+    const cacheUpdate: Record<string, any> = {};
     users.forEach((u) => {
       cacheUpdate[u.id] = u;
     });

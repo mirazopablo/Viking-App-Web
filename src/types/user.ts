@@ -14,6 +14,13 @@ export interface UserResponseDTO {
   roleId?: string;
 }
 
+export interface UserAutocompleteDTO {
+  id: string;
+  name: string;
+  dni: number;
+  phoneNumber?: string;
+}
+
 export interface UserCreateDTO {
   name: string;
   dni: number;

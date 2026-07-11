@@ -1,11 +1,22 @@
 import { apiClient } from "@/lib/api-client";
-import { UserResponseDTO, UserCreateDTO, UserUpdateDTO } from "@/types/user";
+import { UserResponseDTO, UserCreateDTO, UserUpdateDTO, UserAutocompleteDTO } from "@/types/user";
 
 /**
  * User / Client Service:
  * Manages CRUD operations and debounced search lookups for registered clients and staff.
  */
 export const userService = {
+  /**
+   * Fast autocomplete lookup returning lightweight projections.
+   * Matches GET /api/user/autocomplete?query={term}
+   */
+  autocompleteUsers: async (query?: string): Promise<UserAutocompleteDTO[]> => {
+    const response = await apiClient.get<UserAutocompleteDTO[]>("/api/user/autocomplete", {
+      params: query ? { query } : undefined,
+    });
+    return response.data || [];
+  },
+
   /**
    * Fetches a paginated or filtered list of users.
    * Can be filtered by query string (matching DNI, Name, or Email) or specific field selector.

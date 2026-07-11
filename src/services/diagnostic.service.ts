@@ -9,14 +9,12 @@ import { workOrderService } from "./work-order.service";
 export const diagnosticService = {
   /**
    * Retrieves all diagnostic points associated with a specific work order UUID.
-   * Resolves clientId automatically via work order lookup to satisfy Go RPC route.
+   * Uses decoupled endpoint that does not require clientId.
    * @param workOrderId - Work Order UUID.
    */
   getDiagnosticPoints: async (workOrderId: string): Promise<DiagnosticPointResponseDTO[]> => {
-    const workOrder = await workOrderService.getWorkOrderById(workOrderId);
-    const clientId = workOrder.clientId || "00000000-0000-0000-0000-000000000000";
     const response = await apiClient.get<DiagnosticPointResponseDTO[]>(
-      `/api/diagnostic-points/by-work-order/${workOrderId}/client/${clientId}`
+      `/api/diagnostic-points/by-work-order/${workOrderId}`
     );
     return response.data || [];
   },

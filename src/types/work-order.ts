@@ -26,6 +26,31 @@ export interface WorkOrderResponseDTO {
   updatedAt?: string;
 }
 
+/**
+ * Lightweight projection returned by regenerate-code endpoint.
+ */
+export interface SecurityCodeResponseDTO {
+  id: string;
+  securityCode: string;
+  clientName: string;
+}
+
+/**
+ * Summary projection returned by search endpoint for list and triage grids.
+ */
+export interface WorkOrderSummaryDTO {
+  id: string;
+  securityCode?: string;
+  clientId: string;
+  clientName: string;
+  deviceId: string;
+  deviceBrand: string;
+  deviceModel: string;
+  issueDescription: string;
+  repairStatus: RepairStatus;
+  createdAt: string;
+}
+
 export interface WorkOrderCreateDTO {
   clientId: string;           // UUID
   deviceId: string;           // UUID
