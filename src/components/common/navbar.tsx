@@ -1,6 +1,8 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
-import { Lock, Search, Wrench } from "lucide-react";
+import { Lock, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/shared/brand-logo";
 
@@ -10,24 +12,65 @@ import { BrandLogo } from "@/components/shared/brand-logo";
  * quick access to public tracking (/status), and discreet staff login (/login).
  */
 export function Navbar() {
+  const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const element = document.getElementById(targetId);
+    if (element) {
+      const headerOffset = 88; // 5.5rem offset for sticky navbar
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.scrollY - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const handleScrollToTop = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (typeof window !== "undefined" && window.location.pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md transition-all duration-300">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-4">
         {/* Brand Logo & Name */}
-        <Link href="/" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tertiary rounded-xl p-1">
+        <Link
+          href="/"
+          onClick={handleScrollToTop}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tertiary rounded-xl p-1"
+        >
           <BrandLogo size="md" showText={true} textVariant="tech" />
         </Link>
 
         {/* Center Anchor Links (Hidden on small screens) */}
         <nav className="hidden md:flex items-center gap-8 text-xs font-mono tracking-wider uppercase text-typography">
-          <a href="#services" className="hover:text-tertiary transition-colors">
+          <a
+            href="#services"
+            onClick={(e) => handleSmoothScroll(e, "services")}
+            className="hover:text-tertiary transition-colors cursor-pointer"
+          >
             Servicios
           </a>
-          <a href="#workshop" className="hover:text-tertiary transition-colors">
-            Taller en Vivo
+          <a
+            href="#evidence"
+            onClick={(e) => handleSmoothScroll(e, "evidence")}
+            className="hover:text-tertiary transition-colors cursor-pointer"
+          >
+            Evidencia
           </a>
-          <a href="#why-viking" className="hover:text-tertiary transition-colors">
-            Garantía
+          <a
+            href="#why-viking"
+            onClick={(e) => handleSmoothScroll(e, "why-viking")}
+            className="hover:text-tertiary transition-colors cursor-pointer"
+          >
+            Estándar & Garantía
           </a>
         </nav>
 

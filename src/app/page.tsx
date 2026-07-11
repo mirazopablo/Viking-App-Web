@@ -14,11 +14,16 @@ import {
   Sparkles,
   ChevronRight,
   QrCode,
+  Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from "@/components/common/navbar";
 import { BeforeAfterSlider } from "@/components/common/before-after-slider";
+import limpiezaAntesImg from "@/components/assets/images/limpieza2_antes.jpg";
+import limpiezaDespuesImg from "@/components/assets/images/limpieza2_despues.jpg";
+import mantenimientoAntesImg from "@/components/assets/images/mantenimiento_antes.jpg";
+import mantenimientoDespuesImg from "@/components/assets/images/mantenimiento_depues.jpg";
 
 /**
  * Root Landing Page (/):
@@ -137,51 +142,51 @@ export default function HomePage() {
                 <ul className="space-y-2 border-t border-border/40 pt-4">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-info" />
-                    <span>Mantenimiento térmico con pastas de metal líquido y almohadillas de alta conductividad.</span>
+                    <span>Mantenimiento térmico profesional con pastas de alta conductividad y almohadillas térmicas.</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-info" />
-                    <span>Gestión de cables, limpieza ultrasónica y auditoría de fuentes de poder.</span>
+                    <span>Gestión de cables, limpieza interna exhaustiva y auditoría de fuentes de poder.</span>
                   </li>
                 </ul>
               </CardContent>
             </Card>
 
-            {/* Service 2: Micro-soldering & Advanced Diagnostics */}
+            {/* Service 2: Android Screens & Charging Ports */}
             <Card className="bg-card/80 backdrop-blur-md border-border/80 hover:border-tertiary/60 transition-all duration-300 shadow-lg hover:shadow-2xl flex flex-col justify-between group">
               <CardHeader className="space-y-3 pb-4">
                 <div className="w-12 h-12 rounded-xl bg-tertiary/15 border border-tertiary/30 flex items-center justify-center text-tertiary group-hover:scale-110 transition-transform duration-300">
-                  <Cpu className="w-6 h-6" />
+                  <Smartphone className="w-6 h-6" />
                 </div>
                 <CardTitle className="text-xl font-bold uppercase text-foreground">
-                  Diagnóstico & Soldadura SMD
+                  Servicio Técnico Android
                 </CardTitle>
                 <CardDescription className="text-xs font-mono text-typography leading-relaxed">
-                  Recuperación a nivel componente (SMD / BGA). Reparación de placas base sin necesidad de reemplazo completo de hardware costoso.
+                  Diagnóstico digital y solución especializada para teléfonos Android. Cambio garantizado de pantallas y placas de carga.
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-2 space-y-4 font-mono text-xs text-typography/90">
                 <ul className="space-y-2 border-t border-border/40 pt-4">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
-                    <span>Detección de cortos con cámara térmica infrarroja y análisis de esquemáticos.</span>
+                    <span>Reemplazo de módulos de pantalla OLED e IPS con encastre y prueba de control total.</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
-                    <span>Reemplazo de reguladores VRM, chips de control de carga y conectores dañados.</span>
+                    <span>Cambio de placas sub-pines de carga, conectores USB-C y flex del dispositivo.</span>
                   </li>
                 </ul>
               </CardContent>
             </Card>
 
-            {/* Service 3: Laptop & Ultrabook Engineering */}
+            {/* Service 3: Laptops & Ultrabooks */}
             <Card className="bg-card/80 backdrop-blur-md border-border/80 hover:border-tertiary/60 transition-all duration-300 shadow-lg hover:shadow-2xl flex flex-col justify-between group">
               <CardHeader className="space-y-3 pb-4">
                 <div className="w-12 h-12 rounded-xl bg-warning/15 border border-warning/30 flex items-center justify-center text-warning group-hover:scale-110 transition-transform duration-300">
                   <Laptop className="w-6 h-6" />
                 </div>
                 <CardTitle className="text-xl font-bold uppercase text-foreground">
-                  Reparación de Notebooks & Mac
+                  Reparación de Notebooks
                 </CardTitle>
                 <CardDescription className="text-xs font-mono text-typography leading-relaxed">
                   Especialistas en equipos portátiles comerciales, ultrabooks y notebooks gaming. Solución definitiva a fallas térmicas y estructurales.
@@ -195,34 +200,34 @@ export default function HomePage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-warning" />
-                    <span>Cambio de pantallas OLED/IPS y baterías con calibración de ciclos de vida.</span>
+                    <span>Cambio de pantallas y baterías con calibración de ciclos de vida del equipo.</span>
                   </li>
                 </ul>
               </CardContent>
             </Card>
 
-            {/* Service 4: Next-Gen Console Restoration */}
+            {/* Service 4: PlayStation 3/4 & Xbox Maintenance */}
             <Card className="bg-card/80 backdrop-blur-md border-border/80 hover:border-tertiary/60 transition-all duration-300 shadow-lg hover:shadow-2xl flex flex-col justify-between group">
               <CardHeader className="space-y-3 pb-4">
                 <div className="w-12 h-12 rounded-xl bg-success/15 border border-success/30 flex items-center justify-center text-success group-hover:scale-110 transition-transform duration-300">
                   <Gamepad2 className="w-6 h-6" />
                 </div>
                 <CardTitle className="text-xl font-bold uppercase text-foreground">
-                  Servicio Técnico de Consolas
+                  Mantenimiento PlayStation & Xbox
                 </CardTitle>
                 <CardDescription className="text-xs font-mono text-typography leading-relaxed">
-                  Soporte especializado para PlayStation 5, Xbox Series X/S, Nintendo Switch y Steam Deck. Mantenimiento para evitar el sobrecalentamiento.
+                  Soporte técnico integral para PlayStation 3, PlayStation 4 (Fat, Slim, Pro) y toda la familia Xbox (360, One y Series X/S).
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-2 space-y-4 font-mono text-xs text-typography/90">
                 <ul className="space-y-2 border-t border-border/40 pt-4">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-success" />
-                    <span>Cambio y restauración de metal líquido en APUs de consolas next-gen.</span>
+                    <span>Limpieza profunda de turbinas, disipadores y cambio de pasta térmica de alta calidad.</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-success" />
-                    <span>Reparación de puertos HDMI 2.1 4K y joysticks con tecnología Hall Effect.</span>
+                    <span>Reducción drástica de ruido en ventiladores y prevención de apagados térmicos.</span>
                   </li>
                 </ul>
               </CardContent>
@@ -231,42 +236,42 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Live Workshop Showcase Section (Before & After Slider) */}
-      <section id="workshop" className="w-full py-20 px-4 sm:px-6 relative">
+      {/* Visual Evidence Section (Before & After Slider) */}
+      <section id="evidence" className="w-full py-20 px-4 sm:px-6 relative">
         <div className="max-w-6xl mx-auto space-y-12">
           {/* Section Header */}
           <div className="text-center space-y-3 max-w-2xl mx-auto">
             <span className="text-xs font-mono uppercase tracking-widest text-info font-bold px-3 py-1 rounded-full bg-info/10 border border-info/30 inline-block">
-              Evidencia en Vivo
+              Evidencia de Resultados
             </span>
             <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground uppercase">
-              Taller de Reparación en Acción
+              Comparativa Visual de Laboratorio
             </h2>
             <p className="text-xs sm:text-sm text-typography font-mono leading-relaxed">
-              Desliza para comprobar la transformación empírica y el rigor técnico aplicado en nuestros bancos de trabajo.
+              Desliza sobre cada imagen para observar la calidad de terminación y limpieza en nuestros servicios de mantenimiento y armado.
             </p>
           </div>
 
           {/* Sliders Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <BeforeAfterSlider
-              beforeImage="/images/repairs/notebook-before.jpg"
-              afterImage="/images/repairs/notebook-after.jpg"
-              beforeLabel="SIN MANTENIMIENTO"
-              afterLabel="RESTAURADO"
-              title="Optimización Térmica en Notebook Gaming"
-              description="Limpieza exhaustiva de radiadores obstruidos, remoción de pasta térmica seca y reemplazo por solución de alta conductividad para reducir picos de 95°C a 65°C."
-              category="Notebooks & Laptops"
+              beforeImage={limpiezaAntesImg}
+              afterImage={limpiezaDespuesImg}
+              beforeLabel="ANTES (SUCIO)"
+              afterLabel="LIMPIO & OPTIMIZADO"
+              title="Limpieza Profunda & Mantenimiento Preventivo"
+              description="Remoción minuciosa de polvo acumulado y obstrucciones térmicas en ventiladores y disipadores para restaurar el flujo de aire y prevenir sobrecalentamiento."
+              category="Mantenimiento de PC"
             />
 
             <BeforeAfterSlider
-              beforeImage="/images/repairs/console-before.jpg"
-              afterImage="/images/repairs/console-after.jpg"
-              beforeLabel="PLACA OXIDADA"
-              afterLabel="SOLDADURA SMD"
-              title="Micro-soldadura en Puerto HDMI de Consola"
-              description="Extracción limpia de puerto dañado por tracción mecánica, reconstrucción de pistas en PCB de 4 capas y soldadura bajo microscopio con estaño de plata antimagnético."
-              category="Consolas & Micro-electrónica"
+              beforeImage={mantenimientoAntesImg}
+              afterImage={mantenimientoDespuesImg}
+              beforeLabel="ANTES DEL SERVICIO"
+              afterLabel="ENSAMBLADO FINAL"
+              title="Armado Profesional & Gestión de Cables"
+              description="Ensamblaje a medida de equipos de escritorio, organización profesional de cableado interno (cable management) y verificación integral de hardware."
+              category="Armado de Equipos"
             />
           </div>
         </div>
@@ -277,7 +282,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3 max-w-2xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground uppercase">
-              El Estándar Vikingo en Soporte
+              El Estándar mas alto en Soporte Tecnico
             </h2>
             <p className="text-xs sm:text-sm text-typography font-mono leading-relaxed">
               Transparencia absoluta y profesionalismo técnico sin compromisos ni promesas vacías.
@@ -337,8 +342,11 @@ export default function HomePage() {
             <a href="#services" className="hover:text-tertiary transition-colors">
               Servicios B2B
             </a>
-            <a href="#workshop" className="hover:text-tertiary transition-colors">
-              Casos de Éxito
+            <a href="#evidence" className="hover:text-tertiary transition-colors">
+              Evidencia Visual
+            </a>
+            <a href="#why-viking" className="hover:text-tertiary transition-colors">
+              Estándar & Garantía
             </a>
             <Link href="/login" className="text-tertiary hover:underline flex items-center gap-1 font-bold">
               <span>Acceso Técnico (Staff)</span>
@@ -348,10 +356,17 @@ export default function HomePage() {
         </div>
 
         <div className="max-w-6xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-typography/50 text-[10px]">
-          <p>&copy; {new Date().getFullYear()} Viking App Systems. Todos los derechos reservados.</p>
-          <p className="flex items-center gap-1.5 justify-center">
-            <Wrench className="w-3 h-3 text-tertiary" />
-            <span>Infraestructura Next.js 15 App Router & API REST</span>
+          <p>
+            &copy; {new Date().getFullYear()} Pablo Mirazo from{" "}
+            <a
+              href="https://zondasolutions.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-tertiary underline transition-colors"
+            >
+              Zonda Solutions
+            </a>
+            . Todos los derechos reservados.
           </p>
         </div>
       </footer>

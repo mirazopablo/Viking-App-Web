@@ -14,8 +14,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Viking App | Workshop & Repair Management Portal",
-  description: "Advanced management workspace for Viking device repair workshops, staff triage, and client tracking.",
+  title: "Viking App | Gestión de Laboratorios",
+  description: "Aplicación para la gestión de órdenes de trabajo en talleres electrónicos.",
 };
 
 export default function RootLayout({
@@ -25,8 +25,9 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
-      className={`${outfitSans.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
+      lang="es"
+      data-scroll-behavior="smooth"
+      className={`${outfitSans.variable} ${jetbrainsMono.variable} h-full antialiased dark scroll-smooth`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <QueryProvider>

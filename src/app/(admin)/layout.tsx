@@ -72,8 +72,8 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
                 variant={pathname === "/work-orders" ? "default" : "ghost"}
                 size="sm"
                 className={`text-xs font-mono tracking-wider uppercase ${pathname === "/work-orders"
-                    ? "bg-secondary text-foreground font-bold border border-border"
-                    : "text-typography hover:text-foreground"
+                  ? "bg-secondary text-foreground font-bold border border-border"
+                  : "text-typography hover:text-foreground"
                   }`}
               >
                 <List className="w-3.5 h-3.5 mr-1.5 text-tertiary" />
@@ -86,8 +86,8 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
                 variant={pathname.startsWith("/clients") ? "default" : "ghost"}
                 size="sm"
                 className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/clients")
-                    ? "bg-secondary text-foreground font-bold border border-border"
-                    : "text-typography hover:text-foreground"
+                  ? "bg-secondary text-foreground font-bold border border-border"
+                  : "text-typography hover:text-foreground"
                   }`}
               >
                 <Users className="w-3.5 h-3.5 mr-1.5 text-info" />
@@ -100,8 +100,8 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
                 variant={pathname.startsWith("/devices") ? "default" : "ghost"}
                 size="sm"
                 className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/devices")
-                    ? "bg-secondary text-foreground font-bold border border-border"
-                    : "text-typography hover:text-foreground"
+                  ? "bg-secondary text-foreground font-bold border border-border"
+                  : "text-typography hover:text-foreground"
                   }`}
               >
                 <Smartphone className="w-3.5 h-3.5 mr-1.5 text-success" />
@@ -114,8 +114,8 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
                 variant={pathname === "/work-orders/new" ? "default" : "outline"}
                 size="sm"
                 className={`text-xs font-mono tracking-wider uppercase ${pathname === "/work-orders/new"
-                    ? "bg-tertiary text-tertiary-foreground font-bold shadow-md shadow-tertiary/20"
-                    : "border-tertiary/40 text-tertiary hover:bg-tertiary/10"
+                  ? "bg-tertiary text-tertiary-foreground font-bold shadow-md shadow-tertiary/20"
+                  : "border-tertiary/40 text-tertiary hover:bg-tertiary/10"
                   }`}
               >
                 <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
@@ -146,7 +146,7 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
       {/* Workshop Footer */}
       <footer className="w-full border-t border-border/40 py-6 px-4 text-center text-xs text-typography/60 font-mono">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>&copy; {new Date().getFullYear()} Viking App Systems. Entorno Técnico Protegido.</p>
+          <p>&copy; {new Date().getFullYear()} Zonda Solutions. Entorno Técnico Protegido.</p>
           <p className="flex items-center gap-1.5 justify-center">
             <Wrench className="w-3.5 h-3.5 text-tertiary" />
             <span>Soporte RBAC Activo</span>

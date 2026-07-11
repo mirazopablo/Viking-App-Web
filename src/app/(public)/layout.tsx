@@ -18,7 +18,7 @@ export default function PublicLayout({ children }: Readonly<PublicLayoutProps>) 
       {/* Top Navigation Bar */}
       <header className="w-full border-b border-border/60 bg-card/80 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Link href="/status" className="flex items-center gap-3 group">
+          <Link href="/" className="flex items-center gap-3 group">
             <BrandLogo size="sm" />
             <div>
               <span className="font-bold tracking-wider uppercase text-foreground text-sm sm:text-base block">
