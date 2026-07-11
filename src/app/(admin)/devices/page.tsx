@@ -8,7 +8,7 @@ import * as z from "zod";
 import { deviceService } from "@/services/device.service";
 import { userService } from "@/services/user.service";
 import { SearchPicker, SearchPickerOption } from "@/components/common/search-picker";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { VikingCard } from "@/components/shared/viking-card";
 import { VikingSearchBar } from "@/components/shared/viking-search-bar";
 import { VikingLoader } from "@/components/shared/viking-loader";
@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Smartphone, Search, Plus, User, Hash, ShieldCheck, Loader2, Save, RefreshCw, Phone, CreditCard } from "lucide-react";
+import { Smartphone, Search, Plus, User, Hash, ShieldCheck, Loader2, Save, RefreshCw, Phone, CreditCard, Trash2 } from "lucide-react";
+import { useUserRole } from "@/hooks/use-user-role";
 
 const createDeviceSchema = z.object({
   userId: z.string().min(1, { message: "Debe seleccionar un cliente titular" }),
@@ -37,6 +38,7 @@ type CreateDeviceFormValues = z.infer<typeof createDeviceSchema>;
  */
 export default function DevicesInventoryPage() {
   const queryClient = useQueryClient();
+  const { isAdmin } = useUserRole();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isNewModalOpen, setIsNewModalOpen] = useState<boolean>(false);
   const [isCreating, setIsCreating] = useState<boolean>(false);
@@ -97,6 +99,26 @@ export default function DevicesInventoryPage() {
       toast.error("Error al registrar", { description: msg });
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleDeleteDevice = async (dev: DeviceResponseDTO) => {
+    const confirmed = window.confirm(
+      `¿Está seguro de eliminar el dispositivo "${dev.brand} ${dev.model}" (Serie/IMEI: ${dev.serialNumber})?`
+    );
+    if (!confirmed) return;
+
+    try {
+      await deviceService.deleteDevice(dev.id);
+      toast.success("Dispositivo eliminado", {
+        description: `El equipo ${dev.serialNumber} fue eliminado del inventario.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["devices-inventory"] });
+    } catch (err: unknown) {
+      console.error("Delete device failed:", err);
+      toast.error("Error al eliminar", {
+        description: "No se pudo eliminar el dispositivo en el servidor.",
+      });
     }
   };
 
@@ -171,65 +193,77 @@ export default function DevicesInventoryPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
           {filteredDevices.map((dev) => (
-            <VikingCard key={dev.id} variant="device">
-              <CardHeader className="p-5 pb-3 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono uppercase bg-secondary/60 text-typography px-2 py-0.5 rounded flex items-center gap-1">
-                    <Hash className="w-3 h-3 text-success" />
-                    <span>Serie / IMEI</span>
+            <VikingCard
+              key={dev.id}
+              variant="device"
+              badgeLeft={
+                <span className="text-[10px] font-mono uppercase bg-secondary/60 text-typography px-2 py-0.5 rounded flex items-center gap-1">
+                  <Hash className="w-3 h-3 text-success" />
+                  <span>Serie / IMEI</span>
+                </span>
+              }
+              badgeRight={
+                <span className="text-[10px] font-mono font-bold uppercase bg-success/15 text-success px-2.5 py-0.5 rounded border border-success/30 tracking-wider">
+                  {dev.serialNumber}
+                </span>
+              }
+              title={`${dev.brand} ${dev.model}`}
+              footer={
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-typography">Registrado en Taller</span>
+                  <div className="flex items-center gap-2">
+                    {isAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteDevice(dev)}
+                        className="h-7 px-2 text-xs font-mono uppercase text-error hover:text-error hover:bg-error/10 font-semibold"
+                        title="Eliminar dispositivo (Sólo Administrador)"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                    <span className="text-success font-semibold">Repuesto OEM</span>
+                  </div>
+                </div>
+              }
+            >
+              <div className="space-y-2.5 text-xs font-mono text-typography pt-1 bg-secondary/15 p-3.5 rounded-lg border border-border/40 hover:border-success/40 transition-colors">
+                <div className="flex items-center justify-between border-b border-border/40 pb-2">
+                  <span className="flex items-center gap-1.5 font-bold text-foreground truncate" title={dev.userName || dev.userId}>
+                    <User className="w-3.5 h-3.5 text-success shrink-0" />
+                    {dev.userName || "Cliente Titular"}
                   </span>
-                  <span className="text-[10px] font-mono font-bold uppercase bg-success/15 text-success px-2.5 py-0.5 rounded border border-success/30 tracking-wider">
-                    {dev.serialNumber}
+                  <span className="text-[10px] uppercase px-2 py-0.5 rounded bg-success/15 text-success font-semibold border border-success/30 shrink-0">
+                    Titular
                   </span>
                 </div>
-                <CardTitle className="text-base font-bold text-foreground tracking-tight pt-1">
-                  {dev.brand} {dev.model}
-                </CardTitle>
-              </CardHeader>
 
-              <CardContent className="p-5 pt-0 space-y-4 flex-1 flex flex-col justify-between">
-                <div className="space-y-2.5 text-xs font-mono text-typography pt-1 bg-secondary/15 p-3.5 rounded-lg border border-border/40 hover:border-success/40 transition-colors">
-                  <div className="flex items-center justify-between border-b border-border/40 pb-2">
-                    <span className="flex items-center gap-1.5 font-bold text-foreground truncate" title={dev.userName || dev.userId}>
-                      <User className="w-3.5 h-3.5 text-success shrink-0" />
-                      {dev.userName || "Cliente Titular"}
-                    </span>
-                    <span className="text-[10px] uppercase px-2 py-0.5 rounded bg-success/15 text-success font-semibold border border-success/30 shrink-0">
-                      Titular
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-0.5">
+                  <div className="flex items-center gap-1.5 text-typography">
+                    <CreditCard className="w-3.5 h-3.5 text-tertiary shrink-0" />
+                    <span className="truncate">
+                      DNI: <strong className="text-foreground">{dev.userDni ? dev.userDni.toLocaleString("es-AR") : "N/A"}</strong>
                     </span>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-0.5">
-                    <div className="flex items-center gap-1.5 text-typography">
-                      <CreditCard className="w-3.5 h-3.5 text-tertiary shrink-0" />
-                      <span className="truncate">
-                        DNI: <strong className="text-foreground">{dev.userDni ? dev.userDni.toLocaleString("es-AR") : "N/A"}</strong>
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-typography">
-                      <Phone className="w-3.5 h-3.5 text-tertiary shrink-0" />
-                      <span className="truncate">
-                        Tel: <strong className="text-foreground">{dev.userPhone || "N/A"}</strong>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[10px] text-typography/70 pt-1.5 border-t border-border/30">
-                    <span className="flex items-center gap-1">
-                      <ShieldCheck className="w-3 h-3 text-tertiary shrink-0" />
-                      <span>Verificado en Taller</span>
-                    </span>
-                    <span className="truncate max-w-[110px] text-[9px] text-typography/50" title={`UUID Titular: ${dev.userId}`}>
-                      {dev.userId.slice(0, 8)}...
+                  <div className="flex items-center gap-1.5 text-typography">
+                    <Phone className="w-3.5 h-3.5 text-tertiary shrink-0" />
+                    <span className="truncate">
+                      Tel: <strong className="text-foreground">{dev.userPhone || "N/A"}</strong>
                     </span>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-border/40 flex items-center justify-between text-[11px] font-mono text-typography">
-                  <span>Registrado en Taller</span>
-                  <span className="text-success font-semibold">Repuesto OEM</span>
+                <div className="flex items-center justify-between text-[10px] text-typography/70 pt-1.5 border-t border-border/30">
+                  <span className="flex items-center gap-1">
+                    <ShieldCheck className="w-3 h-3 text-tertiary shrink-0" />
+                    <span>Verificado en Taller</span>
+                  </span>
+                  <span className="truncate max-w-[110px] text-[9px] text-typography/50" title={`UUID Titular: ${dev.userId}`}>
+                    {dev.userId.slice(0, 8)}...
+                  </span>
                 </div>
-              </CardContent>
+              </div>
             </VikingCard>
           ))}
         </div>

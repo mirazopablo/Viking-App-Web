@@ -155,16 +155,16 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
             <select
               id="roleId"
               disabled={isLoading || isLoadingRoles}
-              className="w-full rounded-md bg-secondary/20 border border-border focus:border-tertiary p-2 text-sm text-foreground font-mono uppercase font-semibold"
+              className="w-full rounded-md bg-neutral-900 border border-border focus:border-tertiary p-2 text-sm text-foreground font-mono uppercase font-semibold"
               {...register("roleId")}
             >
-              <option value="" disabled>
+              <option value="" disabled className="bg-neutral-900 text-foreground">
                 {isLoadingRoles ? "Cargando roles..." : "Seleccione un rol..."}
               </option>
               {roles.map((r) => {
                 const label = (r as any).name || (r as any).descripcion || "ROL";
                 return (
-                  <option key={r.id} value={r.id}>
+                  <option key={r.id} value={r.id} className="bg-neutral-900 text-foreground">
                     {label}
                   </option>
                 );

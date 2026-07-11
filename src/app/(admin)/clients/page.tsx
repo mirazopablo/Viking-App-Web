@@ -8,7 +8,7 @@ import * as z from "zod";
 import { userService } from "@/services/user.service";
 import { UserResponseDTO } from "@/types/user";
 import { QuickClientModal } from "@/components/clients/quick-client-modal";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { VikingCard } from "@/components/shared/viking-card";
 import { VikingSearchBar } from "@/components/shared/viking-search-bar";
 import { VikingLoader } from "@/components/shared/viking-loader";
@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Users, Search, Plus, Phone, Mail, MapPin, Edit3, ShieldAlert, Loader2, Save, RefreshCw } from "lucide-react";
+import { Users, Search, Plus, Phone, Mail, MapPin, Edit3, Trash2, ShieldAlert, Loader2, Save, RefreshCw } from "lucide-react";
+import { useUserRole } from "@/hooks/use-user-role";
 
 /**
  * Schema for updating user profile.
@@ -38,6 +39,7 @@ type EditClientFormValues = z.infer<typeof editClientSchema>;
  */
 export default function ClientsDirectoryPage() {
   const queryClient = useQueryClient();
+  const { isAdmin } = useUserRole();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isNewModalOpen, setIsNewModalOpen] = useState<boolean>(false);
   const [clientToEdit, setClientToEdit] = useState<UserResponseDTO | null>(null);
@@ -88,6 +90,26 @@ export default function ClientsDirectoryPage() {
       toast.error("Error al actualizar", { description: "No se pudieron guardar los cambios en el servidor." });
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteClient = async (client: UserResponseDTO) => {
+    const confirmed = window.confirm(
+      `¿Está seguro de eliminar definitivamente al cliente "${client.name}" (DNI: ${client.dni})? Esta acción no se puede deshacer.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await userService.deleteUser(client.id);
+      toast.success("Cliente eliminado con éxito", {
+        description: `El registro de ${client.name} ha sido removido del sistema.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["users-directory"] });
+    } catch (err: unknown) {
+      console.error("Delete user failed:", err);
+      toast.error("Error al eliminar", {
+        description: "No se pudo eliminar el cliente en el servidor.",
+      });
     }
   };
 
@@ -159,37 +181,29 @@ export default function ClientsDirectoryPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
           {filteredClients.map((client) => (
-            <VikingCard key={client.id} variant="client">
-              <CardHeader className="p-5 pb-3 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold uppercase bg-info/15 text-info px-2.5 py-1 rounded border border-info/30 tracking-wider">
-                    DNI: {client.dni}
-                  </span>
-                </div>
-                <CardTitle className="text-base font-bold text-foreground tracking-tight pt-1">
-                  {client.name}
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent className="p-5 pt-0 space-y-4 flex-1 flex flex-col justify-between">
-                <div className="space-y-1.5 text-xs font-mono text-typography pt-1 bg-secondary/15 p-3 rounded-lg border border-border/40">
-                  <p className="flex items-center gap-2 truncate">
-                    <Mail className="w-3.5 h-3.5 text-info shrink-0" />
-                    <span className="truncate">{client.email}</span>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <Phone className="w-3.5 h-3.5 text-info shrink-0" />
-                    <span>{client.phoneNumber || "Sin teléfono"}</span>
-                  </p>
-                  {client.address && (
-                    <p className="flex items-center gap-2 truncate">
-                      <MapPin className="w-3.5 h-3.5 text-info shrink-0" />
-                      <span className="truncate">{client.address}</span>
-                    </p>
+            <VikingCard
+              key={client.id}
+              variant="client"
+              badgeLeft={
+                <span className="text-xs font-mono font-bold uppercase bg-info/15 text-info px-2.5 py-1 rounded border border-info/30 tracking-wider">
+                  DNI: {client.dni}
+                </span>
+              }
+              title={client.name}
+              footer={
+                <div className="flex items-center justify-end gap-2 w-full">
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteClient(client)}
+                      className="h-8 text-xs font-mono uppercase text-error hover:text-error/90 hover:bg-error/10 font-semibold"
+                      title="Eliminar cliente (Sólo Administrador)"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 mr-1" />
+                      Eliminar
+                    </Button>
                   )}
-                </div>
-
-                <div className="pt-2 border-t border-border/40 flex justify-end">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -200,7 +214,24 @@ export default function ClientsDirectoryPage() {
                     Editar Contacto
                   </Button>
                 </div>
-              </CardContent>
+              }
+            >
+              <div className="space-y-1.5 text-xs font-mono text-typography pt-1 bg-secondary/15 p-3 rounded-lg border border-border/40">
+                <p className="flex items-center gap-2 truncate">
+                  <Mail className="w-3.5 h-3.5 text-info shrink-0" />
+                  <span className="truncate">{client.email}</span>
+                </p>
+                <p className="flex items-center gap-2">
+                  <Phone className="w-3.5 h-3.5 text-info shrink-0" />
+                  <span>{client.phoneNumber || "Sin teléfono"}</span>
+                </p>
+                {client.address && (
+                  <p className="flex items-center gap-2 truncate">
+                    <MapPin className="w-3.5 h-3.5 text-info shrink-0" />
+                    <span className="truncate">{client.address}</span>
+                  </p>
+                )}
+              </div>
             </VikingCard>
           ))}
         </div>
