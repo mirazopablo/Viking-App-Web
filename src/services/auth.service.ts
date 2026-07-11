@@ -34,6 +34,11 @@ export const authService = {
 
       const userData = userResponse.data;
       const roleName = permissionResponse.data || "STAFF";
+      const resolvedRole = typeof roleName === "string" ? roleName : "STAFF";
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("viking_user_role", resolvedRole);
+      }
 
       return {
         token,
@@ -41,7 +46,7 @@ export const authService = {
           id: userData.id || "",
           email: userData.email || credentials.email,
           name: userData.name || "Técnico",
-          role: typeof roleName === "string" ? roleName : "STAFF",
+          role: resolvedRole,
         },
       };
     } catch {
@@ -87,6 +92,7 @@ export const authService = {
   logout: (reason?: string): void => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("viking_jwt_token");
+      localStorage.removeItem("viking_user_role");
       const targetUrl = reason
         ? `/login?reason=${encodeURIComponent(reason)}`
         : "/login";

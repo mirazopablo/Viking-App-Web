@@ -68,13 +68,13 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const response = await authService.login(data);
-      
+
       if (response && response.token) {
         localStorage.setItem("viking_jwt_token", response.token);
         toast.success(`Bienvenido, ${response.user?.name || "Técnico"}`, {
           description: `Sesión iniciada con rol: ${response.user?.role || "Staff"}`,
         });
-        
+
         // Redirect to main work orders workspace
         router.push("/work-orders");
       }
@@ -115,7 +115,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="staff@vikingapp.com"
+                placeholder="staff@zondasolutions.com"
                 className="pl-9 bg-secondary/20 border-border focus:border-tertiary focus:ring-1 focus:ring-tertiary transition-all"
                 disabled={isLoading}
                 {...register("email")}
