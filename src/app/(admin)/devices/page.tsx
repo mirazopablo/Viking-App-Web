@@ -13,6 +13,8 @@ import { Card } from "@/components/ui/card";
 import { VikingCard } from "@/components/shared/viking-card";
 import { VikingSearchBar } from "@/components/shared/viking-search-bar";
 import { VikingLoader } from "@/components/shared/viking-loader";
+import { AdminPageHeader } from "@/components/shared/admin-page-header";
+import { EmptyStateCard } from "@/components/shared/empty-state-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -140,29 +142,15 @@ export default function DevicesInventoryPage() {
   return (
     <div className="space-y-6 animate-fadeIn pb-12">
       {/* Top Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold uppercase text-foreground tracking-tight flex items-center gap-2.5">
-            <Smartphone className="w-7 h-7 text-success" />
-            Parque de Hardware
-          </h1>
-          <p className="text-xs font-mono text-typography mt-1">
-            Inventario histórico de dispositivos y números de serie en taller.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => refetch()}
-            disabled={isRefetching}
-            className="border-border hover:border-tertiary h-10 w-10 text-typography"
-            title="Refrescar inventario"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefetching ? "animate-spin text-tertiary" : ""}`} />
-          </Button>
-
+      <AdminPageHeader
+        title="Parque de Hardware"
+        subtitle="Inventario histórico de dispositivos y números de serie en taller."
+        icon={Smartphone}
+        iconClassName="w-7 h-7 text-success"
+        onRefresh={() => refetch()}
+        isRefetching={isRefetching}
+        refreshTitle="Refrescar inventario"
+        actions={
           <Button
             onClick={() => setIsNewModalOpen(true)}
             className="bg-success hover:bg-success/90 text-white font-bold tracking-wider uppercase shadow-lg shadow-success/20 text-xs py-5 px-5"
@@ -170,8 +158,8 @@ export default function DevicesInventoryPage() {
             <Plus className="w-4 h-4 mr-1.5" />
             Nuevo Dispositivo
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Search Bar */}
       <VikingSearchBar
@@ -186,11 +174,11 @@ export default function DevicesInventoryPage() {
       {isLoading ? (
         <VikingLoader count={6} columns={3} />
       ) : filteredDevices.length === 0 ? (
-        <Card className="bg-secondary/15 border-border/60 p-12 text-center space-y-3">
-          <Smartphone className="w-12 h-12 text-typography/40 mx-auto" />
-          <h3 className="font-bold text-foreground text-base uppercase">No se encontraron dispositivos</h3>
-          <p className="text-xs font-mono text-typography">Intente con otra búsqueda o registre un nuevo equipo para un cliente.</p>
-        </Card>
+        <EmptyStateCard
+          icon={Smartphone}
+          title="No se encontraron dispositivos"
+          description="Intente con otra búsqueda o registre un nuevo equipo para un cliente."
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
           {filteredDevices.map((dev) => (

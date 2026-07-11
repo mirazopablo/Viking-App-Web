@@ -12,6 +12,8 @@ import { Card } from "@/components/ui/card";
 import { VikingCard } from "@/components/shared/viking-card";
 import { VikingSearchBar } from "@/components/shared/viking-search-bar";
 import { VikingLoader } from "@/components/shared/viking-loader";
+import { AdminPageHeader } from "@/components/shared/admin-page-header";
+import { EmptyStateCard } from "@/components/shared/empty-state-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -127,29 +129,15 @@ export default function ClientsDirectoryPage() {
   return (
     <div className="space-y-6 animate-fadeIn pb-12">
       {/* Top Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold uppercase text-foreground tracking-tight flex items-center gap-2.5">
-            <Users className="w-7 h-7 text-info" />
-            Directorio de Clientes
-          </h1>
-          <p className="text-xs font-mono text-typography mt-1">
-            Gestión centralizada de titulares e información de contacto del taller.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => refetch()}
-            disabled={isRefetching}
-            className="border-border hover:border-tertiary h-10 w-10 text-typography"
-            title="Refrescar directorio"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefetching ? "animate-spin text-tertiary" : ""}`} />
-          </Button>
-
+      <AdminPageHeader
+        title="Directorio de Clientes"
+        subtitle="Gestión centralizada de titulares e información de contacto del taller."
+        icon={Users}
+        iconClassName="w-7 h-7 text-info"
+        onRefresh={() => refetch()}
+        isRefetching={isRefetching}
+        refreshTitle="Refrescar directorio"
+        actions={
           <Button
             onClick={() => setIsNewModalOpen(true)}
             className="bg-info hover:bg-info/90 text-white font-bold tracking-wider uppercase shadow-lg shadow-info/20 text-xs py-5 px-5"
@@ -157,8 +145,8 @@ export default function ClientsDirectoryPage() {
             <Plus className="w-4 h-4 mr-1.5" />
             Nuevo Cliente
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Search Input */}
       <VikingSearchBar
@@ -173,11 +161,11 @@ export default function ClientsDirectoryPage() {
       {isLoading ? (
         <VikingLoader count={6} columns={3} />
       ) : filteredClients.length === 0 ? (
-        <Card className="bg-secondary/15 border-border/60 p-12 text-center space-y-3">
-          <Users className="w-12 h-12 text-typography/40 mx-auto" />
-          <h3 className="font-bold text-foreground text-base uppercase">No se encontraron clientes</h3>
-          <p className="text-xs font-mono text-typography">Intente con otro parámetro de búsqueda o registre un cliente en el taller.</p>
-        </Card>
+        <EmptyStateCard
+          icon={Users}
+          title="No se encontraron clientes"
+          description="Intente con otro parámetro de búsqueda o registre un cliente en el taller."
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
           {filteredClients.map((client) => (
