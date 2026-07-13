@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { LanguageProvider } from "@/context/language-context";
 
 const outfitSans = Outfit({
   variable: "--font-outfit-sans",
@@ -31,7 +32,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <QueryProvider>
-          {children}
+          <LanguageProvider defaultLang="es">{children}</LanguageProvider>
         </QueryProvider>
       </body>
     </html>
