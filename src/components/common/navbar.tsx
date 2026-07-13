@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Lock, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/shared/brand-logo";
+import { useLanguage } from "@/context/language-context";
+import { LanguageToggle } from "@/components/shared/language-toggle";
 
 /**
  * Top Navigation Bar (Navbar):
@@ -12,6 +14,8 @@ import { BrandLogo } from "@/components/shared/brand-logo";
  * quick access to public tracking (/status), and discreet staff login (/login).
  */
 export function Navbar() {
+  const { t } = useLanguage();
+
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
     const element = document.getElementById(targetId);
@@ -56,34 +60,36 @@ export function Navbar() {
             onClick={(e) => handleSmoothScroll(e, "services")}
             className="hover:text-tertiary transition-colors cursor-pointer"
           >
-            Servicios
+            {t.navbar.services}
           </a>
           <a
             href="#evidence"
             onClick={(e) => handleSmoothScroll(e, "evidence")}
             className="hover:text-tertiary transition-colors cursor-pointer"
           >
-            Evidencia
+            {t.navbar.evidence}
           </a>
           <a
             href="#why-viking"
             onClick={(e) => handleSmoothScroll(e, "why-viking")}
             className="hover:text-tertiary transition-colors cursor-pointer"
           >
-            Estándar & Garantía
+            {t.navbar.standards}
           </a>
         </nav>
 
-        {/* Action Buttons: Track Order (QR/Ticket ready) & Staff Access */}
-        <div className="flex items-center gap-3">
+        {/* Action Buttons: Language Toggle, Track Order & Staff Access */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <LanguageToggle />
+
           <Link href="/status">
             <Button
               size="sm"
               className="bg-info/15 hover:bg-info/25 text-info border border-info/40 font-semibold uppercase tracking-wider text-xs px-3 sm:px-4 py-2 h-9 shadow-sm hover:shadow-info/10 transition-all flex items-center gap-1.5"
             >
               <Search className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Rastrear Equipo</span>
-              <span className="sm:hidden">Rastrear</span>
+              <span className="hidden sm:inline">{t.navbar.trackDevice}</span>
+              <span className="sm:hidden">{t.navbar.trackShort}</span>
             </Button>
           </Link>
 
@@ -95,7 +101,7 @@ export function Navbar() {
               title="Acceso para Personal y Técnicos"
             >
               <Lock className="w-3.5 h-3.5" />
-              <span className="hidden lg:inline">Staff Login</span>
+              <span className="hidden lg:inline">{t.navbar.staffLogin}</span>
             </Button>
           </Link>
         </div>

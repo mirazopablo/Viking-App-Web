@@ -1,7 +1,11 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import { Wrench, ArrowRight } from "lucide-react";
 import { BrandLogo } from "@/components/shared/brand-logo";
+import { useLanguage } from "@/context/language-context";
+import { LanguageToggle } from "@/components/shared/language-toggle";
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -13,6 +17,8 @@ interface PublicLayoutProps {
  * Features top navigation back to main portal or login.
  */
 export default function PublicLayout({ children }: Readonly<PublicLayoutProps>) {
+  const { t } = useLanguage();
+
   return (
     <div className="min-h-screen w-full flex flex-col bg-background text-foreground relative">
       {/* Top Navigation Bar */}
@@ -25,17 +31,19 @@ export default function PublicLayout({ children }: Readonly<PublicLayoutProps>) 
                 Viking App
               </span>
               <span className="text-[10px] font-mono text-typography tracking-widest block uppercase">
-                Portal de Clientes
+                {t.publicLayout.portalSubtitle}
               </span>
             </div>
           </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <LanguageToggle />
+
             <Link
               href="/login"
               className="text-xs font-semibold text-typography hover:text-tertiary transition-colors flex items-center gap-1.5 uppercase tracking-wider font-mono bg-secondary/30 px-3 py-1.5 rounded-md border border-border/40 hover:border-tertiary/40"
             >
-              <span>Acceso Staff</span>
+              <span>{t.publicLayout.staffAccess}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -50,10 +58,10 @@ export default function PublicLayout({ children }: Readonly<PublicLayoutProps>) 
       {/* Footer */}
       <footer className="w-full border-t border-border/40 py-6 px-4 text-center text-xs text-typography/60 font-mono">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>&copy; {new Date().getFullYear()} Viking App Systems. Todos los derechos reservados.</p>
+          <p>&copy; {new Date().getFullYear()} {t.publicLayout.footerCopyright}</p>
           <p className="flex items-center gap-1.5 justify-center">
             <Wrench className="w-3.5 h-3.5 text-tertiary" />
-            <span>Soporte Técnico Vikingo</span>
+            <span>{t.publicLayout.footerSupport}</span>
           </p>
         </div>
       </footer>

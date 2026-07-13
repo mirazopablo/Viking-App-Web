@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import {
@@ -20,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from "@/components/common/navbar";
 import { BeforeAfterSlider } from "@/components/common/before-after-slider";
+import { useLanguage } from "@/context/language-context";
 import limpiezaAntesImg from "@/components/assets/images/limpieza2_antes.jpg";
 import limpiezaDespuesImg from "@/components/assets/images/limpieza2_despues.jpg";
 import mantenimientoAntesImg from "@/components/assets/images/mantenimiento_antes.jpg";
@@ -32,6 +35,8 @@ import mantenimientoDespuesImg from "@/components/assets/images/mantenimiento_de
  * live interactive before/after repair evidence, and prominent thermal ticket QR tracking.
  */
 export default function HomePage() {
+  const { t } = useLanguage();
+
   return (
     <div className="min-h-screen w-full flex flex-col bg-background text-foreground relative overflow-x-hidden selection:bg-tertiary/20 selection:text-tertiary">
       {/* Navbar Header */}
@@ -47,17 +52,19 @@ export default function HomePage() {
         {/* Status Pill Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-secondary/30 border border-border/80 text-xs font-mono text-typography tracking-wider uppercase animate-fade-in shadow-sm">
           <span className="w-2 h-2 rounded-full bg-success animate-ping" />
-          <span>Laboratorio de Precisión & Diagnóstico Digital</span>
+          <span>{t.home.statusBadge}</span>
         </div>
 
         {/* Hero Title */}
         <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground uppercase max-w-4xl leading-[1.1] sm:leading-[1.1]">
-          Soporte Técnico de <span className="text-tertiary drop-shadow-sm">Alta Precisión</span> & Mantenimiento Especializado
+          {t.home.heroTitlePart1}{" "}
+          <span className="text-tertiary drop-shadow-sm">{t.home.heroTitleHighlight}</span>{" "}
+          {t.home.heroTitlePart2}
         </h1>
 
         {/* Hero Subtitle */}
         <p className="text-sm sm:text-base md:text-lg text-typography font-mono leading-relaxed max-w-2xl mx-auto">
-          Ingeniería de hardware y diagnóstico transparente para empresas, servidores PC, notebooks y consolas. Trazabilidad en tiempo real y rigor militar en cada soldadura.
+          {t.home.heroSubtitle}
         </p>
 
         {/* Primary CTA Action Bar (QR / Thermal Ticket Tracking Hook) */}
@@ -69,7 +76,7 @@ export default function HomePage() {
             >
               <div className="absolute inset-0 w-1/2 h-full bg-white/20 skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000 ease-out pointer-events-none" />
               <QrCode className="w-6 h-6 mr-3 animate-pulse" />
-              <span>Consultar Estado de Equipo (QR)</span>
+              <span>{t.home.ctaTrack}</span>
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
@@ -80,7 +87,7 @@ export default function HomePage() {
               size="lg"
               className="w-full bg-card/80 backdrop-blur-md border-border/80 hover:border-tertiary/60 text-foreground font-mono text-xs uppercase tracking-widest py-7 px-6 hover:bg-secondary/30 transition-all"
             >
-              <span>Servicios Corporativos</span>
+              <span>{t.home.ctaServices}</span>
               <ChevronRight className="ml-1 h-4 w-4 text-tertiary" />
             </Button>
           </a>
@@ -90,19 +97,19 @@ export default function HomePage() {
         <div className="pt-8 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 w-full max-w-4xl text-left border-t border-border/40 text-xs font-mono text-typography/80">
           <div className="flex items-center gap-2.5">
             <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
-            <span>Evidencia Foto & Video en Vivo</span>
+            <span>{t.home.features.evidence}</span>
           </div>
           <div className="flex items-center gap-2.5">
             <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
-            <span>Laboratorio ESD Homologado</span>
+            <span>{t.home.features.esdLab}</span>
           </div>
           <div className="flex items-center gap-2.5">
             <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
-            <span>Repuestos Grado Original</span>
+            <span>{t.home.features.originalParts}</span>
           </div>
           <div className="flex items-center gap-2.5">
             <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
-            <span>Garantía Escrita 100% Auditada</span>
+            <span>{t.home.features.writtenWarranty}</span>
           </div>
         </div>
       </section>
@@ -113,13 +120,13 @@ export default function HomePage() {
           {/* Section Header */}
           <div className="text-center space-y-3 max-w-2xl mx-auto">
             <span className="text-xs font-mono uppercase tracking-widest text-tertiary font-bold px-3 py-1 rounded-full bg-tertiary/10 border border-tertiary/30 inline-block">
-              Capacidades de Taller
+              {t.home.servicesHeaderBadge}
             </span>
             <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground uppercase">
-              Soluciones Integrales para Flotas & Hardware
+              {t.home.servicesTitle}
             </h2>
             <p className="text-xs sm:text-sm text-typography font-mono leading-relaxed">
-              Diseñado tanto para usuarios particulares como para empresas con demanda crítica de continuidad operativa.
+              {t.home.servicesSubtitle}
             </p>
           </div>
 
@@ -132,21 +139,21 @@ export default function HomePage() {
                   <Server className="w-6 h-6" />
                 </div>
                 <CardTitle className="text-xl font-bold uppercase text-foreground">
-                  Mantenimiento Corporativo & PC
+                  {t.home.serviceCards.servers.title}
                 </CardTitle>
                 <CardDescription className="text-xs font-mono text-typography leading-relaxed">
-                  Soporte preventivo y correctivo para estaciones de trabajo de alto rendimiento, PC de escritorio y servidores empresariales.
+                  {t.home.serviceCards.servers.desc}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-2 space-y-4 font-mono text-xs text-typography/90">
                 <ul className="space-y-2 border-t border-border/40 pt-4">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-info" />
-                    <span>Mantenimiento térmico profesional con pastas de alta conductividad y almohadillas térmicas.</span>
+                    <span>{t.home.serviceCards.servers.bullet1}</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-info" />
-                    <span>Gestión de cables, limpieza interna exhaustiva y auditoría de fuentes de poder.</span>
+                    <span>{t.home.serviceCards.servers.bullet2}</span>
                   </li>
                 </ul>
               </CardContent>
@@ -159,21 +166,21 @@ export default function HomePage() {
                   <Smartphone className="w-6 h-6" />
                 </div>
                 <CardTitle className="text-xl font-bold uppercase text-foreground">
-                  Servicio Técnico Android
+                  {t.home.serviceCards.android.title}
                 </CardTitle>
                 <CardDescription className="text-xs font-mono text-typography leading-relaxed">
-                  Diagnóstico digital y solución especializada para teléfonos Android. Cambio garantizado de pantallas y placas de carga.
+                  {t.home.serviceCards.android.desc}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-2 space-y-4 font-mono text-xs text-typography/90">
                 <ul className="space-y-2 border-t border-border/40 pt-4">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
-                    <span>Reemplazo de módulos de pantalla OLED e IPS con encastre y prueba de control total.</span>
+                    <span>{t.home.serviceCards.android.bullet1}</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-tertiary" />
-                    <span>Cambio de placas sub-pines de carga, conectores USB-C y flex del dispositivo.</span>
+                    <span>{t.home.serviceCards.android.bullet2}</span>
                   </li>
                 </ul>
               </CardContent>
@@ -186,21 +193,21 @@ export default function HomePage() {
                   <Laptop className="w-6 h-6" />
                 </div>
                 <CardTitle className="text-xl font-bold uppercase text-foreground">
-                  Reparación de Notebooks
+                  {t.home.serviceCards.laptops.title}
                 </CardTitle>
                 <CardDescription className="text-xs font-mono text-typography leading-relaxed">
-                  Especialistas en equipos portátiles comerciales, ultrabooks y notebooks gaming. Solución definitiva a fallas térmicas y estructurales.
+                  {t.home.serviceCards.laptops.desc}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-2 space-y-4 font-mono text-xs text-typography/90">
                 <ul className="space-y-2 border-t border-border/40 pt-4">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-warning" />
-                    <span>Reconstrucción de bisagras y anclajes en chasis de aluminio o policarbonato.</span>
+                    <span>{t.home.serviceCards.laptops.bullet1}</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-warning" />
-                    <span>Cambio de pantallas y baterías con calibración de ciclos de vida del equipo.</span>
+                    <span>{t.home.serviceCards.laptops.bullet2}</span>
                   </li>
                 </ul>
               </CardContent>
@@ -213,21 +220,21 @@ export default function HomePage() {
                   <Gamepad2 className="w-6 h-6" />
                 </div>
                 <CardTitle className="text-xl font-bold uppercase text-foreground">
-                  Mantenimiento PlayStation & Xbox
+                  {t.home.serviceCards.gaming.title}
                 </CardTitle>
                 <CardDescription className="text-xs font-mono text-typography leading-relaxed">
-                  Soporte técnico integral para PlayStation 3, PlayStation 4 (Fat, Slim, Pro) y toda la familia Xbox (360, One y Series X/S).
+                  {t.home.serviceCards.gaming.desc}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-2 space-y-4 font-mono text-xs text-typography/90">
                 <ul className="space-y-2 border-t border-border/40 pt-4">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-success" />
-                    <span>Limpieza profunda de turbinas, disipadores y cambio de pasta térmica de alta calidad.</span>
+                    <span>{t.home.serviceCards.gaming.bullet1}</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-success" />
-                    <span>Reducción drástica de ruido en ventiladores y prevención de apagados térmicos.</span>
+                    <span>{t.home.serviceCards.gaming.bullet2}</span>
                   </li>
                 </ul>
               </CardContent>
@@ -242,13 +249,13 @@ export default function HomePage() {
           {/* Section Header */}
           <div className="text-center space-y-3 max-w-2xl mx-auto">
             <span className="text-xs font-mono uppercase tracking-widest text-info font-bold px-3 py-1 rounded-full bg-info/10 border border-info/30 inline-block">
-              Evidencia de Resultados
+              {t.home.evidenceBadge}
             </span>
             <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground uppercase">
-              Comparativa Visual de Laboratorio
+              {t.home.evidenceTitle}
             </h2>
             <p className="text-xs sm:text-sm text-typography font-mono leading-relaxed">
-              Desliza sobre cada imagen para observar la calidad de terminación y limpieza en nuestros servicios de mantenimiento y armado.
+              {t.home.evidenceSubtitle}
             </p>
           </div>
 
@@ -257,21 +264,21 @@ export default function HomePage() {
             <BeforeAfterSlider
               beforeImage={limpiezaAntesImg}
               afterImage={limpiezaDespuesImg}
-              beforeLabel="ANTES (SUCIO)"
-              afterLabel="LIMPIO & OPTIMIZADO"
-              title="Limpieza Profunda & Mantenimiento Preventivo"
-              description="Remoción minuciosa de polvo acumulado y obstrucciones térmicas en ventiladores y disipadores para restaurar el flujo de aire y prevenir sobrecalentamiento."
-              category="Mantenimiento de PC"
+              beforeLabel={t.home.sliders.cleaning.beforeLabel}
+              afterLabel={t.home.sliders.cleaning.afterLabel}
+              title={t.home.sliders.cleaning.title}
+              description={t.home.sliders.cleaning.desc}
+              category={t.home.sliders.cleaning.category}
             />
 
             <BeforeAfterSlider
               beforeImage={mantenimientoAntesImg}
               afterImage={mantenimientoDespuesImg}
-              beforeLabel="ANTES DEL SERVICIO"
-              afterLabel="ENSAMBLADO FINAL"
-              title="Armado Profesional & Gestión de Cables"
-              description="Ensamblaje a medida de equipos de escritorio, organización profesional de cableado interno (cable management) y verificación integral de hardware."
-              category="Armado de Equipos"
+              beforeLabel={t.home.sliders.assembly.beforeLabel}
+              afterLabel={t.home.sliders.assembly.afterLabel}
+              title={t.home.sliders.assembly.title}
+              description={t.home.sliders.assembly.desc}
+              category={t.home.sliders.assembly.category}
             />
           </div>
         </div>
@@ -282,10 +289,10 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3 max-w-2xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground uppercase">
-              El Estándar mas alto en Soporte Tecnico
+              {t.home.whyVikingTitle}
             </h2>
             <p className="text-xs sm:text-sm text-typography font-mono leading-relaxed">
-              Transparencia absoluta y profesionalismo técnico sin compromisos ni promesas vacías.
+              {t.home.whyVikingSubtitle}
             </p>
           </div>
 
@@ -294,9 +301,9 @@ export default function HomePage() {
               <div className="w-10 h-10 rounded-xl bg-tertiary/15 flex items-center justify-center text-tertiary">
                 <Activity className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-foreground text-base uppercase">Bitácora Multimedia</h3>
+              <h3 className="font-bold text-foreground text-base uppercase">{t.home.whyCards.log.title}</h3>
               <p className="text-xs font-mono text-typography leading-relaxed">
-                Cada paso del diagnóstico es documentado con fotografías de alta definición en tu línea de tiempo privada accesible vía código WOVIK.
+                {t.home.whyCards.log.desc}
               </p>
             </div>
 
@@ -304,9 +311,9 @@ export default function HomePage() {
               <div className="w-10 h-10 rounded-xl bg-success/15 flex items-center justify-center text-success">
                 <Award className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-foreground text-base uppercase">Garantía Auditada</h3>
+              <h3 className="font-bold text-foreground text-base uppercase">{t.home.whyCards.warranty.title}</h3>
               <p className="text-xs font-mono text-typography leading-relaxed">
-                Entregamos informes técnicos formales con detalle de repuestos instalados, seriales homologados y garantía escrita respaldada por el taller.
+                {t.home.whyCards.warranty.desc}
               </p>
             </div>
 
@@ -314,9 +321,9 @@ export default function HomePage() {
               <div className="w-10 h-10 rounded-xl bg-info/15 flex items-center justify-center text-info">
                 <Sparkles className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-foreground text-base uppercase">Atención B2B a Flotas</h3>
+              <h3 className="font-bold text-foreground text-base uppercase">{t.home.whyCards.b2b.title}</h3>
               <p className="text-xs font-mono text-typography leading-relaxed">
-                Planes de mantenimiento preventivo continuado para parques informáticos de empresas, estudios profesionales y laboratorios creativos.
+                {t.home.whyCards.b2b.desc}
               </p>
             </div>
           </div>
@@ -331,25 +338,25 @@ export default function HomePage() {
               Viking <span className="text-tertiary">App</span> Tech Solutions
             </span>
             <p className="text-typography/60 text-[11px] max-w-xs text-center md:text-left">
-              Laboratorio de mantenimiento informático, diagnóstico micro-electrónico y seguimiento en tiempo real.
+              {t.home.footer.tagline}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-6 text-[11px] uppercase tracking-wider">
             <Link href="/status" className="hover:text-tertiary transition-colors">
-              Rastrear Orden
+              {t.home.footer.trackOrder}
             </Link>
             <a href="#services" className="hover:text-tertiary transition-colors">
-              Servicios B2B
+              {t.home.footer.servicesB2b}
             </a>
             <a href="#evidence" className="hover:text-tertiary transition-colors">
-              Evidencia Visual
+              {t.home.footer.visualEvidence}
             </a>
             <a href="#why-viking" className="hover:text-tertiary transition-colors">
-              Estándar & Garantía
+              {t.home.footer.standardsWarranty}
             </a>
             <Link href="/login" className="text-tertiary hover:underline flex items-center gap-1 font-bold">
-              <span>Acceso Técnico (Staff)</span>
+              <span>{t.home.footer.staffAccess}</span>
               <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -357,7 +364,16 @@ export default function HomePage() {
 
         <div className="max-w-6xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-typography/50 text-[10px]">
           <p>
-            &copy; {new Date().getFullYear()} Pablo Mirazo from{" "}
+            &copy; {new Date().getFullYear()}{" "}
+            <a
+              href="http://mirazopablo.github.io/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-tertiary underline transition-colors font-semibold"
+            >
+              Pablo Mirazo
+            </a>{" "}
+            {t.home.footer.fromText}{" "}
             <a
               href="https://zondasolutions.com"
               target="_blank"
@@ -366,7 +382,7 @@ export default function HomePage() {
             >
               Zonda Solutions
             </a>
-            . Todos los derechos reservados.
+            . {t.home.footer.rightsReserved}
           </p>
         </div>
       </footer>

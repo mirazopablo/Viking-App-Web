@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Search, ShieldCheck, User, Smartphone, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
+import { useLanguage } from "@/context/language-context";
 
 /**
  * Zod schema for public repair status query.
@@ -40,6 +41,7 @@ const statusQuerySchema = z.object({
 type StatusQueryFormValues = z.infer<typeof statusQuerySchema>;
 
 export default function PublicStatusPage() {
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [result, setResult] = useState<WorkOrderPublicStatusResponseDTO | null>(null);
 
@@ -66,13 +68,12 @@ export default function PublicStatusPage() {
 
       if (response && response.workOrder) {
         setResult(response);
-        toast.success("Orden de trabajo encontrada");
+        toast.success(t.statusPage.toastSuccess);
       }
     } catch (error: any) {
       console.error("Lookup failed:", error);
-      toast.error("No se encontró la orden", {
-        description:
-          "Verifique que su DNI y el código de seguridad (ej. WOVIK-10293) sean correctos.",
+      toast.error(t.statusPage.notFoundTitle, {
+        description: t.statusPage.notFoundDesc,
       });
       setResult(null);
     } finally {
@@ -85,16 +86,16 @@ export default function PublicStatusPage() {
     reset();
   };
 
-  // State A: Render Search Form (Screen 121240)
+  // State A: Render Search Form
   if (!result) {
     return (
       <div className="w-full max-w-lg mx-auto space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground uppercase">
-            Consulta de Estado
+            {t.statusPage.title}
           </h1>
           <p className="text-sm text-typography font-mono max-w-md mx-auto">
-            Ingresa tu número de DNI y el código de seguridad de 5 caracteres que te entregó el personal de recepción.
+            {t.statusPage.subtitle}
           </p>
         </div>
 
@@ -102,17 +103,17 @@ export default function PublicStatusPage() {
           <CardHeader className="pb-4">
             <CardTitle className="text-base font-bold text-foreground uppercase flex items-center gap-2">
               <Search className="w-4 h-4 text-tertiary" />
-              Rastrear Orden de Reparación
+              {t.statusPage.badge}
             </CardTitle>
             <CardDescription className="text-xs text-typography font-mono">
-              Los campos marcados con (*) son obligatorios.
+              {t.statusPage.securityNotice}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="clientDni" className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                  Número de DNI (*)
+                  {t.statusPage.clientDniLabel} (*)
                 </Label>
                 <div className="relative">
                   <User className="absolute left-3 top-2.5 h-4 w-4 text-typography" />
@@ -120,7 +121,7 @@ export default function PublicStatusPage() {
                     id="clientDni"
                     type="text"
                     inputMode="numeric"
-                    placeholder="Ej: 34567890"
+                    placeholder={t.statusPage.clientDniPlaceholder}
                     className="pl-9 bg-secondary/20 border-border focus:border-tertiary focus:ring-1 focus:ring-tertiary font-mono"
                     disabled={isLoading}
                     {...register("clientDni")}
@@ -133,7 +134,7 @@ export default function PublicStatusPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="securityCode" className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                  Código de Seguridad (*)
+                  {t.statusPage.securityCodeLabel} (*)
                 </Label>
                 <div className="flex rounded-lg border border-border bg-secondary/20 focus-within:border-tertiary focus-within:ring-1 focus-within:ring-tertiary overflow-hidden">
                   <div className="flex items-center gap-1.5 pl-3 pr-2.5 bg-secondary/40 border-r border-border text-xs font-mono font-bold tracking-wider text-foreground select-none shrink-0">
@@ -144,7 +145,7 @@ export default function PublicStatusPage() {
                     id="securityCode"
                     type="text"
                     maxLength={5}
-                    placeholder="XXXXX"
+                    placeholder={t.statusPage.securityCodePlaceholder}
                     className="border-0 rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-transparent font-mono uppercase font-bold tracking-widest text-tertiary"
                     disabled={isLoading}
                     {...register("securityCode")}
@@ -163,11 +164,11 @@ export default function PublicStatusPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Consultando Sistema...
+                    {t.statusPage.searchingButton}
                   </>
                 ) : (
                   <>
-                    Consultar Estado
+                    {t.statusPage.searchButton}
                     <Search className="ml-2 h-4 w-4" />
                   </>
                 )}
@@ -193,10 +194,10 @@ export default function PublicStatusPage() {
           className="text-xs font-mono tracking-wider uppercase border-border hover:border-tertiary text-foreground"
         >
           <ArrowLeft className="mr-2 h-3.5 w-3.5" />
-          Volver a Consultar
+          {t.statusPage.tryAgainButton}
         </Button>
         <span className="text-xs font-mono text-typography uppercase">
-          Código: <strong className="text-tertiary font-bold tracking-wider">{workOrder.securityCode}</strong>
+          WOVIK: <strong className="text-tertiary font-bold tracking-wider">{workOrder.securityCode}</strong>
         </span>
       </div>
 
@@ -206,10 +207,10 @@ export default function PublicStatusPage() {
         <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <CardTitle className="text-xl font-bold uppercase text-foreground">
-              Detalle de la Orden
+              {t.statusPage.orderInfoTitle}
             </CardTitle>
             <CardDescription className="text-xs font-mono text-typography">
-              Ingresado el: {new Date(workOrder.createdAt).toLocaleDateString("es-AR")}
+              {t.statusPage.intakeDateLabel}: {new Date(workOrder.createdAt).toLocaleDateString()}
             </CardDescription>
           </div>
           <div className="flex flex-col sm:items-end gap-1">
@@ -228,7 +229,7 @@ export default function PublicStatusPage() {
             <div className="space-y-2 p-4 rounded-xl bg-secondary/15 border border-border/40">
               <div className="flex items-center gap-2 text-xs font-bold text-tertiary uppercase tracking-wider">
                 <User className="w-4 h-4" />
-                <span>Titular / Cliente</span>
+                <span>{t.statusPage.clientDniLabel}</span>
               </div>
               <p className="font-semibold text-foreground text-sm">
                 {workOrder.clientName || "Cliente Registrado"}
@@ -241,13 +242,13 @@ export default function PublicStatusPage() {
             <div className="space-y-2 p-4 rounded-xl bg-secondary/15 border border-border/40">
               <div className="flex items-center gap-2 text-xs font-bold text-tertiary uppercase tracking-wider">
                 <Smartphone className="w-4 h-4" />
-                <span>Equipo en Taller</span>
+                <span>{t.statusPage.deviceLabel}</span>
               </div>
               <p className="font-semibold text-foreground text-sm">
                 {workOrder.deviceBrand} {workOrder.deviceModel}
               </p>
               <p className="text-xs font-mono text-typography">
-                N° Serie: <span className="text-foreground font-medium">{workOrder.deviceSerialNumber || "N/A"}</span>
+                {t.statusPage.serialLabel}: <span className="text-foreground font-medium">{workOrder.deviceSerialNumber || "N/A"}</span>
               </p>
             </div>
           </div>
@@ -256,7 +257,7 @@ export default function PublicStatusPage() {
           <div className="space-y-2 p-4 rounded-xl bg-secondary/10 border border-border/40">
             <div className="flex items-center gap-2 text-xs font-bold text-foreground uppercase tracking-wider">
               <AlertCircle className="w-4 h-4 text-tertiary" />
-              <span>Problema Reportado por el Cliente</span>
+              <span>Problema Reportado</span>
             </div>
             <p className="text-sm text-foreground/90 italic leading-relaxed pl-6 border-l-2 border-tertiary/60">
               "{workOrder.issueDescription}"
@@ -269,10 +270,10 @@ export default function PublicStatusPage() {
           <div className="space-y-4 pt-2">
             <h3 className="text-base font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-tertiary animate-ping" />
-              Historial de Diagnóstico y Reparación
+              {t.statusPage.diagnosticHistoryTitle}
             </h3>
             <p className="text-xs text-typography font-mono">
-              Bitácora cronológica de avances y notas técnicas adjuntadas por el taller:
+              {t.statusPage.diagnosticHistorySubtitle}
             </p>
 
             <DiagnosticTimeline points={diagnosticPoints} />
