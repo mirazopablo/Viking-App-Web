@@ -134,8 +134,6 @@ docker build -t viking-app-web:latest .
 docker run -p 3000:3000 -e NEXT_PUBLIC_API_URL="https://your-backend-api.com" viking-app-web:latest
 ```
 
-#### Production VPS Deployment (Traefik & Watchtower)
-Refer to [`docker-compose.server.example.yml`](./docker-compose.server.example.yml) for a production-ready configuration including Let's Encrypt TLS termination via Traefik and automated rolling deployments via Watchtower.
 
 ---
 ---
