@@ -58,6 +58,15 @@ export default function WorkOrderBudgetPage() {
     await budgetService.saveBudget(data);
   };
 
+  const handleDeleteBudget = async () => {
+    if (!existingBudget?.id) return;
+    await budgetService.deleteBudget(existingBudget.id);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(`viking_budget_${workOrderId}`);
+    }
+    router.push(`/work-orders/${workOrderId}`);
+  };
+
   if (isOrderLoading) {
     return (
       <div className="container mx-auto p-8 text-center text-xs text-muted-foreground animate-pulse">
@@ -70,6 +79,7 @@ export default function WorkOrderBudgetPage() {
     <div className="container mx-auto p-4 md:p-6 max-w-7xl space-y-6">
       <BudgetBuilder
         workOrderId={workOrderId}
+        budgetId={existingBudget?.id}
         initialClientName={clientUser?.name || workOrder?.clientName || ''}
         initialClientDni={clientUser?.dni || workOrder?.clientDni}
         initialClientAddress={clientUser?.address || ''}
@@ -80,6 +90,7 @@ export default function WorkOrderBudgetPage() {
         diagnosticPoints={diagnosticPoints || []}
         staffName={staffName}
         onSave={handleSaveBudget}
+        onDelete={existingBudget?.id ? handleDeleteBudget : undefined}
         onCancel={() => router.push(`/work-orders/${workOrderId}`)}
       />
     </div>

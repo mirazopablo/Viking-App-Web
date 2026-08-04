@@ -6,12 +6,23 @@ import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { workOrderService } from "@/services/work-order.service";
 import { diagnosticService } from "@/services/diagnostic.service";
+import { budgetService } from "@/services/budget.service";
 import { WorkOrderResponseDTO, SecurityCodeResponseDTO } from "@/types/work-order";
 import { StatusBadge } from "@/components/common/status-badge";
 import { DiagnosticTimeline } from "@/components/work-orders/diagnostic-timeline";
 import { StatusUpdater } from "@/components/work-orders/status-updater";
 import { AddDiagnosticPointModal } from "@/components/work-orders/add-diagnostic-point-modal";
 import { SecurityCodeModal } from "@/components/work-orders/security-code-modal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -28,6 +39,8 @@ import {
   Phone,
   RefreshCw,
   FileText,
+  Trash2,
+  Edit3,
 } from "lucide-react";
 
 interface WorkOrderDetailPageProps {
@@ -93,9 +106,63 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
     staleTime: 30000,
   });
 
+  // 3. Fetch Existing Budget from Backend API
+  const { data: existingBudget, refetch: refetchBudget } = useQuery({
+    queryKey: ["budget", workOrderId],
+    queryFn: () => budgetService.getBudgetByWorkOrder(workOrderId).catch(() => null),
+    enabled: !!workOrderId,
+  });
+
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  const [isDeletingBudget, setIsDeletingBudget] = useState<boolean>(false);
+
+  const handleDeleteBudget = async () => {
+    const targetId = existingBudget?.id;
+    if (!targetId) {
+      toast.error("No se encontró el presupuesto para eliminar");
+      return;
+    }
+
+    try {
+      setIsDeletingBudget(true);
+      // 1. Delete budget from budgets table
+      await budgetService.deleteBudget(targetId);
+
+      // 2. Also delete corresponding BUDGET_SUMMARY diagnostic point from diagnostic_points table
+      const budgetPoint = diagnosticPoints.find(
+        (p) =>
+          p.entryType === "BUDGET_SUMMARY" ||
+          p.title?.toLowerCase().includes("presupuesto") ||
+          p.description?.toLowerCase().includes("presupuesto")
+      );
+      if (budgetPoint?.id) {
+        try {
+          await diagnosticService.deleteDiagnosticPoint(budgetPoint.id);
+        } catch (pointErr) {
+          console.warn("Could not delete timeline point:", pointErr);
+        }
+      }
+
+      localStorage.removeItem(`viking_budget_${workOrderId}`);
+      setSavedBudgetInfo(null);
+      toast.success("Presupuesto e hito de bitácora eliminados permanentemente");
+      queryClient.invalidateQueries({ queryKey: ["budget", workOrderId] });
+      queryClient.invalidateQueries({ queryKey: ["diagnostic-points", workOrderId] });
+      refetchBudget();
+      refetchPoints();
+    } catch (err: any) {
+      console.error("Delete budget failed:", err);
+      toast.error(err?.response?.data?.error || "Error al eliminar el presupuesto");
+    } finally {
+      setIsDeletingBudget(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
   const handleRefresh = () => {
     refetchOrder();
     refetchPoints();
+    refetchBudget();
     toast.info("Datos actualizados");
   };
 
@@ -191,23 +258,38 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
             <span>Adjuntar Avance / Foto</span>
           </Button>
 
-          <Link href={`/work-orders/${workOrderId}/budget`}>
-            <Button
-              variant={savedBudgetInfo ? "default" : "outline"}
-              className={
-                savedBudgetInfo
-                  ? "bg-emerald-600 hover:bg-emerald-700 text-white font-bold tracking-wider uppercase text-xs h-9 px-4 shadow-md"
-                  : "border-primary/60 text-primary hover:bg-primary/10 font-bold tracking-wider uppercase text-xs h-9 px-4 shadow-sm"
-              }
-            >
-              <FileText className="w-4 h-4 mr-1.5" />
-              <span>
-                {savedBudgetInfo
-                  ? `Ver / Editar Presupuesto ($${(savedBudgetInfo.total || 0).toFixed(2)})`
-                  : "Crear / Simular Presupuesto"}
-              </span>
-            </Button>
-          </Link>
+          {existingBudget || savedBudgetInfo ? (
+            <>
+              <Link href={`/work-orders/${workOrderId}/budget`}>
+                <Button
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold tracking-wider uppercase text-xs h-9 px-4 shadow-md gap-1.5"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  <span>Editar Presupuesto</span>
+                </Button>
+              </Link>
+
+              <Button
+                variant="destructive"
+                onClick={() => setIsDeleteDialogOpen(true)}
+                className="font-bold tracking-wider uppercase text-xs h-9 px-3 shadow-md gap-1.5"
+                title="Eliminar Presupuesto Permanentemente (Hard Delete)"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Eliminar Presupuesto</span>
+              </Button>
+            </>
+          ) : (
+            <Link href={`/work-orders/${workOrderId}/budget`}>
+              <Button
+                variant="outline"
+                className="border-primary/60 text-primary hover:bg-primary/10 font-bold tracking-wider uppercase text-xs h-9 px-4 shadow-sm gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Generar Presupuesto</span>
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -350,10 +432,33 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
               <DiagnosticTimeline
                 points={diagnosticPoints}
                 onDelete={async (pointId) => {
+                  const targetPoint = diagnosticPoints.find((p) => p.id === pointId);
+                  const isBudgetSummary =
+                    targetPoint?.entryType === "BUDGET_SUMMARY" ||
+                    targetPoint?.title?.toLowerCase().includes("presupuesto") ||
+                    targetPoint?.description?.toLowerCase().includes("presupuesto");
+
                   try {
+                    if (isBudgetSummary && existingBudget?.id) {
+                      try {
+                        await budgetService.deleteBudget(existingBudget.id);
+                      } catch (budgetErr) {
+                        console.warn("Could not delete budget row:", budgetErr);
+                      }
+                      localStorage.removeItem(`viking_budget_${workOrderId}`);
+                      setSavedBudgetInfo(null);
+                    }
+
                     await diagnosticService.deleteDiagnosticPoint(pointId);
-                    toast.success("Hito técnico eliminado");
+                    toast.success(
+                      isBudgetSummary
+                        ? "Presupuesto e hito técnico eliminados permanentemente"
+                        : "Hito técnico eliminado"
+                    );
+                    queryClient.invalidateQueries({ queryKey: ["budget", workOrderId] });
                     queryClient.invalidateQueries({ queryKey: ["diagnostic-points", workOrderId] });
+                    refetchBudget();
+                    refetchPoints();
                   } catch {
                     toast.error("Error al eliminar", { description: "No se pudo borrar el hito en el servidor." });
                   }
@@ -382,6 +487,32 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
         clientName={regeneratedOrder?.clientName || workOrder?.clientName || "Cliente"}
         workOrderId={regeneratedOrder?.id || workOrderId}
       />
-    </div >
+
+      {/* Critical Hard Delete Confirmation Modal */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
+              <Trash2 className="w-5 h-5" />
+              Eliminar Presupuesto Permanentemente
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              ¿Estás seguro de que deseas eliminar permanentemente este presupuesto? Esta acción ejecutará un <strong>borrado físico irreversible</strong> en el servidor PostgreSQL. El cliente ya no podrá consultarlo en la vista pública ni en PDF.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingBudget}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleDeleteBudget}
+              disabled={isDeletingBudget}
+              className="font-bold tracking-wider uppercase text-xs"
+            >
+              {isDeletingBudget ? "Eliminando..." : "Sí, eliminar permanentemente"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

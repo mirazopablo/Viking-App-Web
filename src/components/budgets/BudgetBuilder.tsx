@@ -13,8 +13,21 @@ import { DiagnosticPointResponseDTO } from '@/types/diagnostic';
 import { diagnosticService } from '@/services/diagnostic.service';
 import { toast } from 'sonner';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Trash2 } from 'lucide-react';
+
 interface BudgetBuilderProps {
   workOrderId: string;
+  budgetId?: string;
   initialClientName?: string;
   initialClientDni?: number | string;
   initialClientAddress?: string;
@@ -25,11 +38,13 @@ interface BudgetBuilderProps {
   diagnosticPoints?: DiagnosticPointResponseDTO[];
   staffName?: string;
   onSave?: (data: BudgetFormSchemaType) => Promise<void>;
+  onDelete?: () => Promise<void> | void;
   onCancel?: () => void;
 }
 
 export const BudgetBuilder: React.FC<BudgetBuilderProps> = ({
   workOrderId,
+  budgetId,
   initialClientName = '',
   initialClientDni = '',
   initialClientAddress = '',
@@ -40,9 +55,23 @@ export const BudgetBuilder: React.FC<BudgetBuilderProps> = ({
   diagnosticPoints = [],
   staffName = '',
   onSave,
+  onDelete,
   onCancel,
 }) => {
   const [viewMode, setViewMode] = useState<'split' | 'tabs'>('split');
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+  const handleDeleteConfirm = async () => {
+    if (!onDelete) return;
+    try {
+      setIsDeleting(true);
+      await onDelete();
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -132,23 +161,6 @@ export const BudgetBuilder: React.FC<BudgetBuilderProps> = ({
         localStorage.setItem(`viking_budget_${workOrderId}`, JSON.stringify(data));
       }
 
-      // 3. Register summary entry in Diagnostic Timeline / Bitácora
-      const itemCount = (data.items || []).filter(i => i.rowType !== 'SUBTOTAL_GROUP').length;
-      const diagnosticTitle = `📄 Presupuesto Publicado - TOTAL: ${currency} ${grandTotal.toFixed(2)}`;
-      const diagnosticDesc = `Presupuesto de ${data.mode === 'MAINTENANCE' ? 'Mantenimiento' : 'Equipo Nuevo'} registrado el ${new Date().toLocaleDateString('es-ES')}. ` +
-        `Incluye ${itemCount} repuesto(s)/ítem(s) (${currency} ${itemsSubtotal.toFixed(2)}) y Mano de obra (${currency} ${laborTotal.toFixed(2)}). ` +
-        `TOTAL PRESUPUESTADO: ${currency} ${grandTotal.toFixed(2)}. Validez: 10 días.`;
-
-      try {
-        await diagnosticService.createDiagnosticPoint({
-          workOrderId,
-          title: diagnosticTitle,
-          description: diagnosticDesc,
-        });
-      } catch (diagErr) {
-        console.warn('Notice: Could not post diagnostic point log:', diagErr);
-      }
-
       if (onSave) {
         await onSave(data);
       }
@@ -226,6 +238,21 @@ export const BudgetBuilder: React.FC<BudgetBuilderProps> = ({
               Descargar PDF
             </Button>
 
+            {/* Hard Delete Button (If existing budget) */}
+            {onDelete && (
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => setIsDeleteDialogOpen(true)}
+                className="gap-1.5 font-bold uppercase text-xs shadow-md"
+                title="Eliminar Presupuesto Permanentemente (Hard Delete)"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Eliminar</span>
+              </Button>
+            )}
+
             {/* Save Button */}
             <Button type="submit" disabled={isSubmitting} className="gap-2 shadow-md">
               <Save className="w-4 h-4" />
@@ -266,6 +293,32 @@ export const BudgetBuilder: React.FC<BudgetBuilderProps> = ({
           </Tabs>
         )}
       </form>
+
+      {/* Critical Hard Delete Confirmation Modal */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
+              <Trash2 className="w-5 h-5" />
+              Eliminar Presupuesto Permanentemente
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              ¿Estás seguro de que deseas eliminar permanentemente este presupuesto? Esta acción ejecutará un <strong>borrado físico irreversible</strong> en el servidor PostgreSQL. El cliente ya no podrá consultarlo en la vista pública ni en PDF.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="font-bold tracking-wider uppercase text-xs"
+            >
+              {isDeleting ? 'Eliminando...' : 'Sí, eliminar permanentemente'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </FormProvider>
   );
 };
