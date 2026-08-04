@@ -93,3 +93,27 @@ export interface BudgetResponseDTO extends BudgetFormValues {
 export interface BudgetCreateDTO extends Omit<BudgetFormValues, 'workOrderId'> {
   workOrderId: string;
 }
+
+/**
+ * Sanitizes budget DTO for public client views or customer PDF downloads,
+ * destroying internal workshop cost prices, profit margin percentages, and net profit metrics.
+ */
+export function sanitizeBudgetForClient(budgetData: any) {
+  if (!budgetData) return null;
+  const clean = JSON.parse(JSON.stringify(budgetData));
+
+  if (Array.isArray(clean.items)) {
+    clean.items = clean.items.map((item: any) => {
+      const { costPrice, profitMarginPercentage, profitAmount, ...publicItem } = item;
+      return publicItem;
+    });
+  }
+
+  if (clean.totals) {
+    delete clean.totals.totalSparePartsCost;
+    delete clean.totals.totalSparePartsProfit;
+    delete clean.totals.totalEstimatedProfit;
+  }
+
+  return clean;
+}

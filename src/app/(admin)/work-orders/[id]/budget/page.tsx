@@ -6,7 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 import { BudgetBuilder } from '@/components/budgets/BudgetBuilder';
 import { workOrderService } from '@/services/work-order.service';
 import { userService } from '@/services/user.service';
-import { diagnosticService } from '@/services/diagnostic.service';
+import { budgetService } from '@/services/budget.service';
+import { BudgetFormSchemaType } from '@/lib/validations/budget';
 
 export default function WorkOrderBudgetPage() {
   const params = useParams();
@@ -40,10 +41,21 @@ export default function WorkOrderBudgetPage() {
     queryFn: () => userService.getCurrentUser().catch(() => null),
   });
 
+  // 5. Fetch Existing Budget from Go Backend API
+  const { data: existingBudget } = useQuery({
+    queryKey: ['budget', workOrderId],
+    queryFn: () => budgetService.getBudgetByWorkOrder(workOrderId).catch(() => null),
+    enabled: !!workOrderId,
+  });
+
   const staffName =
     currentUser?.name ||
     (typeof window !== 'undefined' ? localStorage.getItem('viking_user_name') : '') ||
     'Técnico Especializado';
+
+  const handleSaveBudget = async (data: BudgetFormSchemaType) => {
+    await budgetService.saveBudget(data);
+  };
 
   if (isOrderLoading) {
     return (
@@ -66,6 +78,7 @@ export default function WorkOrderBudgetPage() {
         initialDeviceSerial={workOrder?.deviceSerialNumber || ''}
         diagnosticPoints={diagnosticPoints || []}
         staffName={staffName}
+        onSave={handleSaveBudget}
         onCancel={() => router.push(`/work-orders/${workOrderId}`)}
       />
     </div>
