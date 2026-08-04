@@ -8,6 +8,7 @@ import { workOrderService } from '@/services/work-order.service';
 import { userService } from '@/services/user.service';
 import { budgetService } from '@/services/budget.service';
 import { BudgetFormSchemaType } from '@/lib/validations/budget';
+import { diagnosticService } from '@/services/diagnostic.service';
 
 export default function WorkOrderBudgetPage() {
   const params = useParams();
