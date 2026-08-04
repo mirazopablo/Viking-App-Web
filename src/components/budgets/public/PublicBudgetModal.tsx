@@ -14,6 +14,7 @@ interface PublicBudgetModalProps {
   isOpen: boolean;
   onClose: () => void;
   budgetData: any;
+  workOrder?: any;
   staffName?: string;
 }
 
@@ -21,21 +22,57 @@ export const PublicBudgetModal: React.FC<PublicBudgetModalProps> = ({
   isOpen,
   onClose,
   budgetData,
+  workOrder,
   staffName = 'Técnico Especializado',
 }) => {
-  if (!budgetData) return null;
+  // Robust JSON parsing for Go/PostgreSQL stringified budget payloads
+  let parsedBudgetData = budgetData;
+  if (typeof budgetData === 'string') {
+    try { parsedBudgetData = JSON.parse(budgetData); } catch {}
+  }
 
-  const cleanData = sanitizeBudgetForClient(budgetData);
+  if (parsedBudgetData?.budgetData) {
+    let innerData = parsedBudgetData.budgetData;
+    if (typeof innerData === 'string') {
+      try { innerData = JSON.parse(innerData); } catch {}
+    }
+    if (typeof innerData === 'object' && innerData !== null) {
+      parsedBudgetData = { ...parsedBudgetData, ...innerData };
+    }
+  }
 
-  const title = cleanData.title || 'Presupuesto de Mantenimiento';
+  const raw = parsedBudgetData || {
+    title: 'Presupuesto de Mantenimiento Técnico',
+    mode: 'MAINTENANCE',
+    clientName: workOrder?.clientName || 'Cliente Registrado',
+    clientDni: workOrder?.clientDni || 'No registrado',
+    clientAddress: workOrder?.clientAddress || '',
+    clientPhoneNumber: workOrder?.clientPhone || workOrder?.clientPhoneNumber || '',
+    clientEmail: workOrder?.clientEmail || '',
+    deviceModel: workOrder ? `${workOrder.deviceBrand ? workOrder.deviceBrand + ' ' : ''}${workOrder.deviceModel || ''}` : 'N/A',
+    deviceSerialNumber: workOrder?.deviceSerialNumber || '',
+    currency: '$',
+    taxPercentage: 0,
+    blocks: [],
+    items: [],
+    labors: [],
+  };
+
+  const cleanData = sanitizeBudgetForClient(raw) || {};
+
+  console.log('🔍 [PublicBudgetModal] Render State -> isOpen:', isOpen, '| hasBudgetData:', !!budgetData, '| hasWorkOrder:', !!workOrder);
+  console.log('🔍 [PublicBudgetModal] Raw budgetData received:', budgetData);
+  console.log('🔍 [PublicBudgetModal] Clean parsed data for view:', cleanData);
+
+  const title = cleanData.title || 'Presupuesto de Mantenimiento Técnico';
   const mode = cleanData.mode || 'MAINTENANCE';
-  const clientName = cleanData.clientName || '';
-  const clientDni = cleanData.clientDni;
-  const clientAddress = cleanData.clientAddress;
-  const clientPhoneNumber = cleanData.clientPhoneNumber;
-  const clientEmail = cleanData.clientEmail;
-  const deviceModel = cleanData.deviceModel || '';
-  const deviceSerialNumber = cleanData.deviceSerialNumber;
+  const clientName = cleanData.clientName || workOrder?.clientName || 'Cliente Registrado';
+  const clientDni = cleanData.clientDni || workOrder?.clientDni || 'No registrado';
+  const clientAddress = cleanData.clientAddress || workOrder?.clientAddress || '';
+  const clientPhoneNumber = cleanData.clientPhoneNumber || workOrder?.clientPhone || workOrder?.clientPhoneNumber || '';
+  const clientEmail = cleanData.clientEmail || workOrder?.clientEmail || '';
+  const deviceModel = cleanData.deviceModel || (workOrder ? `${workOrder.deviceBrand ? workOrder.deviceBrand + ' ' : ''}${workOrder.deviceModel || ''}` : '') || 'N/A';
+  const deviceSerialNumber = cleanData.deviceSerialNumber || workOrder?.deviceSerialNumber || '';
   const blocks = cleanData.blocks || [];
   const items = cleanData.items || [];
   const labors = cleanData.labors || [];
@@ -51,7 +88,7 @@ export const PublicBudgetModal: React.FC<PublicBudgetModalProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-3xl w-[95vw] sm:w-[90vw] max-h-[92vh] overflow-y-auto bg-card border-border shadow-2xl p-4 sm:p-6 no-print">
+        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-3xl lg:max-w-5xl lg:w-[900px] max-h-[92vh] overflow-y-auto bg-card border-border shadow-2xl p-4 sm:p-6 no-print">
           <DialogHeader className="pb-3 border-b flex flex-row items-center justify-between gap-2">
             <div>
               <DialogTitle className="text-base sm:text-lg font-bold uppercase text-foreground flex items-center gap-2">
