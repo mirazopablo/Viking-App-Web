@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar, FileText, Image as ImageIcon, Trash2, ZoomIn, ExternalLink, Loader2 } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 interface DiagnosticTimelineProps {
   points: DiagnosticPointResponseDTO[];
@@ -108,7 +109,27 @@ export const DiagnosticTimeline: React.FC<DiagnosticTimelineProps> = ({ points, 
                     {point.description}
                   </p>
 
-                  {point.imageUrl && (
+                  {/* Discriminator: Budget Entry vs Photo Evidence */}
+                  {(point.title?.includes('Presupuesto') || point.description?.includes('Presupuesto')) ? (
+                    <div className="mt-3 pt-3 border-t border-border/30 bg-primary/5 p-3 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+                        <FileText className="w-4 h-4" />
+                        <span>PRESUPUESTO ASOCIADO</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`/work-orders/${point.workOrderId}/budget`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Ver / Descargar PDF</span>
+                        </a>
+                      </div>
+                    </div>
+                  ) : point.imageUrl &&
+                    point.imageUrl !== 'undefined' &&
+                    point.imageUrl !== 'null' &&
+                    !point.imageUrl.includes('undefined') ? (
                     <div className="mt-3 pt-2 border-t border-border/30">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2 text-xs font-semibold text-tertiary">
@@ -121,8 +142,9 @@ export const DiagnosticTimeline: React.FC<DiagnosticTimelineProps> = ({ points, 
                         onClick={() => setLightboxImage({ url: point.imageUrl!, title: point.title })}
                         className="relative overflow-hidden rounded-lg border border-border/80 max-w-sm bg-secondary/30 group/img cursor-pointer"
                       >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={point.imageUrl}
+                          src={getImageUrl(point.imageUrl)}
                           alt={`Evidencia técnica: ${point.title}`}
                           className="w-full h-auto object-cover max-h-56 group-hover/img:scale-105 transition-transform duration-300"
                           loading="lazy"
@@ -133,7 +155,7 @@ export const DiagnosticTimeline: React.FC<DiagnosticTimelineProps> = ({ points, 
                         </div>
                       </div>
                     </div>
-                  )}
+                  ) : null}
                 </CardContent>
               </Card>
             </div>
@@ -155,7 +177,7 @@ export const DiagnosticTimeline: React.FC<DiagnosticTimelineProps> = ({ points, 
           <div className="relative rounded-xl overflow-hidden bg-black/80 flex items-center justify-center max-h-[75vh] border border-border">
             {lightboxImage && (
               <img
-                src={lightboxImage.url}
+                src={getImageUrl(lightboxImage.url)}
                 alt={lightboxImage.title}
                 className="max-h-[75vh] w-auto object-contain"
               />
@@ -163,7 +185,7 @@ export const DiagnosticTimeline: React.FC<DiagnosticTimelineProps> = ({ points, 
           </div>
           <div className="flex justify-end pt-2">
             {lightboxImage && (
-              <a href={lightboxImage.url} target="_blank" rel="noopener noreferrer">
+              <a href={getImageUrl(lightboxImage.url)} target="_blank" rel="noopener noreferrer">
                 <Button variant="outline" size="sm" className="text-xs font-mono uppercase">
                   <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
                   Abrir en Pestaña Nueva
@@ -189,7 +211,7 @@ export const DiagnosticTimeline: React.FC<DiagnosticTimelineProps> = ({ points, 
           {pointToDelete && (
             <div className="p-3 rounded-lg bg-secondary/30 border border-border/60 space-y-1">
               <p className="text-xs font-bold text-foreground">{pointToDelete.title}</p>
-              <p className="text-xs text-typography italic line-clamp-2">"{pointToDelete.description}"</p>
+              <p className="text-xs text-typography italic line-clamp-2">&quot;{pointToDelete.description}&quot;</p>
             </div>
           )}
           <AlertDialogFooter className="mt-4">

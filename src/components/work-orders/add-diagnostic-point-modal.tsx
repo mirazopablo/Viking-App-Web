@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Camera, Upload, X, Loader2, Save, Image as ImageIcon } from "lucide-react";
+import { Camera, Upload, X, Loader2, Save } from "lucide-react";
 
 const diagnosticPointSchema = z.object({
   title: z
@@ -117,9 +117,9 @@ export const AddDiagnosticPointModal: React.FC<AddDiagnosticPointModalProps> = (
       reset();
       onSuccess(newPoint);
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Diagnostic upload failed:", error);
-      const msg = error.response?.data?.message || "Error al subir la evidencia o registrar el hito.";
+      const msg = (error as { response?: { data?: { message?: string } } }).response?.data?.message || "Error al subir la evidencia o registrar el hito.";
       toast.error("Error al registrar diagnóstico", { description: msg });
     } finally {
       setIsLoading(false);
