@@ -253,6 +253,23 @@ export default function PublicStatusPage() {
   // State B: Render Order Details & Diagnostic Timeline (Screen 121231 & 120907)
   const { workOrder, diagnosticPoints } = result;
 
+  const handleOpenBudgetModal = async () => {
+    console.log('🔘 [/status] "Ver / Descargar PDF" button clicked!');
+    setIsBudgetModalOpen(true);
+    if (!publicBudget && workOrder?.id) {
+      console.log('🔄 [/status] Attempting on-demand fetch for workOrderId:', workOrder.id);
+      try {
+        const data = await budgetService.getBudgetByWorkOrder(workOrder.id, true);
+        console.log('✅ [/status] On-demand budget fetch succeeded:', data);
+        if (data) setPublicBudget(data);
+      } catch (err) {
+        console.warn('⚠️ [/status] On-demand budget fetch failed:', err);
+      }
+    } else {
+      console.log('ℹ️ [/status] Using existing publicBudget state:', publicBudget);
+    }
+  };
+
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6 animate-fadeIn">
       {/* Top Action Header */}
@@ -355,20 +372,19 @@ export default function PublicStatusPage() {
             <DiagnosticTimeline
               points={diagnosticPoints}
               isPublic
-              onViewBudget={() => setIsBudgetModalOpen(true)}
+              onViewBudget={handleOpenBudgetModal}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Public Customer Budget Modal */}
-      {publicBudget && (
-        <PublicBudgetModal
-          isOpen={isBudgetModalOpen}
-          onClose={() => setIsBudgetModalOpen(false)}
-          budgetData={publicBudget}
-        />
-      )}
+      {/* Public Customer Budget Modal (Always Rendered for Guaranteed Open) */}
+      <PublicBudgetModal
+        isOpen={isBudgetModalOpen}
+        onClose={() => setIsBudgetModalOpen(false)}
+        budgetData={publicBudget}
+        workOrder={workOrder}
+      />
     </div>
   );
 }

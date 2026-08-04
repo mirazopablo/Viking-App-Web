@@ -28,10 +28,26 @@ export const budgetService = {
    * @param isPublic - Optional flag to sanitize internal profit metrics.
    */
   getBudgetByWorkOrder: async (workOrderId: string, isPublic = false): Promise<BudgetResponseDTO> => {
-    const response = await apiClient.get<BudgetResponseDTO>(`/api/budget/by-work-order/${workOrderId}`, {
-      params: isPublic ? { public: true } : undefined,
-    });
-    return response.data;
+    const endpoint = isPublic
+      ? `/public/work-order/budget/${workOrderId}`
+      : `/api/budget/by-work-order/${workOrderId}`;
+
+    console.log(`📡 [budgetService.getBudgetByWorkOrder] Fetching via endpoint: ${endpoint}, isPublic: ${isPublic}`);
+    try {
+      const response = await apiClient.get<BudgetResponseDTO>(endpoint);
+      console.log('✅ [budgetService.getBudgetByWorkOrder] Response status:', response.status);
+      console.log('📦 [budgetService.getBudgetByWorkOrder] Response data:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [budgetService.getBudgetByWorkOrder] Request failed:', {
+        endpoint,
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        data: error?.response?.data,
+        message: error?.message,
+      });
+      throw error;
+    }
   },
 
   /**
@@ -41,5 +57,14 @@ export const budgetService = {
    */
   updateBudgetStatus: async (id: string, status: 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED'): Promise<void> => {
     await apiClient.patch(`/api/budget/update-status/${id}`, { status });
+  },
+
+  /**
+   * Hard deletes a budget permanently from PostgreSQL database by budget UUID.
+   * Endpoint: DELETE /api/budget/delete/:id
+   * @param id - Budget UUID.
+   */
+  deleteBudget: async (id: string): Promise<void> => {
+    await apiClient.delete(`/api/budget/delete/${id}`);
   },
 };
