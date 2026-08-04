@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { authService } from "@/services/auth.service";
@@ -19,7 +19,6 @@ interface AdminLayoutProps {
  */
 export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
   const pathname = usePathname();
-  const [userName, setUserName] = useState<string>("Técnico Staff");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -51,7 +50,7 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
   return (
     <div className="min-h-screen w-full flex flex-col bg-background text-foreground">
       {/* Top Workshop Header */}
-      <header className="w-full border-b border-border/60 bg-card/90 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 py-3.5">
+      <header className="w-full border-b border-border/60 bg-card/90 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 py-3.5 no-print">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/work-orders" className="flex items-center gap-3 group">
             <BrandLogo size="sm" />
@@ -144,13 +143,9 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
       </main>
 
       {/* Workshop Footer */}
-      <footer className="w-full border-t border-border/40 py-6 px-4 text-center text-xs text-typography/60 font-mono">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <footer className="w-full border-t border-border/40 py-6 px-4 text-center text-xs text-typography/60 font-mono no-print">
+        <div className="max-w-6xl mx-auto flex items-center justify-center">
           <p>&copy; {new Date().getFullYear()} Zonda Solutions. Entorno Técnico Protegido.</p>
-          <p className="flex items-center gap-1.5 justify-center">
-            <Wrench className="w-3.5 h-3.5 text-tertiary" />
-            <span>Soporte RBAC Activo</span>
-          </p>
         </div>
       </footer>
     </div>
