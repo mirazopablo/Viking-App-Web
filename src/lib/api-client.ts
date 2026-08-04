@@ -40,7 +40,11 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError<{ message?: string }>) => {
-    if (error.response?.status === 401 && typeof window !== "undefined") {
+    const isPublicRequest =
+      error.config?.url?.includes("/public/") ||
+      error.config?.params?.public === true;
+
+    if (error.response?.status === 401 && typeof window !== "undefined" && !isPublicRequest) {
       // Clear expired session and redirect to staff login with expired alert
       localStorage.removeItem("viking_jwt_token");
       window.location.href = "/login?reason=expired";
