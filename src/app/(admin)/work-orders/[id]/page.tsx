@@ -19,16 +19,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import {
   ArrowLeft,
-  Wrench,
   User,
   Smartphone,
   AlertCircle,
   Plus,
   Camera,
-  ShieldCheck,
   Calendar,
   Phone,
   RefreshCw,
+  FileText,
 } from "lucide-react";
 
 interface WorkOrderDetailPageProps {
@@ -49,6 +48,27 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
   const [isDiagnosticModalOpen, setIsDiagnosticModalOpen] = useState<boolean>(false);
   const [regeneratedOrder, setRegeneratedOrder] = useState<SecurityCodeResponseDTO | WorkOrderResponseDTO | null>(null);
   const [isRegeneratingCode, setIsRegeneratingCode] = useState<boolean>(false);
+  const [savedBudgetInfo, setSavedBudgetInfo] = useState<{ title?: string; total?: number; mode?: string } | null>(null);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && workOrderId) {
+      try {
+        const raw = localStorage.getItem(`viking_budget_${workOrderId}`);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const total = (parsed.items || []).reduce((acc: number, i: any) => acc + (i.quantity || 0) * (i.unitPrice || 0), 0) +
+            (parsed.labors || []).reduce((acc: number, l: any) => acc + (l.amount || 0), 0);
+          setSavedBudgetInfo({
+            title: parsed.title,
+            total,
+            mode: parsed.mode,
+          });
+        }
+      } catch (err) {
+        console.warn('Could not read local budget:', err);
+      }
+    }
+  }, [workOrderId]);
 
   // 1. Fetch Work Order Details
   const {
@@ -170,6 +190,24 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
             <Plus className="w-4 h-4 mr-1.5" />
             <span>Adjuntar Avance / Foto</span>
           </Button>
+
+          <Link href={`/work-orders/${workOrderId}/budget`}>
+            <Button
+              variant={savedBudgetInfo ? "default" : "outline"}
+              className={
+                savedBudgetInfo
+                  ? "bg-emerald-600 hover:bg-emerald-700 text-white font-bold tracking-wider uppercase text-xs h-9 px-4 shadow-md"
+                  : "border-primary/60 text-primary hover:bg-primary/10 font-bold tracking-wider uppercase text-xs h-9 px-4 shadow-sm"
+              }
+            >
+              <FileText className="w-4 h-4 mr-1.5" />
+              <span>
+                {savedBudgetInfo
+                  ? `Ver / Editar Presupuesto ($${(savedBudgetInfo.total || 0).toFixed(2)})`
+                  : "Crear / Simular Presupuesto"}
+              </span>
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -273,7 +311,7 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
               <span>Motivo de Ingreso </span>
             </div>
             <p className="text-sm text-foreground/90 italic leading-relaxed pl-6 border-l-2 border-tertiary/60">
-              "{workOrder.issueDescription}"
+              &quot;{workOrder.issueDescription}&quot;
             </p>
           </div>
 
@@ -316,7 +354,7 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
                     await diagnosticService.deleteDiagnosticPoint(pointId);
                     toast.success("Hito técnico eliminado");
                     queryClient.invalidateQueries({ queryKey: ["diagnostic-points", workOrderId] });
-                  } catch (err: any) {
+                  } catch {
                     toast.error("Error al eliminar", { description: "No se pudo borrar el hito en el servidor." });
                   }
                 }}

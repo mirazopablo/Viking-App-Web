@@ -59,7 +59,10 @@ export const userService = {
    * @param id - User UUID.
    */
   getUserById: async (id: string): Promise<UserResponseDTO> => {
-    const response = await apiClient.get<UserResponseDTO>("/api/user/search", { params: { id } });
+    const response = await apiClient.get<UserResponseDTO | UserResponseDTO[]>("/api/user/search", { params: { id } });
+    if (Array.isArray(response.data)) {
+      return response.data.find((u) => u.id === id) || response.data[0];
+    }
     return response.data;
   },
 
@@ -89,6 +92,14 @@ export const userService = {
    */
   deleteUser: async (id: string): Promise<void> => {
     await apiClient.delete(`/api/user/delete/${id}`);
+  },
+
+  /**
+   * Fetches the currently authenticated user profile.
+   */
+  getCurrentUser: async (): Promise<UserResponseDTO> => {
+    const response = await apiClient.get<UserResponseDTO>("/api/user/current");
+    return response.data;
   },
 };
 

@@ -38,6 +38,9 @@ export const authService = {
 
       if (typeof window !== "undefined") {
         localStorage.setItem("viking_user_role", resolvedRole);
+        if (userData.name) {
+          localStorage.setItem("viking_user_name", userData.name);
+        }
       }
 
       return {
