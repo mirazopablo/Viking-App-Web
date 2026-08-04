@@ -8,8 +8,7 @@ import { deviceService } from "@/services/device.service";
 import { workOrderService } from "@/services/work-order.service";
 import { authService } from "@/services/auth.service";
 import { WorkOrderResponseDTO } from "@/types/work-order";
-import { UserResponseDTO } from "@/types/user";
-import { DeviceResponseDTO } from "@/types/device";
+import { UserResponseDTO, UserAutocompleteDTO } from "@/types/user";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SearchPicker, SearchPickerOption } from "@/components/common/search-picker";
 import { Button } from "@/components/ui/button";
@@ -60,8 +59,8 @@ export const WorkOrderForm: React.FC = () => {
   // PANTALLA 1: DNI Search & Client/Device Inline State
   // -------------------------------------------------------------
   const [dniQuery, setDniQuery] = useState<string>("");
-  const [foundClient, setFoundClient] = useState<any | null>(null);
-  const [clientSearchCache, setClientSearchCache] = useState<Record<string, any>>({});
+  const [foundClient, setFoundClient] = useState<UserResponseDTO | UserAutocompleteDTO | null>(null);
+  const [clientSearchCache, setClientSearchCache] = useState<Record<string, UserResponseDTO | UserAutocompleteDTO>>({});
   const [isManualNewClient, setIsManualNewClient] = useState<boolean>(false);
 
   // Client inline fields (used if new client or for display)
@@ -109,7 +108,7 @@ export const WorkOrderForm: React.FC = () => {
   // Live API Search via SearchPicker (min 2 chars query)
   const handleFetchClients = async (term: string): Promise<SearchPickerOption[]> => {
     const users = await userService.autocompleteUsers(term);
-    const cacheUpdate: Record<string, any> = {};
+    const cacheUpdate: Record<string, UserResponseDTO | UserAutocompleteDTO> = {};
     users.forEach((u) => {
       cacheUpdate[u.id] = u;
     });
@@ -140,8 +139,8 @@ export const WorkOrderForm: React.FC = () => {
       setDniQuery(String(client.dni));
       setClientName(client.name || "");
       setClientPhone(client.phoneNumber || "");
-      setClientEmail(client.email || "");
-      setClientAddress(client.address || "CABA");
+      setClientEmail(("email" in client && client.email) ? client.email : "");
+      setClientAddress(("address" in client && client.address) ? client.address : "CABA");
       setIsManualNewClient(false);
     }
   };
@@ -175,14 +174,18 @@ export const WorkOrderForm: React.FC = () => {
   useEffect(() => {
     if (foundClient) {
       if (clientDevices.length > 0) {
-        setDeviceMode("EXISTING");
-        setSelectedDeviceId(clientDevices[0].id);
+        setTimeout(() => {
+          setDeviceMode("EXISTING");
+          setSelectedDeviceId(clientDevices[0].id);
+        }, 0);
       } else if (!isLoadingDevices) {
-        setDeviceMode("NEW");
+        setTimeout(() => setDeviceMode("NEW"), 0);
       }
     } else {
-      setDeviceMode("NEW");
-      setSelectedDeviceId("");
+      setTimeout(() => {
+        setDeviceMode("NEW");
+        setSelectedDeviceId("");
+      }, 0);
     }
   }, [foundClient, clientDevices, isLoadingDevices]);
 
@@ -244,7 +247,7 @@ export const WorkOrderForm: React.FC = () => {
       if (!currentClientId) {
         // Resolve default CLIENT role
         const clientRole =
-          roles.find((r: any) => {
+          roles.find((r: { name?: string; descripcion?: string }) => {
             const label = r.name || r.descripcion || "";
             return label.toUpperCase() === "CLIENT";
           }) || roles[0];
@@ -291,10 +294,10 @@ export const WorkOrderForm: React.FC = () => {
       setResolvedClientName(currentClientName);
       setResolvedDeviceLabel(currentDeviceLabel);
       setCurrentStep(2);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error saving step 1 data:", err);
       const backendMessage =
-        err.response?.data?.message ||
+        (err as { response?: { data?: { message?: string } } }).response?.data?.message ||
         "No se pudo guardar el titular o equipo en el servidor. Verifique que el DNI o número de serie no estén duplicados.";
       setStep1Error(backendMessage);
     } finally {
@@ -327,9 +330,9 @@ export const WorkOrderForm: React.FC = () => {
       toast.success("¡Orden de Trabajo Generada!", {
         description: `Código asignado: ${order.securityCode}`,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error creating work order:", err);
-      const msg = err.response?.data?.message || "Error al crear la orden de trabajo.";
+      const msg = (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Error al crear la orden de trabajo.";
       setStep2Error(msg);
     } finally {
       setIsSubmittingOrder(false);
@@ -400,7 +403,7 @@ export const WorkOrderForm: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-xl font-bold uppercase text-foreground flex items-center gap-2">
             <Wrench className="w-5 h-5 text-tertiary" />
-            Recepción Rápida de Taller ("Smart Intake")
+            Recepción Rápida de Taller (&quot;Smart Intake&quot;)
           </CardTitle>
           <CardDescription className="text-xs font-mono text-typography">
             {currentStep === 1 && "Paso 1 de 2: Identificación de titular y selección de dispositivo."}

@@ -6,7 +6,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { workOrderService } from "@/services/work-order.service";
 import { WorkOrderResponseDTO, SecurityCodeResponseDTO } from "@/types/work-order";
 import { StatusBadge } from "@/components/common/status-badge";
-import { Card } from "@/components/ui/card";
 import { VikingCard } from "@/components/shared/viking-card";
 import { VikingSearchBar } from "@/components/shared/viking-search-bar";
 import { VikingLoader } from "@/components/shared/viking-loader";
@@ -14,7 +13,7 @@ import { AdminPageHeader } from "@/components/shared/admin-page-header";
 import { EmptyStateCard } from "@/components/shared/empty-state-card";
 import { ErrorStateCard } from "@/components/shared/error-state-card";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, Wrench, Smartphone, User, ArrowRight, RefreshCw, AlertCircle, Trash2 } from "lucide-react";
+import { Plus, Wrench, User, ArrowRight, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useUserRole } from "@/hooks/use-user-role";
 import { SecurityCodeModal } from "@/components/work-orders/security-code-modal";
@@ -236,7 +235,7 @@ export default function WorkOrdersDashboardPage() {
                 </div>
 
                 <p className="text-xs text-foreground/80 italic leading-relaxed bg-secondary/20 p-2.5 rounded border border-border/40 line-clamp-2">
-                  "{order.issueDescription}"
+                  &quot;{order.issueDescription}&quot;
                 </p>
               </div>
             </VikingCard>

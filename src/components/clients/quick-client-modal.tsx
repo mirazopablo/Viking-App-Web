@@ -79,7 +79,7 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
   useEffect(() => {
     if (roles.length > 0 && !selectedRoleId) {
       const clientRole = roles.find((r) => {
-        const label = (r as any).name || (r as any).descripcion || "";
+        const label = (r as { name?: string; descripcion?: string }).name || (r as { name?: string; descripcion?: string }).descripcion || "";
         return label.toUpperCase() === "CLIENT";
       });
       if (clientRole) {
@@ -91,7 +91,7 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
   }, [roles, selectedRoleId, setValue]);
 
   const selectedRoleObj = roles.find((r) => r.id === selectedRoleId);
-  const selectedRoleLabel = ((selectedRoleObj as any)?.name || (selectedRoleObj as any)?.descripcion || "").toUpperCase();
+  const selectedRoleLabel = ((selectedRoleObj as { name?: string; descripcion?: string })?.name || (selectedRoleObj as { name?: string; descripcion?: string })?.descripcion || "").toUpperCase();
   const isPrivilegedRole = selectedRoleLabel === "STAFF" || selectedRoleLabel === "ADMIN";
 
   const onSubmit = async (data: QuickClientFormValues) => {
@@ -125,9 +125,9 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
       reset();
       onSuccess(newClient);
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Client registration failed:", error);
-      const msg = error.response?.data?.message || "No se pudo registrar el usuario. DNI o Email en uso.";
+      const msg = (error as { response?: { data?: { message?: string } } }).response?.data?.message || "No se pudo registrar el usuario. DNI o Email en uso.";
       toast.error("Error al registrar usuario", { description: msg });
     } finally {
       setIsLoading(false);
@@ -162,7 +162,7 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
                 {isLoadingRoles ? "Cargando roles..." : "Seleccione un rol..."}
               </option>
               {roles.map((r) => {
-                const label = (r as any).name || (r as any).descripcion || "ROL";
+                const label = (r as { name?: string; descripcion?: string }).name || (r as { name?: string; descripcion?: string }).descripcion || "ROL";
                 return (
                   <option key={r.id} value={r.id} className="bg-neutral-900 text-foreground">
                     {label}

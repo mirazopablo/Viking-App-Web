@@ -45,7 +45,7 @@ export const deviceService = {
    * @param id - Device UUID.
    */
   getDeviceById: async (id: string): Promise<DeviceResponseDTO> => {
-    const response = await apiClient.get<any>("/api/device/search", { params: { id } });
+    const response = await apiClient.get<DeviceResponseDTO | DeviceResponseDTO[] | null>("/api/device/search", { params: { id } });
     const data = response.data;
     const device = Array.isArray(data) ? data[0] : data;
     if (!device) {

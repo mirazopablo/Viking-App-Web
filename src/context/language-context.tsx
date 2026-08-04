@@ -26,7 +26,7 @@ export function LanguageProvider({ children, defaultLang = "es" }: Readonly<Lang
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem(STORAGE_KEY) as PublicLanguage | null;
       if (stored === "es" || stored === "en") {
-        setLangState(stored);
+        setTimeout(() => setLangState(stored), 0);
       }
     }
   }, []);

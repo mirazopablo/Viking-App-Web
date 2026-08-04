@@ -3,10 +3,9 @@
 import React, { useState } from "react";
 import { workOrderService } from "@/services/work-order.service";
 import { RepairStatus, WorkOrderResponseDTO } from "@/types/work-order";
-import { StatusBadge } from "@/components/common/status-badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, ArrowRight } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
 
 interface StatusUpdaterProps {
   workOrderId: string;
@@ -48,7 +47,7 @@ export const StatusUpdater: React.FC<StatusUpdaterProps> = ({
       });
 
       onStatusUpdated(updated);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Status update failed:", error);
       toast.error("Error de actualización", {
         description: "No se pudo cambiar el estado en el servidor. Reintente.",

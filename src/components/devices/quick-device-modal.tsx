@@ -81,9 +81,9 @@ export const QuickDeviceModal: React.FC<QuickDeviceModalProps> = ({
       reset();
       onSuccess(newDevice);
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Device registration failed:", error);
-      const msg = error.response?.data?.message || "No se pudo registrar el equipo. Número de serie duplicado.";
+      const msg = (error as { response?: { data?: { message?: string } } }).response?.data?.message || "No se pudo registrar el equipo. Número de serie duplicado.";
       toast.error("Error al registrar equipo", { description: msg });
     } finally {
       setIsLoading(false);

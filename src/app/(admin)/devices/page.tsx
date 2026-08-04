@@ -9,7 +9,6 @@ import { deviceService } from "@/services/device.service";
 import { userService } from "@/services/user.service";
 import type { DeviceResponseDTO } from "@/types/device";
 import { SearchPicker, SearchPickerOption } from "@/components/common/search-picker";
-import { Card } from "@/components/ui/card";
 import { VikingCard } from "@/components/shared/viking-card";
 import { VikingSearchBar } from "@/components/shared/viking-search-bar";
 import { VikingLoader } from "@/components/shared/viking-loader";
@@ -20,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Smartphone, Search, Plus, User, Hash, ShieldCheck, Loader2, Save, RefreshCw, Phone, CreditCard, Trash2 } from "lucide-react";
+import { Smartphone, Plus, User, Hash, ShieldCheck, Loader2, Save, Phone, CreditCard, Trash2 } from "lucide-react";
 import { useUserRole } from "@/hooks/use-user-role";
 
 const createDeviceSchema = z.object({
@@ -48,7 +47,7 @@ export default function DevicesInventoryPage() {
 
   const debouncedSearch = searchTerm.trim().length >= 2 ? searchTerm.trim() : undefined;
 
-  const { data: devices = [], isLoading, isError, refetch, isRefetching } = useQuery({
+  const { data: devices = [], isLoading, refetch, isRefetching } = useQuery({
     queryKey: ["devices-inventory", debouncedSearch],
     queryFn: () => deviceService.getDevices(undefined, debouncedSearch),
     staleTime: 30000,
@@ -96,9 +95,9 @@ export default function DevicesInventoryPage() {
       queryClient.invalidateQueries({ queryKey: ["devices-inventory"] });
       reset();
       setIsNewModalOpen(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Device creation failed:", err);
-      const msg = err.response?.data?.message || "No se pudo registrar el equipo. Serie duplicada en el sistema.";
+      const msg = (err as { response?: { data?: { message?: string } } }).response?.data?.message || "No se pudo registrar el equipo. Serie duplicada en el sistema.";
       toast.error("Error al registrar", { description: msg });
     } finally {
       setIsCreating(false);

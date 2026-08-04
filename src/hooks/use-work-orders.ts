@@ -58,7 +58,7 @@ export const useUpdateWorkOrderStatusMutation = () => {
         description: `El estado cambió a ${updatedOrder.repairStatus} y la caché fue actualizada globalmente.`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error("Mutation failed:", error);
       toast.error("Error de concurrencia", {
         description: "No se pudo actualizar el estado. Verifique su conexión al servidor.",

@@ -78,10 +78,10 @@ export default function LoginPage() {
         // Redirect to main work orders workspace
         router.push("/work-orders");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Login failed:", error);
       const errorMessage =
-        error.response?.data?.message ||
+        (error as { response?: { data?: { message?: string } } }).response?.data?.message ||
         "Credenciales inválidas o acceso denegado por RBAC.";
       toast.error("Error de autenticación", {
         description: errorMessage,

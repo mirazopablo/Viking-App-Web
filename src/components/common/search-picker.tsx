@@ -34,7 +34,6 @@ interface SearchPickerProps {
 export const SearchPicker: React.FC<SearchPickerProps> = ({
   label,
   placeholder = "Buscar por nombre, DNI o serie...",
-  value,
   onSelect,
   fetchOptions,
   onAddNew,
@@ -168,7 +167,7 @@ export const SearchPicker: React.FC<SearchPickerProps> = ({
               ) : options.length === 0 ? (
                 <div className="p-4 text-center space-y-2">
                   <p className="text-xs text-typography font-mono">
-                    No se encontraron coincidencias para "{searchTerm}".
+                    No se encontraron coincidencias para &quot;{searchTerm}&quot;.
                   </p>
                   {onAddNew && (
                     <Button

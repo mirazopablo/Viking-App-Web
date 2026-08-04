@@ -3,11 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import {
-  Search,
-  Wrench,
   ArrowRight,
   CheckCircle2,
-  Cpu,
   Laptop,
   Gamepad2,
   Server,

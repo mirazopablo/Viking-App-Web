@@ -8,7 +8,6 @@ import * as z from "zod";
 import { userService } from "@/services/user.service";
 import { UserResponseDTO } from "@/types/user";
 import { QuickClientModal } from "@/components/clients/quick-client-modal";
-import { Card } from "@/components/ui/card";
 import { VikingCard } from "@/components/shared/viking-card";
 import { VikingSearchBar } from "@/components/shared/viking-search-bar";
 import { VikingLoader } from "@/components/shared/viking-loader";
@@ -19,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Users, Search, Plus, Phone, Mail, MapPin, Edit3, Trash2, ShieldAlert, Loader2, Save, RefreshCw } from "lucide-react";
+import { Users, Plus, Phone, Mail, MapPin, Edit3, Trash2, ShieldAlert, Loader2, Save } from "lucide-react";
 import { useUserRole } from "@/hooks/use-user-role";
 
 /**
@@ -49,7 +48,7 @@ export default function ClientsDirectoryPage() {
 
   const debouncedSearch = searchTerm.trim().length >= 2 ? searchTerm.trim() : undefined;
 
-  const { data: clients = [], isLoading, isError, refetch, isRefetching } = useQuery({
+  const { data: clients = [], isLoading, refetch, isRefetching } = useQuery({
     queryKey: ["users-directory", debouncedSearch],
     queryFn: () => userService.getUsers(debouncedSearch),
     staleTime: 30000,
@@ -87,7 +86,7 @@ export default function ClientsDirectoryPage() {
       });
       queryClient.invalidateQueries({ queryKey: ["users-directory"] });
       setClientToEdit(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Update failed:", err);
       toast.error("Error al actualizar", { description: "No se pudieron guardar los cambios en el servidor." });
     } finally {

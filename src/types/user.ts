@@ -19,6 +19,8 @@ export interface UserAutocompleteDTO {
   name: string;
   dni: number;
   phoneNumber?: string;
+  email?: string;
+
 }
 
 export interface UserCreateDTO {
