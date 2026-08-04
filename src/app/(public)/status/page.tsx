@@ -1,20 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { publicWorkOrderService } from "@/services/public-work-order.service";
+import { publicNotificationService } from "@/services/public-notification.service";
+import { budgetService } from "@/services/budget.service";
+import { PublicBudgetModal } from "@/components/budgets/public/PublicBudgetModal";
 import { WorkOrderPublicStatusResponseDTO } from "@/types/work-order";
 import { StatusBadge } from "@/components/common/status-badge";
 import { DiagnosticTimeline } from "@/components/work-orders/diagnostic-timeline";
+import { NotificationFeed } from "@/components/work-orders/notification-feed";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Search, ShieldCheck, User, Smartphone, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
+import { Search, ShieldCheck, User, Smartphone, AlertCircle, ArrowLeft, Loader2, FileText, Eye, Printer } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 
 /**
@@ -44,6 +48,56 @@ export default function PublicStatusPage() {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [result, setResult] = useState<WorkOrderPublicStatusResponseDTO | null>(null);
+  const [publicBudget, setPublicBudget] = useState<any>(null);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState<boolean>(false);
+
+  // Fetch public budget when an active work order result is loaded
+  useEffect(() => {
+    if (result?.workOrder?.id) {
+      budgetService
+        .getBudgetByWorkOrder(result.workOrder.id, true)
+        .then((data) => setPublicBudget(data))
+        .catch(() => {
+          // Local fallback for offline / development testing
+          try {
+            const raw = localStorage.getItem(`viking_budget_${result.workOrder.id}`);
+            if (raw) setPublicBudget(JSON.parse(raw));
+          } catch {
+            setPublicBudget(null);
+          }
+        });
+    } else {
+      setPublicBudget(null);
+    }
+  }, [result]);
+
+  // Morning / Offline Sync: Auto-hydrate work order if active session is stored in localStorage
+  useEffect(() => {
+    const activeSession = publicNotificationService.getActiveSession();
+    if (activeSession && activeSession.workOrderId && activeSession.securityCode && activeSession.securityCode !== "undefined" && !result) {
+      setTimeout(() => setIsLoading(true), 0);
+      publicWorkOrderService
+        .getStatusById(activeSession.workOrderId, activeSession.securityCode)
+        .then((response) => {
+          if (response && response.workOrder) {
+            // Ensure securityCode is preserved if omitted by the backend projection
+            if (!response.workOrder.securityCode || response.workOrder.securityCode === "undefined") {
+              response.workOrder.securityCode = activeSession.securityCode;
+            }
+            setResult(response);
+          }
+        })
+        .catch(() => {
+          publicNotificationService.clearActiveSession();
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    } else if (activeSession && (!activeSession.workOrderId || !activeSession.securityCode || activeSession.securityCode === "undefined")) {
+      publicNotificationService.clearActiveSession();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const {
     register,
@@ -67,10 +121,25 @@ export default function PublicStatusPage() {
       });
 
       if (response && response.workOrder) {
+        // Defensive resilience: If the backend response DTO did not populate `securityCode`
+        // (or if it comes back undefined), explicitly hydrate `response.workOrder.securityCode`
+        // using the validated `data.securityCode` submitted by the user.
+        if (!response.workOrder.securityCode || response.workOrder.securityCode === "undefined") {
+          response.workOrder.securityCode = data.securityCode;
+        }
+
         setResult(response);
+        publicNotificationService.saveActiveSession({
+          workOrderId: response.workOrder.id,
+          securityCode: response.workOrder.securityCode || data.securityCode,
+          clientDni: response.workOrder.clientDni || parseInt(data.clientDni, 10),
+          clientName: response.workOrder.clientName,
+          // eslint-disable-next-line react-hooks/purity
+          updatedAt: Date.now(),
+        });
         toast.success(t.statusPage.toastSuccess);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Lookup failed:", error);
       toast.error(t.statusPage.notFoundTitle, {
         description: t.statusPage.notFoundDesc,
@@ -82,6 +151,7 @@ export default function PublicStatusPage() {
   };
 
   const handleResetSearch = () => {
+    publicNotificationService.clearActiveSession();
     setResult(null);
     reset();
   };
@@ -186,19 +256,25 @@ export default function PublicStatusPage() {
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6 animate-fadeIn">
       {/* Top Action Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <Button
           variant="outline"
           size="sm"
           onClick={handleResetSearch}
-          className="text-xs font-mono tracking-wider uppercase border-border hover:border-tertiary text-foreground"
+          className="text-xs font-mono tracking-wider uppercase border-border hover:border-tertiary text-foreground shrink-0"
         >
           <ArrowLeft className="mr-2 h-3.5 w-3.5" />
           {t.statusPage.tryAgainButton}
         </Button>
-        <span className="text-xs font-mono text-typography uppercase">
-          WOVIK: <strong className="text-tertiary font-bold tracking-wider">{workOrder.securityCode}</strong>
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-mono text-typography uppercase hidden sm:inline">
+            WOVIK: <strong className="text-tertiary font-bold tracking-wider">{workOrder.securityCode}</strong>
+          </span>
+          <NotificationFeed
+            workOrderId={workOrder.id}
+            securityCode={workOrder.securityCode || ""}
+          />
+        </div>
       </div>
 
       {/* Main Order Metadata Card */}
@@ -260,7 +336,7 @@ export default function PublicStatusPage() {
               <span>Problema Reportado</span>
             </div>
             <p className="text-sm text-foreground/90 italic leading-relaxed pl-6 border-l-2 border-tertiary/60">
-              "{workOrder.issueDescription}"
+              &quot;{workOrder.issueDescription}&quot;
             </p>
           </div>
 
@@ -276,10 +352,23 @@ export default function PublicStatusPage() {
               {t.statusPage.diagnosticHistorySubtitle}
             </p>
 
-            <DiagnosticTimeline points={diagnosticPoints} />
+            <DiagnosticTimeline
+              points={diagnosticPoints}
+              isPublic
+              onViewBudget={() => setIsBudgetModalOpen(true)}
+            />
           </div>
         </CardContent>
       </Card>
+
+      {/* Public Customer Budget Modal */}
+      {publicBudget && (
+        <PublicBudgetModal
+          isOpen={isBudgetModalOpen}
+          onClose={() => setIsBudgetModalOpen(false)}
+          budgetData={publicBudget}
+        />
+      )}
     </div>
   );
 }
