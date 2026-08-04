@@ -31,8 +31,10 @@ export const PublicBudgetModal: React.FC<PublicBudgetModalProps> = ({
     try { parsedBudgetData = JSON.parse(budgetData); } catch {}
   }
 
-  if (parsedBudgetData?.budgetData) {
-    let innerData = parsedBudgetData.budgetData;
+  // Support both camelCase budgetData AND snake_case budget_data
+  const rawInner = parsedBudgetData?.budgetData ?? parsedBudgetData?.budget_data;
+  if (rawInner) {
+    let innerData = rawInner;
     if (typeof innerData === 'string') {
       try { innerData = JSON.parse(innerData); } catch {}
     }
@@ -64,22 +66,23 @@ export const PublicBudgetModal: React.FC<PublicBudgetModalProps> = ({
   console.log('🔍 [PublicBudgetModal] Raw budgetData received:', budgetData);
   console.log('🔍 [PublicBudgetModal] Clean parsed data for view:', cleanData);
 
-  const title = cleanData.title || 'Presupuesto de Mantenimiento Técnico';
+  // Robust dual mapping (camelCase & snake_case) to guarantee rendering on all devices
+  const title = cleanData.title || cleanData.title_name || 'Presupuesto de Mantenimiento Técnico';
   const mode = cleanData.mode || 'MAINTENANCE';
-  const clientName = cleanData.clientName || workOrder?.clientName || 'Cliente Registrado';
-  const clientDni = cleanData.clientDni || workOrder?.clientDni || 'No registrado';
-  const clientAddress = cleanData.clientAddress || workOrder?.clientAddress || '';
-  const clientPhoneNumber = cleanData.clientPhoneNumber || workOrder?.clientPhone || workOrder?.clientPhoneNumber || '';
-  const clientEmail = cleanData.clientEmail || workOrder?.clientEmail || '';
-  const deviceModel = cleanData.deviceModel || (workOrder ? `${workOrder.deviceBrand ? workOrder.deviceBrand + ' ' : ''}${workOrder.deviceModel || ''}` : '') || 'N/A';
-  const deviceSerialNumber = cleanData.deviceSerialNumber || workOrder?.deviceSerialNumber || '';
-  const blocks = cleanData.blocks || [];
-  const items = cleanData.items || [];
-  const labors = cleanData.labors || [];
-  const taxPercentage = cleanData.taxPercentage || 0;
+  const clientName = cleanData.clientName || cleanData.client_name || workOrder?.clientName || 'Cliente Registrado';
+  const clientDni = cleanData.clientDni || cleanData.client_dni || workOrder?.clientDni || 'No registrado';
+  const clientAddress = cleanData.clientAddress || cleanData.client_address || workOrder?.clientAddress || workOrder?.client_address || '';
+  const clientPhoneNumber = cleanData.clientPhoneNumber || cleanData.client_phone_number || cleanData.client_phone || workOrder?.clientPhone || workOrder?.clientPhoneNumber || workOrder?.client_phone || '';
+  const clientEmail = cleanData.clientEmail || cleanData.client_email || workOrder?.clientEmail || workOrder?.client_email || '';
+  const deviceModel = cleanData.deviceModel || cleanData.device_model || (workOrder ? `${workOrder.deviceBrand || workOrder?.device_brand ? (workOrder.deviceBrand || workOrder?.device_brand) + ' ' : ''}${workOrder.deviceModel || workOrder?.device_model || ''}` : '') || 'N/A';
+  const deviceSerialNumber = cleanData.deviceSerialNumber || cleanData.device_serial_number || cleanData.device_serial || workOrder?.deviceSerialNumber || workOrder?.device_serial_number || '';
+  const blocks = cleanData.blocks || cleanData.content_blocks || [];
+  const items = cleanData.items || cleanData.budget_items || cleanData.row_items || [];
+  const labors = cleanData.labors || cleanData.labor_costs || cleanData.labor_items || [];
+  const taxPercentage = cleanData.taxPercentage || cleanData.tax_percentage || 0;
   const currency = cleanData.currency || '$';
   const notes = cleanData.notes;
-  const termsAndConditions = cleanData.termsAndConditions;
+  const termsAndConditions = cleanData.termsAndConditions || cleanData.terms_and_conditions;
 
   const handlePrintPDF = () => {
     window.print();
