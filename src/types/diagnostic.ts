@@ -7,6 +7,7 @@ export interface DiagnosticPointResponseDTO {
   id: string;               // UUID
   workOrderId: string;      // UUID
   staffId: string;          // UUID
+  entryType?: 'EVIDENCE_IMAGE' | 'BUDGET_SUMMARY';
   title: string;
   description: string;
   imageUrl?: string;        // Path or URL to stored evidence image

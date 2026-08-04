@@ -21,6 +21,8 @@ import { getImageUrl } from "@/lib/utils";
 interface DiagnosticTimelineProps {
   points: DiagnosticPointResponseDTO[];
   onDelete?: (id: string) => Promise<void> | void;
+  isPublic?: boolean;
+  onViewBudget?: () => void;
 }
 
 /**
@@ -30,7 +32,12 @@ interface DiagnosticTimelineProps {
  * Recreates the "HISTORIAL DE DIAGNÓSTICO" layout seen in mobile screen 121231.
  * Features an integrated Fullscreen Lightbox viewer and optional granular deletion via Radix AlertDialog.
  */
-export const DiagnosticTimeline: React.FC<DiagnosticTimelineProps> = ({ points, onDelete }) => {
+export const DiagnosticTimeline: React.FC<DiagnosticTimelineProps> = ({ 
+  points, 
+  onDelete,
+  isPublic = false,
+  onViewBudget,
+}) => {
   const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string } | null>(null);
   const [pointToDelete, setPointToDelete] = useState<DiagnosticPointResponseDTO | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -110,20 +117,32 @@ export const DiagnosticTimeline: React.FC<DiagnosticTimelineProps> = ({ points, 
                   </p>
 
                   {/* Discriminator: Budget Entry vs Photo Evidence */}
-                  {(point.title?.includes('Presupuesto') || point.description?.includes('Presupuesto')) ? (
+                  {(point.entryType === 'BUDGET_SUMMARY' || point.title?.includes('Presupuesto') || point.description?.includes('Presupuesto')) ? (
                     <div className="mt-3 pt-3 border-t border-border/30 bg-primary/5 p-3 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-center gap-2 text-xs font-semibold text-primary">
                         <FileText className="w-4 h-4" />
                         <span>PRESUPUESTO ASOCIADO</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <a
-                          href={`/work-orders/${point.workOrderId}/budget`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          <span>Ver / Descargar PDF</span>
-                        </a>
+                        {isPublic || onViewBudget ? (
+                          <Button
+                            type="button"
+                            onClick={onViewBudget}
+                            size="sm"
+                            className="h-8 text-xs font-semibold gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>Ver / Descargar PDF</span>
+                          </Button>
+                        ) : (
+                          <a
+                            href={`/work-orders/${point.workOrderId}/budget`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>Ver / Descargar PDF</span>
+                          </a>
+                        )}
                       </div>
                     </div>
                   ) : point.imageUrl &&
