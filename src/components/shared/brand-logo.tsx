@@ -77,17 +77,17 @@ export function BrandLogo({
       {/* Optional Brand Typography */}
       {showText && (
         <div className="flex flex-col justify-center">
-          <span className="text-lg sm:text-xl font-extrabold tracking-tight uppercase text-foreground group-hover:text-tertiary transition-colors">
-            Viking <span className="text-tertiary">App</span>
+          <span className="text-base sm:text-lg font-extrabold tracking-tight uppercase text-foreground group-hover:text-tertiary transition-colors whitespace-nowrap leading-tight">
+            El Vikingo <span className="text-tertiary">Store</span>
           </span>
           {textVariant === "portal" && (
-            <span className="text-[10px] font-mono tracking-widest text-typography uppercase -mt-1">
+            <span className="text-[10px] font-mono tracking-widest text-typography uppercase -mt-0.5 whitespace-nowrap">
               Portal
             </span>
           )}
           {textVariant === "tech" && (
-            <span className="text-[10px] font-mono tracking-widest text-typography uppercase -mt-1">
-              Tech Solutions
+            <span className="text-[10px] font-mono tracking-widest text-typography uppercase -mt-0.5 whitespace-nowrap">
+              Laboratorio
             </span>
           )}
         </div>

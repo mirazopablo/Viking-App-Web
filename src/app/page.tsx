@@ -35,7 +35,7 @@ export default function HomePage() {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-background text-foreground relative overflow-x-hidden selection:bg-tertiary/20 selection:text-tertiary">
+    <div className="min-h-screen w-full flex flex-col bg-background text-foreground relative overflow-x-hidden selection:bg-tertiary/20 selection:text-tertiary pb-20 md:pb-0">
       {/* Navbar Header */}
       <Navbar />
 
@@ -328,11 +328,11 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="w-full border-t border-border/60 bg-background pt-12 pb-8 px-4 sm:px-6 text-typography font-mono text-xs z-10">
+      <footer className="hidden md:block w-full border-t border-border/60 bg-background pt-12 pb-8 px-4 sm:px-6 text-typography font-mono text-xs z-10">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-border/30">
           <div className="flex flex-col items-center md:items-start space-y-2">
             <span className="text-sm font-extrabold tracking-tight uppercase text-foreground">
-              Viking <span className="text-tertiary">App</span> Tech Solutions
+              El Vikingo <span className="text-tertiary">Store</span> Laboratorio
             </span>
             <p className="text-typography/60 text-[11px] max-w-xs text-center md:text-left">
               {t.home.footer.tagline}
