@@ -8,6 +8,7 @@ export interface PublicDictionary {
     trackDevice: string;
     trackShort: string;
     staffLogin: string;
+    bookAppointment: string;
   };
   home: {
     statusBadge: string;
@@ -133,6 +134,54 @@ export interface PublicDictionary {
     toastNotFound: string;
     toastSuccess: string;
   };
+  bottomNav: {
+    home: string;
+    booking: string;
+    track: string;
+    staff: string;
+  };
+  booking: {
+    pageTitlePart1: string;
+    pageTitleHighlight: string;
+    pageSubtitle: string;
+    step1Title: string;
+    fullNameLabel: string;
+    fullNamePlaceholder: string;
+    phoneLabel: string;
+    phonePlaceholder: string;
+    deviceTypeLabel: string;
+    deviceTypePlaceholder: string;
+    deviceOptions: {
+      general: string;
+      pc: string;
+      laptop: string;
+      mobile: string;
+      gaming: string;
+    };
+    step2Title: string;
+    selectDateLabel: string;
+    pickDatePlaceholder: string;
+    availableSlotsLabel: string;
+    selectDateFirst: string;
+    selectDeviceFirst: string;
+    loadingSlots: string;
+    noSlots: string;
+    step3Title: string;
+    notesLabel: string;
+    notesPlaceholder: string;
+    buttonBack: string;
+    buttonContinue: string;
+    buttonSubmit: string;
+    buttonProcessing: string;
+    successTitle: string;
+    successDesc: string;
+    successReturn: string;
+    toastError: string;
+    stepName: string;
+    stepDevice: string;
+    stepDate: string;
+    stepTime: string;
+  };
 }
 
 export const publicDictionaries: Record<PublicLanguage, PublicDictionary> = {
@@ -144,6 +193,7 @@ export const publicDictionaries: Record<PublicLanguage, PublicDictionary> = {
       trackDevice: "Rastrear Equipo",
       trackShort: "Rastrear",
       staffLogin: "Staff Login",
+      bookAppointment: "Agenda tu Turno",
     },
     home: {
       statusBadge: "Laboratorio de Precisión & Diagnóstico Digital",
@@ -289,6 +339,54 @@ export const publicDictionaries: Record<PublicLanguage, PublicDictionary> = {
       toastNotFound: "Orden no encontrada en los registros.",
       toastSuccess: "Estado de orden consultado exitosamente.",
     },
+    bottomNav: {
+      home: "Inicio",
+      booking: "Reservar",
+      track: "Clientes",
+      staff: "Personal",
+    },
+    booking: {
+      pageTitlePart1: "Agenda tu",
+      pageTitleHighlight: "Turno",
+      pageSubtitle: "Sigue los pasos debajo para agendar un turno con nuestro laboratorio de precisión.",
+      step1Title: "1. Detalles Personales & del Equipo",
+      fullNameLabel: "Nombre Completo",
+      fullNamePlaceholder: "Ej: Juan Pérez",
+      phoneLabel: "Número de Teléfono (WhatsApp)",
+      phonePlaceholder: "Ej: +54 9 11 1234 5678",
+      deviceTypeLabel: "Tipo de Equipo / Servicio",
+      deviceTypePlaceholder: "Selecciona una categoría",
+      deviceOptions: {
+        general: "Asesoramiento General",
+        pc: "PC de Escritorio / Servidor",
+        laptop: "Notebook / Ultrabook",
+        mobile: "Smartphone Android",
+        gaming: "Consola de Videojuegos",
+      },
+      step2Title: "2. Seleccionar Fecha y Hora",
+      selectDateLabel: "Seleccionar Fecha",
+      pickDatePlaceholder: "Elegir una fecha",
+      availableSlotsLabel: "Horarios Disponibles",
+      selectDateFirst: "Seleccione una fecha primero",
+      selectDeviceFirst: "Selecciona un tipo de equipo primero",
+      loadingSlots: "Cargando horarios...",
+      noSlots: "No hay horarios disponibles para esta fecha",
+      step3Title: "3. Revisar & Confirmar",
+      notesLabel: "Notas Adicionales (Opcional)",
+      notesPlaceholder: "Describe brevemente el problema...",
+      buttonBack: "Atrás",
+      buttonContinue: "Continuar",
+      buttonSubmit: "Confirmar Reserva",
+      buttonProcessing: "Procesando...",
+      successTitle: "Reserva Confirmada",
+      successDesc: "Tu turno ha sido agendado exitosamente. Recibirás una confirmación en breve.",
+      successReturn: "Volver al Inicio",
+      toastError: "Hubo un error al crear la reserva. Por favor verifique su conexión e intente nuevamente.",
+      stepName: "Nombre:",
+      stepDevice: "Equipo:",
+      stepDate: "Fecha:",
+      stepTime: "Hora:",
+    },
   },
   en: {
     navbar: {
@@ -298,6 +396,7 @@ export const publicDictionaries: Record<PublicLanguage, PublicDictionary> = {
       trackDevice: "Track Device",
       trackShort: "Track",
       staffLogin: "Staff Login",
+      bookAppointment: "Book Appointment",
     },
     home: {
       statusBadge: "Precision Hardware Lab & Digital Diagnostics",
@@ -442,6 +541,54 @@ export const publicDictionaries: Record<PublicLanguage, PublicDictionary> = {
         "Please enter both your Client DNI and WOVIK security code.",
       toastNotFound: "Work order not found in records.",
       toastSuccess: "Work order status retrieved successfully.",
+    },
+    bottomNav: {
+      home: "Home",
+      booking: "Book",
+      track: "Clients",
+      staff: "Staff",
+    },
+    booking: {
+      pageTitlePart1: "Schedule",
+      pageTitleHighlight: "Service",
+      pageSubtitle: "Follow the steps below to book an appointment with our precision lab.",
+      step1Title: "1. Personal & Device Details",
+      fullNameLabel: "Full Name",
+      fullNamePlaceholder: "e.g., John Doe",
+      phoneLabel: "Phone Number (WhatsApp)",
+      phonePlaceholder: "e.g., +1 234 567 8900",
+      deviceTypeLabel: "Device / Service Type",
+      deviceTypePlaceholder: "Select a category",
+      deviceOptions: {
+        general: "General Advisory",
+        pc: "PC Server / Workstation",
+        laptop: "Laptop / Ultrabook",
+        mobile: "Android Smartphone",
+        gaming: "Gaming Console",
+      },
+      step2Title: "2. Schedule Appointment",
+      selectDateLabel: "Select Date",
+      pickDatePlaceholder: "Pick a date",
+      availableSlotsLabel: "Available Time Slots",
+      selectDateFirst: "Select a date first",
+      selectDeviceFirst: "Select a device type first",
+      loadingSlots: "Loading slots...",
+      noSlots: "No slots available for this date",
+      step3Title: "3. Review & Submit",
+      notesLabel: "Additional Notes (Optional)",
+      notesPlaceholder: "Describe the issue briefly...",
+      buttonBack: "Back",
+      buttonContinue: "Continue",
+      buttonSubmit: "Confirm Booking",
+      buttonProcessing: "Processing...",
+      successTitle: "Booking Confirmed",
+      successDesc: "Your appointment has been scheduled successfully. You will receive a confirmation shortly.",
+      successReturn: "Return to Home",
+      toastError: "An error occurred while creating the booking. Please check your connection and try again.",
+      stepName: "Name:",
+      stepDevice: "Device:",
+      stepDate: "Date:",
+      stepTime: "Time:",
     },
   },
 };
