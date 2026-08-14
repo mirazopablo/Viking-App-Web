@@ -10,6 +10,16 @@ export function MobileBottomNav() {
   const pathname = usePathname();
   const { t } = useLanguage();
 
+  // Do not render the public mobile bottom nav on admin routes
+  // since the admin layout provides its own AdminMobileBottomNav
+  if (
+    pathname.startsWith("/work-orders") ||
+    pathname.startsWith("/clients") ||
+    pathname.startsWith("/devices")
+  ) {
+    return null;
+  }
+
   const navItems = [
     { name: t.bottomNav?.home || "Home", href: "/", icon: Home, activeColor: "text-typography", iconColor: "fill-typography/20", baseColor: "text-typography/50" },
     { name: t.bottomNav?.booking || "Book", href: "/booking", icon: CalendarPlus, activeColor: "text-tertiary", iconColor: "fill-tertiary/20", baseColor: "text-tertiary/70" },

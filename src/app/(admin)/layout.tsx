@@ -8,6 +8,7 @@ import { getTokenRemainingTimeMs } from "@/lib/jwt-utils";
 import { Button } from "@/components/ui/button";
 import { Wrench, PlusCircle, List, LogOut, Users, Smartphone } from "lucide-react";
 import { BrandLogo } from "@/components/shared/brand-logo";
+import { AdminMobileBottomNav } from "@/components/admin/admin-mobile-bottom-nav";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -48,7 +49,7 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-background text-foreground">
+    <div className="min-h-screen w-full flex flex-col bg-background text-foreground pb-20 md:pb-0">
       {/* Top Workshop Header */}
       <header className="w-full border-b border-border/60 bg-card/90 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 py-3.5 no-print">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -65,8 +66,9 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
           </Link>
 
           {/* Navigation Actions */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-            <Link href="/work-orders">
+          <div className="flex items-center gap-2 sm:gap-3 justify-end">
+            <div className="hidden md:flex items-center gap-2 sm:gap-3 flex-wrap">
+              <Link href="/work-orders">
               <Button
                 variant={pathname === "/work-orders" ? "default" : "ghost"}
                 size="sm"
@@ -121,6 +123,7 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
                 <span>Nueva Orden</span>
               </Button>
             </Link>
+            </div>
 
             <div className="h-6 w-px bg-border/60 mx-1 hidden sm:block" />
 
@@ -148,6 +151,7 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
           <p>&copy; {new Date().getFullYear()} Zonda Solutions. Entorno Técnico Protegido.</p>
         </div>
       </footer>
+      <AdminMobileBottomNav />
     </div>
   );
 }
