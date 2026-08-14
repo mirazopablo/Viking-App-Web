@@ -13,7 +13,9 @@ import { sanitizeBudgetForClient } from '@/types/budget';
 interface PublicBudgetModalProps {
   isOpen: boolean;
   onClose: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   budgetData: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   workOrder?: any;
   staffName?: string;
 }

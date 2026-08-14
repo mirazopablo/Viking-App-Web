@@ -213,6 +213,17 @@ export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (
                 );
               }
 
+              if (item.rowType === 'HIDDEN_UNIT_PRICE_ITEM') {
+                return (
+                  <tr key={item.id || idx} className="border-b border-slate-200 hover:bg-slate-50">
+                    <td className="p-1.5 font-medium text-slate-800">{item.description}</td>
+                    <td className="p-1.5 text-center font-mono text-slate-600">{item.quantity}</td>
+                    <td className="p-1.5 text-right font-mono text-slate-600"></td>
+                    <td className="p-1.5 text-right font-mono font-semibold text-slate-900"></td>
+                  </tr>
+                );
+              }
+
               const lineTotal = (item.quantity || 0) * (item.unitPrice || 0);
 
               return (

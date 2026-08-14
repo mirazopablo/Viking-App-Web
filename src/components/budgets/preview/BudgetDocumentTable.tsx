@@ -107,14 +107,8 @@ export const BudgetDocumentTable: React.FC<BudgetDocumentTableProps> = ({
                         )}
                       </td>
                       <td className="py-2 px-3 text-center font-medium">{item.quantity}</td>
-                      {mode !== 'NEW_EQUIPMENT' && <td className="py-2 px-3 text-right text-muted-foreground">-</td>}
-                      <td className="py-2 px-3 text-right font-medium">
-                        {mode === 'NEW_EQUIPMENT' ? (
-                          <span className="text-muted-foreground italic text-[11px]">Incluido en Subtotal de Armado</span>
-                        ) : (
-                          `${currency} ${lineTotal.toFixed(2)}`
-                        )}
-                      </td>
+                      {mode !== 'NEW_EQUIPMENT' && <td className="py-2 px-3 text-right text-muted-foreground"></td>}
+                      <td className="py-2 px-3 text-right font-medium"></td>
                     </tr>
                   );
                 }

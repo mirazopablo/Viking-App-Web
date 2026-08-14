@@ -147,18 +147,16 @@ export const BudgetItemsTableEditor: React.FC = () => {
             <Tag className="w-3.5 h-3.5 mr-1" />
             + Descuento
           </Button>
-          {budgetMode === 'NEW_EQUIPMENT' && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => addItemRow('HIDDEN_UNIT_PRICE_ITEM')}
-              className="text-xs border-indigo-200 dark:border-indigo-800"
-            >
-              <EyeOff className="w-3.5 h-3.5 mr-1 text-indigo-500" />
-              + Precio Oculto (Armado PC)
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => addItemRow('HIDDEN_UNIT_PRICE_ITEM')}
+            className="text-xs border-indigo-200 dark:border-indigo-800"
+          >
+            <EyeOff className="w-3.5 h-3.5 mr-1 text-indigo-500" />
+            + Precio Oculto
+          </Button>
           <Button
             type="button"
             variant="outline"
@@ -263,7 +261,7 @@ export const BudgetItemsTableEditor: React.FC = () => {
                         ? 'ÍTEM REGULAR'
                         : rowType === 'BONIFICATION'
                         ? 'BONIFICACIÓN'
-                        : 'PRECIO OCULTO (ARMADO PC)'}
+                        : 'ÍTEM CON PRECIO OCULTO'}
                     </span>
                   </div>
 
