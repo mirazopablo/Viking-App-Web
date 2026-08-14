@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import { getTokenRemainingTimeMs } from "@/lib/jwt-utils";
 import { Button } from "@/components/ui/button";
-import { Wrench, PlusCircle, List, LogOut, Users, Smartphone } from "lucide-react";
+import { Wrench, PlusCircle, List, LogOut, Users, Smartphone, Calculator } from "lucide-react";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { AdminMobileBottomNav } from "@/components/admin/admin-mobile-bottom-nav";
 
@@ -107,6 +107,20 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
               >
                 <Smartphone className="w-3.5 h-3.5 mr-1.5 text-success" />
                 <span className="hidden md:inline">Equipos</span>
+              </Button>
+            </Link>
+
+            <Link href="/quotes">
+              <Button
+                variant={pathname.startsWith("/quotes") ? "default" : "ghost"}
+                size="sm"
+                className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/quotes")
+                  ? "bg-secondary text-foreground font-bold border border-border"
+                  : "text-typography hover:text-foreground"
+                  }`}
+              >
+                <Calculator className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                <span className="hidden md:inline">Presupuestos</span>
               </Button>
             </Link>
 
