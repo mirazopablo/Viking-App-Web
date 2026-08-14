@@ -114,15 +114,15 @@ export const QuotesLivePreview: React.FC<QuotesLivePreviewProps> = ({ staffName 
         <CardContent className="p-6 space-y-6 max-h-[82vh] overflow-y-auto bg-background/50">
           {/* Header with Client PII */}
           <QuotesDocumentHeader
-            title={title}
+            title={title || ''}
             mode={mode}
-            clientName={clientName}
-            clientDni={clientDni}
-            clientAddress={clientAddress}
-            clientPhoneNumber={clientPhoneNumber}
-            clientEmail={clientEmail}
-            deviceModel={deviceModel}
-            deviceSerialNumber={deviceSerialNumber}
+            clientName={clientName || ''}
+            clientDni={clientDni || ''}
+            clientAddress={clientAddress || ''}
+            clientPhoneNumber={clientPhoneNumber || ''}
+            clientEmail={clientEmail || ''}
+            deviceModel={deviceModel || ''}
+            deviceSerialNumber={deviceSerialNumber || ''}
             currency={currency}
           />
 
@@ -131,8 +131,10 @@ export const QuotesLivePreview: React.FC<QuotesLivePreviewProps> = ({ staffName 
 
           {/* Table & Totals (PRIVACY ENFORCED: SPARE_PART_ITEM renders only final calculated price) */}
           <QuotesDocumentTable
-            items={items}
-            labors={labors}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            items={items as any}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            labors={labors as any}
             taxPercentage={taxPercentage}
             currency={currency}
             mode={mode}
@@ -164,23 +166,25 @@ export const QuotesLivePreview: React.FC<QuotesLivePreviewProps> = ({ staffName 
 
       {/* High-Contrast Space-Saving Modular Printable PDF Document */}
       <PrintableQuotesDocument
-        title={title}
+        title={title || ''}
         mode={mode}
-        clientName={clientName}
-        clientDni={clientDni}
-        clientAddress={clientAddress}
-        clientPhoneNumber={clientPhoneNumber}
-        clientEmail={clientEmail}
-        deviceModel={deviceModel}
-        deviceSerialNumber={deviceSerialNumber}
+        clientName={clientName || ''}
+        clientDni={clientDni || ''}
+        clientAddress={clientAddress || ''}
+        clientPhoneNumber={clientPhoneNumber || ''}
+        clientEmail={clientEmail || ''}
+        deviceModel={deviceModel || ''}
+        deviceSerialNumber={deviceSerialNumber || ''}
         blocks={blocks}
-        items={items}
-        labors={labors}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        items={items as any}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        labors={labors as any}
         taxPercentage={taxPercentage}
         currency={currency}
-        notes={notes}
-        termsAndConditions={termsAndConditions}
-        staffName={staffName}
+        notes={notes || ''}
+        termsAndConditions={termsAndConditions || ''}
+        staffName={staffName || ''}
       />
     </>
   );
