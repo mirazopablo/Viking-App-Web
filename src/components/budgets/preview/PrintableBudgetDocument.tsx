@@ -43,16 +43,27 @@ export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (
   staffName = '',
 }) => {
   // Compute Totals
-  const itemsSubtotal = (items || []).reduce((acc, item) => {
-    if (item.rowType === 'REGULAR_ITEM' || item.rowType === 'SPARE_PART_ITEM' || item.rowType === 'HIDDEN_UNIT_PRICE_ITEM') {
-      return acc + (item.quantity || 0) * (item.unitPrice || 0);
+  let regularSubtotal = 0;
+  let hiddenSubtotal = 0;
+  let totalDiscounts = 0;
+
+  (items || []).forEach((item) => {
+    if (item.rowType === 'REGULAR_ITEM' || item.rowType === 'SPARE_PART_ITEM') {
+      regularSubtotal += (item.quantity || 0) * (item.unitPrice || 0);
+    } else if (item.rowType === 'HIDDEN_UNIT_PRICE_ITEM') {
+      hiddenSubtotal += (item.quantity || 0) * (item.unitPrice || 0);
+    } else if (item.rowType === 'BONIFICATION') {
+      if (!item.isFree) {
+        totalDiscounts += item.discountAmount || 0;
+      }
     }
-    return acc;
-  }, 0);
+  });
 
   const laborTotal = (labors || []).reduce((acc, l) => acc + (l.amount || 0), 0);
-  const taxAmount = ((itemsSubtotal + laborTotal) * taxPercentage) / 100;
-  const grandTotal = itemsSubtotal + laborTotal + taxAmount;
+  const itemsSubtotal = regularSubtotal + hiddenSubtotal;
+  const taxableAmount = Math.max(0, itemsSubtotal + laborTotal - totalDiscounts);
+  const taxAmount = (taxableAmount * (taxPercentage || 0)) / 100;
+  const grandTotal = taxableAmount + taxAmount;
 
   const todayStr = new Date().toLocaleDateString('es-ES', {
     day: '2-digit',
@@ -207,8 +218,15 @@ export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (
                   <tr key={item.id || idx} className="bg-emerald-50 text-emerald-900 border-b border-slate-200">
                     <td colSpan={3} className="p-1.5 font-semibold">
                       🎁 {item.description}
+                      {item.isFree && (
+                        <span className="ml-2 text-[9px] bg-emerald-100 px-1 py-0.5 rounded text-emerald-800 border border-emerald-300">
+                          BONIFICADO
+                        </span>
+                      )}
                     </td>
-                    <td className="p-1.5 text-right font-mono font-bold text-emerald-700">BONIFICADO</td>
+                    <td className="p-1.5 text-right font-mono font-bold text-emerald-700">
+                      {item.isFree ? 'BONIFICADO' : `-${currency} ${(item.discountAmount || 0).toFixed(2)}`}
+                    </td>
                   </tr>
                 );
               }
@@ -266,6 +284,12 @@ export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (
             <span>Mano de Obra / Armado:</span>
             <span className="font-mono">{currency} {laborTotal.toFixed(2)}</span>
           </div>
+          {totalDiscounts > 0 && (
+            <div className="flex justify-between text-emerald-700 font-medium border-t border-slate-200 pt-1">
+              <span>Descuentos Aplicados:</span>
+              <span className="font-mono">-{currency} {totalDiscounts.toFixed(2)}</span>
+            </div>
+          )}
           {taxPercentage > 0 && (
             <div className="flex justify-between text-slate-600 border-t border-slate-200 pt-1">
               <span>Impuestos ({taxPercentage}%):</span>
