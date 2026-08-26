@@ -45,3 +45,4 @@ next-env.d.ts
 # Exceptuar el README
 !README.md
 !readme.md
+!CHANGELOG.md
