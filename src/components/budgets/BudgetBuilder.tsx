@@ -74,6 +74,16 @@ export const BudgetBuilder: React.FC<BudgetBuilderProps> = ({
   };
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resolvedStaffName, setResolvedStaffName] = useState(staffName);
+
+  useEffect(() => {
+    if (!resolvedStaffName && typeof window !== 'undefined') {
+      const storedName = localStorage.getItem('viking_user_name');
+      if (storedName) {
+        setResolvedStaffName(storedName);
+      }
+    }
+  }, [resolvedStaffName]);
 
   const methods = useForm<BudgetFormSchemaType>({
     resolver: zodResolver(budgetFormSchema) as never,
@@ -271,7 +281,7 @@ export const BudgetBuilder: React.FC<BudgetBuilderProps> = ({
 
             {/* Right Column: Live Visual Simulator */}
             <div className="lg:col-span-5">
-              <BudgetLivePreview staffName={staffName} />
+              <BudgetLivePreview staffName={resolvedStaffName} />
             </div>
           </div>
         ) : (
@@ -288,7 +298,7 @@ export const BudgetBuilder: React.FC<BudgetBuilderProps> = ({
               <BudgetEditor diagnosticPoints={diagnosticPoints} />
             </TabsContent>
             <TabsContent value="preview">
-              <BudgetLivePreview staffName={staffName} />
+              <BudgetLivePreview staffName={resolvedStaffName} />
             </TabsContent>
           </Tabs>
         )}

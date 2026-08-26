@@ -57,6 +57,16 @@ export const QuickQuoteBuilder: React.FC<QuickQuoteBuilderProps> = ({
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resolvedStaffName, setResolvedStaffName] = useState(staffName);
+
+  useEffect(() => {
+    if (!resolvedStaffName && typeof window !== 'undefined') {
+      const storedName = localStorage.getItem('viking_user_name');
+      if (storedName) {
+        setResolvedStaffName(storedName);
+      }
+    }
+  }, [resolvedStaffName]);
 
   const handleDeleteConfirm = async () => {
     if (!onDelete) return;
@@ -260,7 +270,7 @@ export const QuickQuoteBuilder: React.FC<QuickQuoteBuilderProps> = ({
 
             {/* Right Column: Live Visual Simulator */}
             <div className="lg:col-span-5">
-              <QuotesLivePreview staffName={staffName} />
+              <QuotesLivePreview staffName={resolvedStaffName} />
             </div>
           </div>
         ) : (
@@ -277,7 +287,7 @@ export const QuickQuoteBuilder: React.FC<QuickQuoteBuilderProps> = ({
               <QuotesEditor />
             </TabsContent>
             <TabsContent value="preview">
-              <QuotesLivePreview staffName={staffName} />
+              <QuotesLivePreview staffName={resolvedStaffName} />
             </TabsContent>
           </Tabs>
         )}
