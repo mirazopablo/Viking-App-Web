@@ -56,7 +56,30 @@ export function BookingStepper() {
     enabled: !!selectedDate && !!selectedDeviceType,
   });
 
-  const availableSlots = availabilityData?.availableSlots || [];
+  const availableSlots = (availabilityData?.availableSlots || []).map((slot) => {
+    if (!selectedDate) return slot;
+    
+    // Parse slot time manually to handle "09:30 AM" formats safely across all browsers
+    const [timeStr, modifier] = slot.time.split(' ');
+    let [hours, minutes] = timeStr.split(':').map(Number);
+    
+    if (modifier === 'PM' && hours < 12) hours += 12;
+    if (modifier === 'AM' && hours === 12) hours = 0;
+    
+    const slotDateTime = new Date(selectedDate.getTime());
+    slotDateTime.setHours(hours, minutes, 0, 0);
+    
+    // 24 hours from now
+    const minValidTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    
+    const isEnoughAdvance = slotDateTime.getTime() > minValidTime.getTime();
+    
+    return {
+      ...slot,
+      isAvailable: slot.isAvailable && isEnoughAdvance
+    };
+  });
+  
   const selectedSlotData = availableSlots.find((s) => s.id === selectedTimeSlot);
 
   const createBookingMutation = useMutation({
@@ -175,7 +198,7 @@ export function BookingStepper() {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={selectedDate} onSelect={(day) => form.setValue("date", day as Date)} disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))} />
+                    <Calendar mode="single" selected={selectedDate} onSelect={(day) => form.setValue("date", day as Date)} disabled={(date) => date <= new Date(new Date().setHours(0,0,0,0))} />
                   </PopoverContent>
                 </Popover>
                 {form.formState.errors.date && <p className="text-danger text-xs">{form.formState.errors.date.message}</p>}
