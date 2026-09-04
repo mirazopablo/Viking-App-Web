@@ -39,6 +39,34 @@ export function BookingStepper() {
   const [canSubmit, setCanSubmit] = useState(false);
   const { t } = useLanguage();
 
+  // Business logic: Calculate minimum valid time skipping non-working periods
+  const minValidTime = React.useMemo(() => {
+    const now = new Date();
+    let minTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    
+    const currentDay = now.getDay();
+    const minValidDay = minTime.getDay();
+    const minValidHour = minTime.getHours();
+
+    if (minValidDay === 6 && minValidHour >= 13) {
+      // Falls on Saturday after 13:00 -> push to Monday 00:00
+      minTime.setDate(minTime.getDate() + 2);
+      minTime.setHours(0, 0, 0, 0);
+    } else if (minValidDay === 0) {
+      // Falls on Sunday -> push to Monday 00:00
+      minTime.setDate(minTime.getDate() + 1);
+      minTime.setHours(0, 0, 0, 0);
+    }
+
+    if (currentDay === 0) {
+      // Booked on Sunday -> push directly to Tuesday 00:00
+      minTime = new Date(now.getTime());
+      minTime.setDate(minTime.getDate() + 2);
+      minTime.setHours(0, 0, 0, 0);
+    }
+    return minTime;
+  }, []);
+
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),
     defaultValues: { fullName: "", phone: "", deviceType: "", notes: "" },
@@ -69,14 +97,13 @@ export function BookingStepper() {
     const slotDateTime = new Date(selectedDate.getTime());
     slotDateTime.setHours(hours, minutes, 0, 0);
     
-    // 24 hours from now
-    const minValidTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    
+    // Explicitly hide any slots for Saturday after 13:00 just in case backend returns them
+    const isWorkingHour = !(selectedDate.getDay() === 6 && hours >= 13);
     const isEnoughAdvance = slotDateTime.getTime() > minValidTime.getTime();
     
     return {
       ...slot,
-      isAvailable: slot.isAvailable && isEnoughAdvance
+      isAvailable: slot.isAvailable && isEnoughAdvance && isWorkingHour
     };
   });
   
@@ -198,7 +225,16 @@ export function BookingStepper() {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
-                    <Calendar mode="single" selected={selectedDate} onSelect={(day) => form.setValue("date", day as Date)} disabled={(date) => date <= new Date(new Date().setHours(0,0,0,0))} />
+                    <Calendar 
+                      mode="single" 
+                      selected={selectedDate} 
+                      onSelect={(day) => form.setValue("date", day as Date)} 
+                      disabled={(date) => {
+                        const minDateStart = new Date(minValidTime);
+                        minDateStart.setHours(0, 0, 0, 0);
+                        return date < minDateStart || date.getDay() === 0;
+                      }} 
+                    />
                   </PopoverContent>
                 </Popover>
                 {form.formState.errors.date && <p className="text-danger text-xs">{form.formState.errors.date.message}</p>}
