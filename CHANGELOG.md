@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.3](https://github.com/mirazopablo/Viking-App-Web/compare/v0.1.2...v0.1.3) (2026-09-04)
+
+
+### Features
+
+* **admin:** add availability manager dashboard ([461239e](https://github.com/mirazopablo/Viking-App-Web/commit/461239e9e2614d90d38fdcee64cbd648608ea5f8))
+* **booking:** implement non-working hour skips for 24h advance logic ([9d68875](https://github.com/mirazopablo/Viking-App-Web/commit/9d688758afd58d19d45eb421da410bd22a1b54ea))
+
+
+### Bug Fixes
+
+* **ui:** enforce 24-hour advance notice for appointments ([c090ad8](https://github.com/mirazopablo/Viking-App-Web/commit/c090ad8fcd42fa969ffc6c14ea9c5c628b22a3c2))
+
 ### 0.1.2 (2026-08-26)
 
 
