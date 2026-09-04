@@ -2,7 +2,9 @@ import { apiClient } from "@/lib/api-client";
 import { 
   BookingAvailabilityResponseDTO, 
   CreateBookingRequestDTO, 
-  CreateBookingResponseDTO 
+  CreateBookingResponseDTO,
+  BlockedPeriod,
+  CreateBlockRequestDTO
 } from "@/types/booking";
 
 export const bookingService = {
@@ -20,5 +22,19 @@ export const bookingService = {
       data
     );
     return response.data;
+  },
+
+  getBlockedPeriods: async (): Promise<BlockedPeriod[]> => {
+    const response = await apiClient.get<BlockedPeriod[]>("/api/v1/bookings/blocks");
+    return response.data;
+  },
+
+  createBlockedPeriod: async (data: CreateBlockRequestDTO): Promise<BlockedPeriod> => {
+    const response = await apiClient.post<BlockedPeriod>("/api/v1/bookings/blocks", data);
+    return response.data;
+  },
+
+  deleteBlockedPeriod: async (id: string): Promise<void> => {
+    await apiClient.delete(`/api/v1/bookings/blocks/${id}`);
   }
 };
