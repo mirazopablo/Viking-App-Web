@@ -11,6 +11,7 @@ import { QuickClientModal } from "@/components/clients/quick-client-modal";
 import { VikingCard } from "@/components/shared/viking-card";
 import { VikingSearchBar } from "@/components/shared/viking-search-bar";
 import { VikingLoader } from "@/components/shared/viking-loader";
+import { VikingPagination } from "@/components/shared/viking-pagination";
 import { AdminPageHeader } from "@/components/shared/admin-page-header";
 import { EmptyStateCard } from "@/components/shared/empty-state-card";
 import { Button } from "@/components/ui/button";
@@ -42,17 +43,26 @@ export default function ClientsDirectoryPage() {
   const queryClient = useQueryClient();
   const { isAdmin } = useUserRole();
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
   const [isNewModalOpen, setIsNewModalOpen] = useState<boolean>(false);
   const [clientToEdit, setClientToEdit] = useState<UserResponseDTO | null>(null);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
   const debouncedSearch = searchTerm.trim().length >= 2 ? searchTerm.trim() : undefined;
 
-  const { data: clients = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ["users-directory", debouncedSearch],
-    queryFn: () => userService.getUsers(debouncedSearch),
+  // Reset page when search term changes
+  React.useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
+  const { data = { data: [], total: 0, page: 1, limit: 20 }, isLoading, refetch, isRefetching } = useQuery({
+    queryKey: ["users-directory", debouncedSearch, page],
+    queryFn: () => userService.getUsers(debouncedSearch, undefined, page, 20),
     staleTime: 30000,
   });
+
+  const clients = data.data;
+  const totalPages = Math.ceil(data.total / data.limit) || 1;
 
   const {
     register,
@@ -114,16 +124,7 @@ export default function ClientsDirectoryPage() {
     }
   };
 
-  const filteredClients = clients.filter((c) => {
-    if (!searchTerm) return true;
-    const lower = searchTerm.toLowerCase();
-    return (
-      c.name.toLowerCase().includes(lower) ||
-      c.dni.toString().includes(lower) ||
-      c.email.toLowerCase().includes(lower) ||
-      c.phoneNumber?.includes(lower)
-    );
-  });
+  const filteredClients = clients; // Filtering is now handled by the backend
 
   return (
     <div className="space-y-6 animate-fadeIn pb-12">
@@ -222,6 +223,14 @@ export default function ClientsDirectoryPage() {
             </VikingCard>
           ))}
         </div>
+      )}
+
+      {!isLoading && filteredClients.length > 0 && (
+        <VikingPagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       )}
 
       {/* Quick Create Modal */}

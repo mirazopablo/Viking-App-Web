@@ -72,7 +72,7 @@ export default function DevicesInventoryPage() {
 
   const handleFetchClients = async (term: string): Promise<SearchPickerOption[]> => {
     const users = await userService.getUsers(term);
-    return users.map((u) => ({
+    return users.data.map((u) => ({
       id: u.id,
       title: u.name,
       subtitle: `DNI: ${u.dni} - Tel: ${u.phoneNumber}`,
