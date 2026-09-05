@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.4](https://github.com/mirazopablo/Viking-App-Web/compare/v0.1.3...v0.1.4) (2026-09-05)
+
+
+### Features
+
+* **core:** implement pagination models and core component ([8131814](https://github.com/mirazopablo/Viking-App-Web/commit/8131814ea4b4d6405b75b938c35b3a4b6809f1e3))
+
 ### [0.1.3](https://github.com/mirazopablo/Viking-App-Web/compare/v0.1.2...v0.1.3) (2026-09-04)
 
 
