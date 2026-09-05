@@ -41,3 +41,10 @@ export interface UserCreateDTO {
 export interface UserUpdateDTO extends Partial<UserCreateDTO> {
   id?: string;
 }
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+}

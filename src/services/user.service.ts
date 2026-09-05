@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api-client";
-import { UserResponseDTO, UserCreateDTO, UserUpdateDTO, UserAutocompleteDTO } from "@/types/user";
+import { UserResponseDTO, UserCreateDTO, UserUpdateDTO, UserAutocompleteDTO, PaginatedResponse } from "@/types/user";
 
 /**
  * User / Client Service:
@@ -10,11 +10,15 @@ export const userService = {
    * Fast autocomplete lookup returning lightweight projections.
    * Matches GET /api/user/autocomplete?query={term}
    */
-  autocompleteUsers: async (query?: string): Promise<UserAutocompleteDTO[]> => {
-    const response = await apiClient.get<UserAutocompleteDTO[]>("/api/user/autocomplete", {
-      params: query ? { query } : undefined,
+  autocompleteUsers: async (query?: string, page: number = 1, limit: number = 10): Promise<UserAutocompleteDTO[]> => {
+    const response = await apiClient.get<PaginatedResponse<UserAutocompleteDTO>>("/api/user/autocomplete", {
+      params: { 
+        ...(query ? { query } : {}),
+        page,
+        limit 
+      },
     });
-    return response.data || [];
+    return response.data?.data || [];
   },
 
   /**
@@ -25,9 +29,11 @@ export const userService = {
    */
   getUsers: async (
     search?: string,
-    field?: "dni" | "name" | "email" | "phone"
-  ): Promise<UserResponseDTO[]> => {
-    const params: Record<string, string> = {};
+    field?: "dni" | "name" | "email" | "phone",
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PaginatedResponse<UserResponseDTO>> => {
+    const params: Record<string, string | number> = { page, limit };
     if (search) {
       if (field) {
         params.query = field;
@@ -37,21 +43,12 @@ export const userService = {
       }
     }
 
-    const response = await apiClient.get<UserResponseDTO[]>("/api/user/search", {
+    const response = await apiClient.get<PaginatedResponse<UserResponseDTO>>("/api/user/search", {
       params: Object.keys(params).length > 0 ? params : undefined,
     });
-    let users = response.data || [];
-    if (search && users.length > 0) {
-      const lower = search.toLowerCase();
-      users = users.filter(
-        (u) =>
-          u.name?.toLowerCase().includes(lower) ||
-          u.email?.toLowerCase().includes(lower) ||
-          u.dni?.toString().includes(lower) ||
-          u.phoneNumber?.includes(lower)
-      );
-    }
-    return users;
+    
+    // We remove client-side filtering since the backend handles it properly with pagination
+    return response.data || { data: [], total: 0, page: 1, limit: 20 };
   },
 
   /**
@@ -59,11 +56,13 @@ export const userService = {
    * @param id - User UUID.
    */
   getUserById: async (id: string): Promise<UserResponseDTO> => {
-    const response = await apiClient.get<UserResponseDTO | UserResponseDTO[]>("/api/user/search", { params: { id } });
-    if (Array.isArray(response.data)) {
+    const response = await apiClient.get<UserResponseDTO | PaginatedResponse<UserResponseDTO>>("/api/user/search", { params: { id } });
+    if (response.data && "data" in response.data && Array.isArray(response.data.data)) {
+      return response.data.data.find((u) => u.id === id) || response.data.data[0];
+    } else if (Array.isArray(response.data)) {
       return response.data.find((u) => u.id === id) || response.data[0];
     }
-    return response.data;
+    return response.data as UserResponseDTO;
   },
 
   /**
