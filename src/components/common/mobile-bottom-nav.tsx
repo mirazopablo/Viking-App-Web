@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CalendarPlus, Search, User } from "lucide-react";
+import { Home, MessageCircle, Search, User } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 
 export function MobileBottomNav() {
@@ -22,9 +22,9 @@ export function MobileBottomNav() {
 
   const navItems = [
     { name: t.bottomNav?.home || "Home", href: "/", icon: Home, activeColor: "text-typography", iconColor: "fill-typography/20", baseColor: "text-typography/50" },
-    { name: t.bottomNav?.booking || "Book", href: "/booking", icon: CalendarPlus, activeColor: "text-tertiary", iconColor: "fill-tertiary/20", baseColor: "text-tertiary/70" },
+    { name: t.bottomNav?.booking || "Book", href: "https://wa.me/message/NYPSRDA5EDPGH1", isExternal: true, icon: MessageCircle, activeColor: "text-success", iconColor: "fill-success/20", baseColor: "text-success/70" },
     { name: t.bottomNav?.track || "Track", href: "/status", icon: Search, activeColor: "text-info", iconColor: "fill-info/20", baseColor: "text-info/70" },
-    { name: t.bottomNav?.staff || "Staff", href: "/login", icon: User, activeColor: "text-success", iconColor: "fill-success/20", baseColor: "text-success/70" },
+    { name: t.bottomNav?.staff || "Staff", href: "/login", icon: User, activeColor: "text-tertiary", iconColor: "fill-tertiary/20", baseColor: "text-tertiary/70" },
   ];
 
   return (
@@ -34,6 +34,23 @@ export function MobileBottomNav() {
           const isActive = pathname === item.href;
           const Icon = item.icon;
           
+          if (item.isExternal) {
+            return (
+              <a 
+                key={item.href} 
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${item.baseColor} hover:text-typography`}
+              >
+                <Icon className={`w-5 h-5`} />
+                <span className="text-[10px] font-mono uppercase tracking-wider font-semibold">
+                  {item.name}
+                </span>
+              </a>
+            );
+          }
+
           return (
             <Link 
               key={item.href} 

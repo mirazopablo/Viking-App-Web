@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { useLanguage } from "@/context/language-context";
 import { LanguageToggle } from "@/components/shared/language-toggle";
-import { DesktopBookingModal } from "@/components/booking/desktop-booking-modal";
+import { WhatsappButton } from "@/components/common/whatsapp-button";
 
 /**
  * Top Navigation Bar (Navbar):
@@ -40,7 +40,7 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <LanguageToggle />
 
-          <DesktopBookingModal />
+          <WhatsappButton />
 
           <Link href="/status" className="hidden md:block shrink-0">
             <Button
