@@ -284,7 +284,6 @@ export const FiscalizeSaleNoteModal: React.FC<FiscalizeSaleNoteModalProps> = ({
                       selected={serviceFromDate}
                       onSelect={(d) => d && setServiceFromDate(d)}
                       locale={es}
-                      initialFocus
                     />
                   </PopoverContent>
                 </Popover>
@@ -312,7 +311,6 @@ export const FiscalizeSaleNoteModal: React.FC<FiscalizeSaleNoteModalProps> = ({
                       selected={serviceToDate}
                       onSelect={(d) => d && setServiceToDate(d)}
                       locale={es}
-                      initialFocus
                     />
                   </PopoverContent>
                 </Popover>
@@ -340,7 +338,6 @@ export const FiscalizeSaleNoteModal: React.FC<FiscalizeSaleNoteModalProps> = ({
                       selected={paymentDueDate}
                       onSelect={(d) => d && setPaymentDueDate(d)}
                       locale={es}
-                      initialFocus
                     />
                   </PopoverContent>
                 </Popover>

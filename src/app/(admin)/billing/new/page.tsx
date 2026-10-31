@@ -83,6 +83,7 @@ export default function NewDirectInvoicePage() {
   const [docTipo, setDocTipo] = useState<InvoiceDocType>(99);
   const [docNro, setDocNro] = useState<string>("0");
   const [clientName, setClientName] = useState<string>("");
+  const [clientAddress, setClientAddress] = useState<string>("");
   const [condicionIva, setCondicionIva] = useState<InvoiceVatCondition>(5);
 
   // Dates for Services (Natural Date objects for UI, formatted to YYYYMMDD for ARCA)
@@ -417,16 +418,30 @@ export default function NewDirectInvoicePage() {
                   </div>
                 </div>
 
-                <div>
-                  <Label className="text-xs font-mono uppercase text-muted-foreground font-semibold">
-                    Nombre o Razón Social (Opcional)
-                  </Label>
-                  <Input
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    placeholder="Ej: Broadcomm SA"
-                    className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs h-9"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs font-mono uppercase text-muted-foreground font-semibold">
+                      Nombre o Razón Social {docTipo !== 99 && "(Requerido por RG 1415)"}
+                    </Label>
+                    <Input
+                      value={clientName}
+                      onChange={(e) => setClientName(e.target.value)}
+                      placeholder={docTipo === 99 ? "Consumidor Final (Opcional)" : "Ej: Distribuidora Cuyo SA"}
+                      className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs h-9"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-xs font-mono uppercase text-muted-foreground font-semibold">
+                      Domicilio Fiscal / Comercial {docTipo !== 99 && "(Requerido en CUIT)"}
+                    </Label>
+                    <Input
+                      value={clientAddress}
+                      onChange={(e) => setClientAddress(e.target.value)}
+                      placeholder={docTipo === 99 ? "Opcional (Consumidor Final)" : "Ej: Av. Mitre 450, San Rafael"}
+                      className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs h-9"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -467,7 +482,6 @@ export default function NewDirectInvoicePage() {
                             selected={serviceFromDate}
                             onSelect={(d) => d && setServiceFromDate(d)}
                             locale={es}
-                            initialFocus
                           />
                         </PopoverContent>
                       </Popover>
@@ -496,7 +510,6 @@ export default function NewDirectInvoicePage() {
                             selected={serviceToDate}
                             onSelect={(d) => d && setServiceToDate(d)}
                             locale={es}
-                            initialFocus
                           />
                         </PopoverContent>
                       </Popover>
@@ -526,7 +539,6 @@ export default function NewDirectInvoicePage() {
                           selected={paymentDueDate}
                           onSelect={(d) => d && setPaymentDueDate(d)}
                           locale={es}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -811,6 +823,11 @@ export default function NewDirectInvoicePage() {
                 <p className="text-xs text-muted-foreground">
                   {getDocLabel(docTipo)}: <span className="font-semibold text-foreground">{docNro}</span>
                 </p>
+                {clientAddress && (
+                  <p className="text-xs text-muted-foreground">
+                    Domicilio: <span className="font-medium text-foreground">{clientAddress}</span>
+                  </p>
+                )}
                 <p className="text-xs text-tertiary">{getVatLabel(condicionIva)}</p>
               </div>
 
@@ -978,6 +995,7 @@ export default function NewDirectInvoicePage() {
                       docType: getDocLabel(emittedInvoice.doc_tipo),
                       docNumber: emittedInvoice.doc_nro,
                       vatCondition: getVatLabel(emittedInvoice.condicion_iva_receptor_id || 5),
+                      address: clientAddress || undefined,
                     },
                     items: items.map((it) => ({
                       description: it.description,
@@ -1013,6 +1031,7 @@ export default function NewDirectInvoicePage() {
                   setCurrentStep("form");
                   setEmittedInvoice(null);
                   setClientName("");
+                  setClientAddress("");
                   setDocNro("0");
                   setDocTipo(99);
                   setItems([

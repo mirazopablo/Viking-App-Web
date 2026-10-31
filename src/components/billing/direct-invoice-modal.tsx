@@ -97,6 +97,7 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
   const [docNro, setDocNro] = useState<string>("0");
   const [condicionIva, setCondicionIva] = useState<InvoiceVatCondition>(5);
   const [clientName, setClientName] = useState<string>("");
+  const [clientAddress, setClientAddress] = useState<string>("");
 
   // Dates for Services (Natural Date objects for UI, formatted to YYYYMMDD for ARCA)
   const [serviceFromDate, setServiceFromDate] = useState<Date>(() => {
@@ -429,6 +430,32 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
                   />
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
+                    Nombre o Razón Social {docTipo !== 99 && "(RG 1415)"}
+                  </Label>
+                  <Input
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                    placeholder={docTipo === 99 ? "Consumidor Final" : "Ej: Distribuidora Cuyo SA"}
+                    className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs"
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
+                    Domicilio Comercial {docTipo !== 99 && "(Requerido CUIT)"}
+                  </Label>
+                  <Input
+                    value={clientAddress}
+                    onChange={(e) => setClientAddress(e.target.value)}
+                    placeholder={docTipo === 99 ? "Opcional" : "Ej: Av. Mitre 450, San Rafael"}
+                    className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Service Dates Block (If Concepto 2 or 3) */}
@@ -461,7 +488,6 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
                           selected={serviceFromDate}
                           onSelect={(d) => d && setServiceFromDate(d)}
                           locale={es}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -489,7 +515,6 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
                           selected={serviceToDate}
                           onSelect={(d) => d && setServiceToDate(d)}
                           locale={es}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -517,7 +542,6 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
                           selected={paymentDueDate}
                           onSelect={(d) => d && setPaymentDueDate(d)}
                           locale={es}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -692,8 +716,16 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
                     Receptor Fiscal:
                   </span>
                   <p className="text-foreground font-semibold text-sm mt-0.5">
-                    {docTipo === 99 ? "Consumidor Final" : `${getDocLabel(docTipo)}: ${docNro}`}
+                    {clientName || (docTipo === 99 ? "Consumidor Final" : `${getDocLabel(docTipo)}: ${docNro}`)}
                   </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {getDocLabel(docTipo)}: {docNro}
+                  </p>
+                  {clientAddress && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Domicilio: <span className="text-foreground">{clientAddress}</span>
+                    </p>
+                  )}
                   <p className="text-[11px] text-tertiary mt-0.5">{getVatLabel(condicionIva)}</p>
                 </div>
 

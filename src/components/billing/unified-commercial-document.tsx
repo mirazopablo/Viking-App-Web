@@ -350,6 +350,13 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
             </div>
           </div>
 
+          {client.address && (
+            <div className="pt-1 border-t border-slate-200">
+              <span className="font-bold text-slate-500 uppercase mr-1">Domicilio Comercial / Fiscal:</span>
+              <span className="font-medium text-slate-900">{client.address}</span>
+            </div>
+          )}
+
           {(client.deviceModel || client.workOrderNumber) && (
             <div className="grid grid-cols-12 gap-2 pt-1 border-t border-slate-200 text-slate-700">
               {client.deviceModel && (
