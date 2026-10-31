@@ -13,6 +13,8 @@ import {
   Calendar,
   DollarSign,
   Loader2,
+  Search,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -40,9 +42,11 @@ import {
   InvoiceConcept,
   InvoiceDocType,
   InvoiceVatCondition,
-  InvoiceItem,
+  InvoiceItem
 } from "@/types/invoice";
 import { invoiceService } from "@/services/invoice.service";
+import { userService } from "@/services/user.service";
+import { UserResponseDTO } from "@/types/user";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -121,6 +125,43 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [rejectionMessage, setRejectionMessage] = useState<string | null>(null);
 
+  // Local Viking DB Client Lookup
+  const [isSearchingClient, setIsSearchingClient] = useState<boolean>(false);
+  const [foundClientMatch, setFoundClientMatch] = useState<UserResponseDTO | null>(null);
+
+  const lookupVikingClient = async (queryNum: string) => {
+    const cleanNum = queryNum.trim();
+    if (docTipo === 99 || cleanNum.length < 6 || cleanNum === "0") {
+      setFoundClientMatch(null);
+      return;
+    }
+
+    try {
+      setIsSearchingClient(true);
+      const res = await userService.getUsers(cleanNum);
+      const matched =
+        res.data?.find((u) => String(u.dni) === cleanNum || String(u.dni).includes(cleanNum)) ||
+        res.data?.[0];
+
+      if (matched) {
+        setFoundClientMatch(matched);
+        if (!clientName || clientName === "Consumidor Final") {
+          setClientName(matched.name);
+        }
+        if (!clientAddress && matched.address) {
+          setClientAddress(matched.address);
+        }
+        toast.success(`Cliente encontrado: ${matched.name}`, { duration: 3000 });
+      } else {
+        setFoundClientMatch(null);
+      }
+    } catch {
+      setFoundClientMatch(null);
+    } finally {
+      setIsSearchingClient(false);
+    }
+  };
+
   // Computed total
   const computedTotal = items.reduce((sum, item) => sum + (item.total_price || 0), 0);
 
@@ -130,8 +171,10 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
     if (num === 99) {
       setDocNro("0");
       setCondicionIva(5); // Consumidor Final
+      setFoundClientMatch(null);
     } else if (docNro === "0") {
       setDocNro("");
+      setFoundClientMatch(null);
     }
   };
 
@@ -312,21 +355,19 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
             {/* Stepper Indicator */}
             <div className="flex items-center gap-1.5 text-xs font-mono">
               <span
-                className={`px-2 py-0.5 rounded ${
-                  currentStep === "form"
+                className={`px-2 py-0.5 rounded ${currentStep === "form"
                     ? "bg-secondary text-foreground font-bold border border-border"
                     : "text-muted-foreground"
-                }`}
+                  }`}
               >
                 1. Carga
               </span>
               <span className="text-muted-foreground">/</span>
               <span
-                className={`px-2 py-0.5 rounded ${
-                  currentStep === "preview"
+                className={`px-2 py-0.5 rounded ${currentStep === "preview"
                     ? "bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40"
                     : "text-muted-foreground"
-                }`}
+                  }`}
               >
                 2. Confirmación
               </span>
@@ -417,17 +458,61 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
                 </div>
 
                 <div>
-                  <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
-                    Número de Documento
-                  </Label>
-                  <Input
-                    type="number"
-                    disabled={docTipo === 99}
-                    value={docNro}
-                    onChange={(e) => setDocNro(e.target.value)}
-                    placeholder={docTipo === 99 ? "0 (Consumidor Final)" : "Ej: 30712345678"}
-                    className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground font-mono text-xs placeholder:text-muted-foreground"
-                  />
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
+                      Número de Documento
+                    </Label>
+                    {docTipo !== 99 && (
+                      <button
+                        type="button"
+                        onClick={() => lookupVikingClient(docNro)}
+                        disabled={isSearchingClient || !docNro || docNro === "0"}
+                        className="text-[9px] font-mono text-tertiary hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                      >
+                        {isSearchingClient ? (
+                          <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                        ) : (
+                          <Search className="w-2.5 h-2.5" />
+                        )}
+                        <span>Buscar en taller</span>
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative mt-1">
+                    <Input
+                      type="number"
+                      disabled={docTipo === 99}
+                      value={docNro}
+                      onChange={(e) => {
+                        setDocNro(e.target.value);
+                        if (foundClientMatch && String(foundClientMatch.dni) !== e.target.value) {
+                          setFoundClientMatch(null);
+                        }
+                      }}
+                      onBlur={() => {
+                        if (docTipo !== 99 && docNro && docNro.length >= 7) {
+                          lookupVikingClient(docNro);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          lookupVikingClient(docNro);
+                        }
+                      }}
+                      placeholder={docTipo === 99 ? "0 (Consumidor Final)" : "Ej: 30712345678"}
+                      className="bg-secondary/20 border-border focus:border-tertiary text-foreground font-mono text-xs placeholder:text-muted-foreground pr-7"
+                    />
+                    {isSearchingClient && (
+                      <Loader2 className="w-3 h-3 animate-spin absolute right-2 top-2.5 text-tertiary" />
+                    )}
+                  </div>
+                  {foundClientMatch && (
+                    <span className="text-[9.5px] text-emerald-400 font-mono mt-1 flex items-center gap-1">
+                      <CheckCircle2 className="w-2.5 h-2.5" />
+                      Vinculado: {foundClientMatch.name}
+                    </span>
+                  )}
                 </div>
               </div>
 

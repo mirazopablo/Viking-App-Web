@@ -17,6 +17,8 @@ import {
   Printer,
   Loader2,
   RotateCcw,
+  Search,
+  CheckCircle2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -48,6 +50,8 @@ import {
   InvoiceItem,
 } from "@/types/invoice";
 import { invoiceService } from "@/services/invoice.service";
+import { userService } from "@/services/user.service";
+import { UserResponseDTO } from "@/types/user";
 import { AfipQrCode } from "@/components/common/afip-qr-code";
 import { ReceiptPreviewDialog } from "@/components/billing/receipt-preview-dialog";
 import { UnifiedCommercialDocumentProps } from "@/components/billing/unified-commercial-document";
@@ -111,6 +115,43 @@ export default function NewDirectInvoicePage() {
   const [emittedInvoice, setEmittedInvoice] = useState<InvoiceResponse | null>(null);
   const [previewDocument, setPreviewDocument] = useState<UnifiedCommercialDocumentProps | null>(null);
 
+  // Local Viking DB Client Lookup
+  const [isSearchingClient, setIsSearchingClient] = useState<boolean>(false);
+  const [foundClientMatch, setFoundClientMatch] = useState<UserResponseDTO | null>(null);
+
+  const lookupVikingClient = async (queryNum: string) => {
+    const cleanNum = queryNum.trim();
+    if (docTipo === 99 || cleanNum.length < 6 || cleanNum === "0") {
+      setFoundClientMatch(null);
+      return;
+    }
+
+    try {
+      setIsSearchingClient(true);
+      const res = await userService.getUsers(cleanNum);
+      const matched =
+        res.data?.find((u) => String(u.dni) === cleanNum || String(u.dni).includes(cleanNum)) ||
+        res.data?.[0];
+
+      if (matched) {
+        setFoundClientMatch(matched);
+        if (!clientName || clientName === "Consumidor Final") {
+          setClientName(matched.name);
+        }
+        if (!clientAddress && matched.address) {
+          setClientAddress(matched.address);
+        }
+        toast.success(`Cliente encontrado en base del taller: ${matched.name}`, { duration: 3000 });
+      } else {
+        setFoundClientMatch(null);
+      }
+    } catch {
+      setFoundClientMatch(null);
+    } finally {
+      setIsSearchingClient(false);
+    }
+  };
+
   // Compute Grand Total
   const computedTotal = items.reduce((sum, item) => sum + (item.total_price || 0), 0);
 
@@ -120,8 +161,10 @@ export default function NewDirectInvoicePage() {
     if (num === 99) {
       setDocNro("0");
       setCondicionIva(5); // Consumidor Final
+      setFoundClientMatch(null);
     } else if (docNro === "0") {
       setDocNro("");
+      setFoundClientMatch(null);
     }
   };
 
@@ -404,17 +447,61 @@ export default function NewDirectInvoicePage() {
                   </div>
 
                   <div>
-                    <Label className="text-xs font-mono uppercase text-muted-foreground font-semibold">
-                      Número de Documento
-                    </Label>
-                    <Input
-                      type="number"
-                      disabled={docTipo === 99}
-                      value={docNro}
-                      onChange={(e) => setDocNro(e.target.value)}
-                      placeholder={docTipo === 99 ? "0 (Consumidor Final)" : "Sin puntos"}
-                      className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground font-mono text-xs h-9"
-                    />
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-mono uppercase text-muted-foreground font-semibold">
+                        Número de Documento
+                      </Label>
+                      {docTipo !== 99 && (
+                        <button
+                          type="button"
+                          onClick={() => lookupVikingClient(docNro)}
+                          disabled={isSearchingClient || !docNro || docNro === "0"}
+                          className="text-[10px] font-mono text-tertiary hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                        >
+                          {isSearchingClient ? (
+                            <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                          ) : (
+                            <Search className="w-2.5 h-2.5" />
+                          )}
+                          <span>Buscar en base del taller</span>
+                        </button>
+                      )}
+                    </div>
+                    <div className="relative mt-1">
+                      <Input
+                        type="number"
+                        disabled={docTipo === 99}
+                        value={docNro}
+                        onChange={(e) => {
+                          setDocNro(e.target.value);
+                          if (foundClientMatch && String(foundClientMatch.dni) !== e.target.value) {
+                            setFoundClientMatch(null);
+                          }
+                        }}
+                        onBlur={() => {
+                          if (docTipo !== 99 && docNro && docNro.length >= 7) {
+                            lookupVikingClient(docNro);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            lookupVikingClient(docNro);
+                          }
+                        }}
+                        placeholder={docTipo === 99 ? "0 (Consumidor Final)" : "Sin puntos ni guiones"}
+                        className="bg-secondary/20 border-border focus:border-tertiary text-foreground font-mono text-xs h-9 pr-8"
+                      />
+                      {isSearchingClient && (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin absolute right-2.5 top-3 text-tertiary" />
+                      )}
+                    </div>
+                    {foundClientMatch && (
+                      <span className="text-[10px] text-emerald-400 font-mono mt-1 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Cliente vinculado: {foundClientMatch.name}
+                      </span>
+                    )}
                   </div>
                 </div>
 
