@@ -1,7 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Trash2, Send, AlertTriangle, ShieldCheck, CheckCircle2 } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  ShieldCheck,
+  AlertTriangle,
+  ArrowRight,
+  ArrowLeft,
+  FileText,
+  User,
+  Calendar,
+  DollarSign,
+  Loader2,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -21,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import {
   CreateInvoiceRequest,
   InvoiceResponse,
@@ -30,6 +43,14 @@ import {
   InvoiceItem,
 } from "@/types/invoice";
 import { invoiceService } from "@/services/invoice.service";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 
 interface DirectInvoiceModalProps {
   open: boolean;
@@ -37,9 +58,6 @@ interface DirectInvoiceModalProps {
   onSuccess?: (invoice: InvoiceResponse) => void;
 }
 
-/**
- * Returns today's date formatted as YYYYMMDD.
- */
 function getTodayAfipDate(): string {
   const d = new Date();
   const year = d.getFullYear();
@@ -48,9 +66,6 @@ function getTodayAfipDate(): string {
   return `${year}${month}${day}`;
 }
 
-/**
- * Returns first day of current month as YYYYMMDD.
- */
 function getFirstDayOfMonthAfipDate(): string {
   const d = new Date();
   const year = d.getFullYear();
@@ -58,26 +73,38 @@ function getFirstDayOfMonthAfipDate(): string {
   return `${year}${month}01`;
 }
 
+function formatAfipDateDisplay(dateStr?: string): string {
+  if (!dateStr || dateStr.length !== 8) return dateStr || "-";
+  return `${dateStr.substring(6, 8)}/${dateStr.substring(4, 6)}/${dateStr.substring(0, 4)}`;
+}
+
 /**
  * DirectInvoiceModal Component:
- * Handles direct electronic billing of Factura C to ARCA with real-time AFIP validation,
- * automatic RG 5616 VAT receptor classification, and observation handling.
+ * Refactored with the Viking Dark Theme and a 2-step pre-flight confirmation preview
+ * to ensure complete data accuracy before requesting legal CAE authorization from ARCA.
  */
 export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
   open,
   onOpenChange,
   onSuccess,
 }) => {
+  // Wizard Step: 'form' (carga) | 'preview' (confirmación previa)
+  const [currentStep, setCurrentStep] = useState<"form" | "preview">("form");
+
+  // Form Fields
   const [concepto, setConcepto] = useState<InvoiceConcept>(2);
   const [docTipo, setDocTipo] = useState<InvoiceDocType>(99);
   const [docNro, setDocNro] = useState<string>("0");
   const [condicionIva, setCondicionIva] = useState<InvoiceVatCondition>(5);
   const [clientName, setClientName] = useState<string>("");
 
-  // Dates for Services (Concepto 2 or 3)
-  const [fchServDesde, setFchServDesde] = useState<string>(getFirstDayOfMonthAfipDate());
-  const [fchServHasta, setFchServHasta] = useState<string>(getTodayAfipDate());
-  const [fchVtoPago, setFchVtoPago] = useState<string>(getTodayAfipDate());
+  // Dates for Services (Natural Date objects for UI, formatted to YYYYMMDD for ARCA)
+  const [serviceFromDate, setServiceFromDate] = useState<Date>(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  });
+  const [serviceToDate, setServiceToDate] = useState<Date>(() => new Date());
+  const [paymentDueDate, setPaymentDueDate] = useState<Date>(() => new Date());
 
   // Dynamic Line Items
   const [items, setItems] = useState<InvoiceItem[]>([
@@ -93,7 +120,7 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [rejectionMessage, setRejectionMessage] = useState<string | null>(null);
 
-  // Compute grand total
+  // Computed total
   const computedTotal = items.reduce((sum, item) => sum + (item.total_price || 0), 0);
 
   const handleDocTypeChange = (value: string) => {
@@ -145,7 +172,8 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Validate and advance to Step 2 (Preview)
+  const handleProceedToPreview = (e: React.FormEvent) => {
     e.preventDefault();
     setRejectionMessage(null);
 
@@ -158,6 +186,20 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
       toast.error("Debes ingresar un número de documento o CUIT válido.");
       return;
     }
+
+    for (const it of items) {
+      if (!it.description || it.description.trim() === "") {
+        toast.error("Todos los ítems deben tener una descripción válida.");
+        return;
+      }
+    }
+
+    setCurrentStep("preview");
+  };
+
+  // Final submission to backend / ARCA
+  const handleFinalSubmit = async () => {
+    setRejectionMessage(null);
 
     const payload: CreateInvoiceRequest = {
       concepto,
@@ -175,9 +217,9 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
     };
 
     if (concepto === 2 || concepto === 3) {
-      payload.fch_serv_desde = fchServDesde;
-      payload.fch_serv_hasta = fchServHasta;
-      payload.fch_vto_pago = fchVtoPago;
+      payload.fch_serv_desde = format(serviceFromDate, "yyyyMMdd");
+      payload.fch_serv_hasta = format(serviceToDate, "yyyyMMdd");
+      payload.fch_vto_pago = format(paymentDueDate, "yyyyMMdd");
     }
 
     try {
@@ -187,13 +229,14 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
       if (invoice.resultado === "A" && invoice.cae) {
         toast.success(`¡Factura C emitida con éxito! CAE: ${invoice.cae}`);
         onOpenChange(false);
+        setCurrentStep("form");
         if (onSuccess) {
           onSuccess(invoice);
         }
       } else {
-        // ARCA rejection (Resultado: "R")
-        const obs = invoice.observaciones || "ARCA rechazó la factura sin detalles adicionales.";
+        const obs = invoice.observaciones || "ARCA rechazó el comprobante sin observaciones adicionales.";
         setRejectionMessage(obs);
+        setCurrentStep("form");
         toast.error("ARCA rechazó el comprobante. Revisa los datos ingresados.");
       }
     } catch (error: any) {
@@ -201,275 +244,556 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
         error?.response?.data?.error ||
         error?.response?.data?.message ||
         error?.message ||
-        "Error inesperado al conectar con el servidor.";
+        "Error al conectar con el servidor.";
       setRejectionMessage(backendError);
+      setCurrentStep("form");
       toast.error("Falla técnica al emitir factura ante ARCA.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const getVatLabel = (id: InvoiceVatCondition) => {
+    switch (id) {
+      case 5:
+        return "Consumidor Final";
+      case 1:
+        return "IVA Responsable Inscripto";
+      case 6:
+        return "Responsable Monotributo";
+      case 4:
+        return "IVA Sujeto Exento";
+      default:
+        return "Consumidor Final";
+    }
+  };
+
+  const getDocLabel = (id: InvoiceDocType) => {
+    switch (id) {
+      case 99:
+        return "Consumidor Final (Sin Identificar)";
+      case 96:
+        return "DNI";
+      case 80:
+        return "CUIT";
+      case 86:
+        return "CUIL";
+      default:
+        return "Doc";
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center gap-2 text-slate-900 font-black">
-            <span className="bg-slate-900 text-white text-xs px-2 py-0.5 rounded font-mono">
-              [ C ] COD. 011
-            </span>
-            <DialogTitle className="text-base font-bold">
-              Emitir Factura C Electrónica (ARCA)
-            </DialogTitle>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!isLoading) {
+          onOpenChange(v);
+          if (!v) {
+            setCurrentStep("form");
+            setRejectionMessage(null);
+          }
+        }
+      }}
+    >
+      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto bg-card border-border text-foreground shadow-2xl p-6">
+        <DialogHeader className="border-b border-border/60 pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono text-[11px] font-bold">
+                [ C ] COD. 011
+              </Badge>
+              <DialogTitle className="text-base font-extrabold uppercase tracking-wide text-foreground">
+                Emitir Factura C Electrónica
+              </DialogTitle>
+            </div>
+
+            {/* Stepper Indicator */}
+            <div className="flex items-center gap-1.5 text-xs font-mono">
+              <span
+                className={`px-2 py-0.5 rounded ${
+                  currentStep === "form"
+                    ? "bg-secondary text-foreground font-bold border border-border"
+                    : "text-muted-foreground"
+                }`}
+              >
+                1. Carga
+              </span>
+              <span className="text-muted-foreground">/</span>
+              <span
+                className={`px-2 py-0.5 rounded ${
+                  currentStep === "preview"
+                    ? "bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/40"
+                    : "text-muted-foreground"
+                }`}
+              >
+                2. Confirmación
+              </span>
+            </div>
           </div>
-          <DialogDescription className="text-xs text-slate-500">
-            Emisión en tiempo real con obtención de CAE ante el Web Service de ARCA.
+          <DialogDescription className="text-xs text-muted-foreground font-mono">
+            {currentStep === "form"
+              ? "Carga de datos del cliente, condición de IVA (RG 5616) e ítems a facturar."
+              : "Revisión pre-flight de los datos antes del envío definitivo al Web Service de ARCA."}
           </DialogDescription>
         </DialogHeader>
 
-        {/* Rejection Alert Banner */}
+        {/* Rejection Alert Banner (Dark Mode Styled) */}
         {rejectionMessage && (
-          <div className="bg-rose-50 border-l-4 border-rose-500 p-3 rounded text-rose-900 text-xs flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold">Rechazo Fiscal de ARCA:</p>
-              <p className="font-mono text-[11px] mt-0.5">{rejectionMessage}</p>
+          <div className="bg-rose-950/40 border border-rose-500/40 p-3 rounded-lg text-rose-200 text-xs flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <p className="font-bold text-rose-300 uppercase tracking-wider font-mono text-[10px]">
+                Rechazo Fiscal Informado por ARCA:
+              </p>
+              <p className="font-mono text-xs">{rejectionMessage}</p>
             </div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 pt-1">
-          {/* Concept & Receptor Identification */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <div>
-              <Label className="text-xs font-bold text-slate-700">Concepto Facturado</Label>
-              <Select
-                value={String(concepto)}
-                onValueChange={(val) => setConcepto(Number(val) as InvoiceConcept)}
-              >
-                <SelectTrigger className="mt-1 bg-white text-xs">
-                  <SelectValue placeholder="Seleccionar concepto" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2">2 - Servicios (Taller / Soporte)</SelectItem>
-                  <SelectItem value="1">1 - Productos / Repuestos</SelectItem>
-                  <SelectItem value="3">3 - Productos y Servicios</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        {/* =================================================================== */}
+        {/* STEP 1: FORM VIEW                                                  */}
+        {/* =================================================================== */}
+        {currentStep === "form" && (
+          <form onSubmit={handleProceedToPreview} className="space-y-4 pt-1">
+            {/* Concept & Receptor Block */}
+            <div className="bg-secondary/10 border border-border/70 rounded-xl p-3.5 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
+                    Concepto Facturado
+                  </Label>
+                  <Select
+                    value={String(concepto)}
+                    onValueChange={(val) => setConcepto(Number(val) as InvoiceConcept)}
+                  >
+                    <SelectTrigger className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs font-mono">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border text-foreground">
+                      <SelectItem value="2">2 - Servicios (Taller / Soporte)</SelectItem>
+                      <SelectItem value="1">1 - Productos / Repuestos</SelectItem>
+                      <SelectItem value="3">3 - Productos y Servicios</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div>
-              <Label className="text-xs font-bold text-slate-700">Condición Frente al IVA (RG 5616)</Label>
-              <Select
-                value={String(condicionIva)}
-                onValueChange={(val) => setCondicionIva(Number(val) as InvoiceVatCondition)}
-              >
-                <SelectTrigger className="mt-1 bg-white text-xs">
-                  <SelectValue placeholder="Condición IVA" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">5 - Consumidor Final</SelectItem>
-                  <SelectItem value="1">1 - IVA Responsable Inscripto</SelectItem>
-                  <SelectItem value="6">6 - Responsable Monotributo</SelectItem>
-                  <SelectItem value="4">4 - IVA Sujeto Exento</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div>
+                  <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
+                    Condición IVA Receptor (RG 5616)
+                  </Label>
+                  <Select
+                    value={String(condicionIva)}
+                    onValueChange={(val) => setCondicionIva(Number(val) as InvoiceVatCondition)}
+                  >
+                    <SelectTrigger className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs font-mono">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border text-foreground">
+                      <SelectItem value="5">5 - Consumidor Final</SelectItem>
+                      <SelectItem value="1">1 - IVA Responsable Inscripto</SelectItem>
+                      <SelectItem value="6">6 - Responsable Monotributo</SelectItem>
+                      <SelectItem value="4">4 - IVA Sujeto Exento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div>
-              <Label className="text-xs font-bold text-slate-700">Tipo de Documento</Label>
-              <Select value={String(docTipo)} onValueChange={handleDocTypeChange}>
-                <SelectTrigger className="mt-1 bg-white text-xs">
-                  <SelectValue placeholder="Tipo de doc" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="99">99 - Sin Identificar / Consumidor Final</SelectItem>
-                  <SelectItem value="96">96 - DNI (Documento Nacional)</SelectItem>
-                  <SelectItem value="80">80 - CUIT (Empresas / Profesionales)</SelectItem>
-                  <SelectItem value="86">86 - CUIL</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div>
+                  <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
+                    Tipo de Documento
+                  </Label>
+                  <Select value={String(docTipo)} onValueChange={handleDocTypeChange}>
+                    <SelectTrigger className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs font-mono">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border text-foreground">
+                      <SelectItem value="99">99 - Sin Identificar (Consumidor Final)</SelectItem>
+                      <SelectItem value="96">96 - DNI (Documento Nacional)</SelectItem>
+                      <SelectItem value="80">80 - CUIT (Empresas / Profesionales)</SelectItem>
+                      <SelectItem value="86">86 - CUIL</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div>
-              <Label className="text-xs font-bold text-slate-700">Número de Documento</Label>
-              <Input
-                type="number"
-                disabled={docTipo === 99}
-                value={docNro}
-                onChange={(e) => setDocNro(e.target.value)}
-                placeholder={docTipo === 99 ? "0 (Consumidor Final)" : "Ej: 30712345678"}
-                className="mt-1 bg-white text-xs font-mono"
-              />
-            </div>
-          </div>
-
-          {/* Conditional Service Dates (If Concepto is 2 or 3) */}
-          {(concepto === 2 || concepto === 3) && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-blue-50/70 p-3 rounded-lg border border-blue-200">
-              <div>
-                <Label className="text-[11px] font-bold text-blue-950">Servicio Desde (YYYYMMDD)</Label>
-                <Input
-                  value={fchServDesde}
-                  onChange={(e) => setFchServDesde(e.target.value)}
-                  maxLength={8}
-                  className="mt-1 bg-white text-xs font-mono"
-                />
-              </div>
-              <div>
-                <Label className="text-[11px] font-bold text-blue-950">Servicio Hasta (YYYYMMDD)</Label>
-                <Input
-                  value={fchServHasta}
-                  onChange={(e) => setFchServHasta(e.target.value)}
-                  maxLength={8}
-                  className="mt-1 bg-white text-xs font-mono"
-                />
-              </div>
-              <div>
-                <Label className="text-[11px] font-bold text-blue-950">Vto. Pago (YYYYMMDD)</Label>
-                <Input
-                  value={fchVtoPago}
-                  onChange={(e) => setFchVtoPago(e.target.value)}
-                  maxLength={8}
-                  className="mt-1 bg-white text-xs font-mono"
-                />
+                <div>
+                  <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
+                    Número de Documento
+                  </Label>
+                  <Input
+                    type="number"
+                    disabled={docTipo === 99}
+                    value={docNro}
+                    onChange={(e) => setDocNro(e.target.value)}
+                    placeholder={docTipo === 99 ? "0 (Consumidor Final)" : "Ej: 30712345678"}
+                    className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground font-mono text-xs placeholder:text-muted-foreground"
+                  />
+                </div>
               </div>
             </div>
-          )}
 
-          {/* Line Items Table */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold text-slate-800 uppercase tracking-wide">
-                Ítems de la Factura
-              </Label>
+            {/* Service Dates Block (If Concepto 2 or 3) */}
+            {(concepto === 2 || concepto === 3) && (
+              <div className="bg-secondary/10 border border-border/70 rounded-xl p-3.5 space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-[10px] font-mono uppercase text-tertiary font-bold tracking-wider block">
+                    Período y Vencimiento del Servicio (Obligatorio ARCA)
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <Label className="text-[9.5px] font-mono text-muted-foreground uppercase">
+                      Desde
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="mt-1 w-full justify-start text-left font-mono text-xs bg-secondary/20 border-border hover:bg-secondary/30 text-foreground h-8 gap-1.5 px-2"
+                        >
+                          <Calendar className="w-3 h-3 text-primary shrink-0" />
+                          <span className="truncate">{format(serviceFromDate, "dd/MM/yyyy")}</span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 bg-card border-border shadow-2xl z-50" align="start">
+                        <CalendarPicker
+                          mode="single"
+                          selected={serviceFromDate}
+                          onSelect={(d) => d && setServiceFromDate(d)}
+                          locale={es}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <span className="text-[9px] text-muted-foreground font-mono mt-0.5 block">
+                      ARCA: {format(serviceFromDate, "yyyyMMdd")}
+                    </span>
+                  </div>
+                  <div>
+                    <Label className="text-[9.5px] font-mono text-muted-foreground uppercase">
+                      Hasta
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="mt-1 w-full justify-start text-left font-mono text-xs bg-secondary/20 border-border hover:bg-secondary/30 text-foreground h-8 gap-1.5 px-2"
+                        >
+                          <Calendar className="w-3 h-3 text-primary shrink-0" />
+                          <span className="truncate">{format(serviceToDate, "dd/MM/yyyy")}</span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 bg-card border-border shadow-2xl z-50" align="start">
+                        <CalendarPicker
+                          mode="single"
+                          selected={serviceToDate}
+                          onSelect={(d) => d && setServiceToDate(d)}
+                          locale={es}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <span className="text-[9px] text-muted-foreground font-mono mt-0.5 block">
+                      ARCA: {format(serviceToDate, "yyyyMMdd")}
+                    </span>
+                  </div>
+                  <div>
+                    <Label className="text-[9.5px] font-mono text-muted-foreground uppercase">
+                      Vto. Pago
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="mt-1 w-full justify-start text-left font-mono text-xs bg-secondary/20 border-border hover:bg-secondary/30 text-foreground h-8 gap-1.5 px-2"
+                        >
+                          <Calendar className="w-3 h-3 text-primary shrink-0" />
+                          <span className="truncate">{format(paymentDueDate, "dd/MM/yyyy")}</span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 bg-card border-border shadow-2xl z-50" align="start">
+                        <CalendarPicker
+                          mode="single"
+                          selected={paymentDueDate}
+                          onSelect={(d) => d && setPaymentDueDate(d)}
+                          locale={es}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <span className="text-[9px] text-muted-foreground font-mono mt-0.5 block">
+                      ARCA: {format(paymentDueDate, "yyyyMMdd")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Items Table Section */}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono uppercase tracking-wider text-foreground font-bold">
+                  Detalle de Ítems a Facturar
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddItem}
+                  className="text-xs font-mono h-7 border-border hover:bg-secondary/20 gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5 text-primary" />
+                  Agregar Ítem
+                </Button>
+              </div>
+
+              <div className="border border-border/80 rounded-xl overflow-hidden bg-card/60">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead className="bg-secondary/20 border-b border-border/60 text-muted-foreground font-mono uppercase text-[9.5px]">
+                    <tr>
+                      <th className="p-2.5">Descripción</th>
+                      <th className="p-2.5 text-center w-28">Tipo</th>
+                      <th className="p-2.5 text-center w-16">Cant.</th>
+                      <th className="p-2.5 text-right w-28">Precio Unit.</th>
+                      <th className="p-2.5 text-right w-28">Total</th>
+                      <th className="p-2.5 text-center w-10"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/40 font-mono">
+                    {items.map((item, idx) => (
+                      <tr key={idx} className="hover:bg-muted/10">
+                        <td className="p-2">
+                          <Input
+                            value={item.description}
+                            onChange={(e) => handleItemChange(idx, "description", e.target.value)}
+                            placeholder="Descripción del ítem..."
+                            className="h-7 text-xs bg-secondary/20 border-border focus:border-tertiary text-foreground"
+                            required
+                          />
+                        </td>
+                        <td className="p-2">
+                          <select
+                            value={item.item_type}
+                            onChange={(e) =>
+                              handleItemChange(
+                                idx,
+                                "item_type",
+                                e.target.value as "SERVICE" | "SPARE_PART" | "LABOR"
+                              )
+                            }
+                            className="w-full h-7 text-[10px] bg-secondary/30 border border-border rounded px-1.5 font-mono text-foreground focus:outline-hidden"
+                          >
+                            <option value="SERVICE" className="bg-card text-foreground">
+                              SERVICIO
+                            </option>
+                            <option value="SPARE_PART" className="bg-card text-foreground">
+                              REPUESTO
+                            </option>
+                            <option value="LABOR" className="bg-card text-foreground">
+                              M. OBRA
+                            </option>
+                          </select>
+                        </td>
+                        <td className="p-2">
+                          <Input
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) => handleItemChange(idx, "quantity", Number(e.target.value))}
+                            className="h-7 text-xs text-center font-mono bg-secondary/20 border-border text-foreground"
+                          />
+                        </td>
+                        <td className="p-2">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={item.unit_price}
+                            onChange={(e) =>
+                              handleItemChange(idx, "unit_price", Number(e.target.value))
+                            }
+                            className="h-7 text-xs text-right font-mono bg-secondary/20 border-border text-foreground"
+                          />
+                        </td>
+                        <td className="p-2 text-right font-bold text-foreground">
+                          ${(item.total_price || 0).toFixed(2)}
+                        </td>
+                        <td className="p-2 text-center">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            disabled={items.length <= 1}
+                            onClick={() => handleRemoveItem(idx)}
+                            className="h-7 w-7 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Total Preview Strip */}
+              <div className="flex justify-between items-center bg-secondary/20 border border-border/80 px-4 py-2.5 rounded-xl font-mono">
+                <span className="text-xs uppercase text-muted-foreground font-bold">
+                  Total a Facturar:
+                </span>
+                <span className="text-base font-black text-emerald-400">
+                  ${computedTotal.toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-3 border-t border-border/60">
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                onClick={handleAddItem}
-                className="text-xs h-7 gap-1"
+                onClick={() => onOpenChange(false)}
+                className="text-xs font-mono border-border"
               >
-                <Plus className="w-3.5 h-3.5" />
-                Agregar Ítem
+                Cancelar
               </Button>
+              <Button
+                type="submit"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs font-mono uppercase tracking-wider gap-1.5 shadow-sm"
+              >
+                <span>Revisar Comprobante</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+
+        {/* =================================================================== */}
+        {/* STEP 2: PRE-FLIGHT PREVIEW & CONFIRMATION VIEW                     */}
+        {/* =================================================================== */}
+        {currentStep === "preview" && (
+          <div className="space-y-4 pt-1 font-mono">
+            {/* Warning Banner */}
+            <div className="bg-emerald-950/30 border border-emerald-500/40 p-3 rounded-xl flex items-start gap-2.5 text-xs text-emerald-200">
+              <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-emerald-300 uppercase tracking-wide text-[11px]">
+                  Confirmación Fiscal de Factura C (Punto de Venta 2)
+                </p>
+                <p className="text-[11px] text-emerald-200/80 mt-0.5 leading-relaxed">
+                  Revisa los datos antes de emitir. Al confirmar, el sistema se comunicará con el Web Service de ARCA y solicitará el CAE oficial definitivo.
+                </p>
+              </div>
             </div>
 
-            <div className="border border-slate-200 rounded-md overflow-hidden text-xs">
-              <table className="w-full border-collapse">
-                <thead className="bg-slate-100 text-slate-700 font-bold uppercase text-[10px]">
-                  <tr>
-                    <th className="p-2 text-left">Descripción</th>
-                    <th className="p-2 text-center w-24">Tipo</th>
-                    <th className="p-2 text-center w-16">Cant.</th>
-                    <th className="p-2 text-right w-24">Precio Unit.</th>
-                    <th className="p-2 text-right w-24">Total</th>
-                    <th className="p-2 text-center w-10"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {items.map((item, idx) => (
-                    <tr key={idx} className="bg-white">
-                      <td className="p-1.5">
-                        <Input
-                          value={item.description}
-                          onChange={(e) => handleItemChange(idx, "description", e.target.value)}
-                          placeholder="Descripción del ítem"
-                          className="h-7 text-xs"
-                          required
-                        />
-                      </td>
-                      <td className="p-1.5">
-                        <select
-                          value={item.item_type}
-                          onChange={(e) =>
-                            handleItemChange(
-                              idx,
-                              "item_type",
-                              e.target.value as "SERVICE" | "SPARE_PART" | "LABOR"
-                            )
-                          }
-                          className="w-full h-7 text-[10px] bg-slate-50 border border-slate-300 rounded px-1 font-mono"
-                        >
-                          <option value="SERVICE">SERVICIO</option>
-                          <option value="SPARE_PART">REPUESTO</option>
-                          <option value="LABOR">M. OBRA</option>
-                        </select>
-                      </td>
-                      <td className="p-1.5">
-                        <Input
-                          type="number"
-                          min="1"
-                          value={item.quantity}
-                          onChange={(e) => handleItemChange(idx, "quantity", Number(e.target.value))}
-                          className="h-7 text-xs text-center font-mono"
-                        />
-                      </td>
-                      <td className="p-1.5">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={item.unit_price}
-                          onChange={(e) =>
-                            handleItemChange(idx, "unit_price", Number(e.target.value))
-                          }
-                          className="h-7 text-xs text-right font-mono"
-                        />
-                      </td>
-                      <td className="p-1.5 text-right font-mono font-bold text-slate-900">
-                        ${(item.total_price || 0).toFixed(2)}
-                      </td>
-                      <td className="p-1.5 text-center">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          disabled={items.length <= 1}
-                          onClick={() => handleRemoveItem(idx)}
-                          className="h-7 w-7 text-slate-400 hover:text-rose-600"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            {/* Structured Summary Card */}
+            <div className="bg-secondary/15 border border-border/80 rounded-xl p-4 space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-4 pb-3 border-b border-border/60">
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold block">
+                    Receptor Fiscal:
+                  </span>
+                  <p className="text-foreground font-semibold text-sm mt-0.5">
+                    {docTipo === 99 ? "Consumidor Final" : `${getDocLabel(docTipo)}: ${docNro}`}
+                  </p>
+                  <p className="text-[11px] text-tertiary mt-0.5">{getVatLabel(condicionIva)}</p>
+                </div>
 
-            {/* Grand Total Bar */}
-            <div className="flex justify-end p-2 bg-slate-900 text-white rounded-md text-xs font-bold">
-              <span className="mr-3">IMPORTE TOTAL A FACTURAR:</span>
-              <span className="font-mono text-sm text-emerald-400">
-                ${computedTotal.toFixed(2)}
-              </span>
-            </div>
-          </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold block">
+                    Concepto & Emisión:
+                  </span>
+                  <p className="text-foreground font-semibold text-xs mt-0.5">
+                    {concepto === 2 ? "Servicios" : concepto === 1 ? "Productos" : "Prod. y Servicios"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Fecha: {formatAfipDateDisplay(getTodayAfipDate())}
+                  </p>
+                </div>
+              </div>
 
-          <DialogFooter className="pt-2 border-t border-slate-200">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isLoading}
-              onClick={() => onOpenChange(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold gap-1.5"
-            >
-              {isLoading ? (
-                <>Conectando con ARCA...</>
-              ) : (
-                <>
-                  <ShieldCheck className="w-4 h-4" />
-                  Emitir Factura C
-                </>
+              {(concepto === 2 || concepto === 3) && (
+                <div className="grid grid-cols-2 gap-4 pb-3 border-b border-border/60 text-[11px]">
+                  <div>
+                    <span className="text-[10px] text-muted-foreground uppercase block">
+                      Período Facturado:
+                    </span>
+                    <span className="text-foreground font-medium">
+                      {format(serviceFromDate, "dd/MM/yyyy")} al {format(serviceToDate, "dd/MM/yyyy")}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] text-muted-foreground uppercase block">
+                      Vto. para el Pago:
+                    </span>
+                    <span className="text-foreground font-medium">
+                      {format(paymentDueDate, "dd/MM/yyyy")}
+                    </span>
+                  </div>
+                </div>
               )}
-            </Button>
-          </DialogFooter>
-        </form>
+
+              {/* Items Summary */}
+              <div className="space-y-1 pt-1">
+                <span className="text-[10px] text-muted-foreground uppercase font-bold block mb-1.5">
+                  Ítems a Declarar ({items.length}):
+                </span>
+                <div className="divide-y divide-border/40 text-[11px]">
+                  {items.map((it, idx) => (
+                    <div key={idx} className="py-1 flex justify-between items-center">
+                      <span className="text-foreground">
+                        {it.quantity}x {it.description}
+                      </span>
+                      <span className="font-bold text-foreground">
+                        ${(it.total_price || 0).toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Grand Total Highlight */}
+              <div className="flex justify-between items-center pt-3 border-t-2 border-border text-foreground">
+                <span className="text-xs uppercase font-extrabold tracking-wider">
+                  Total Final con CAE:
+                </span>
+                <span className="text-lg font-black text-emerald-400 font-mono">
+                  ${computedTotal.toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-3 border-t border-border/60">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isLoading}
+                onClick={() => setCurrentStep("form")}
+                className="text-xs font-mono border-border gap-1.5"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Modificar Datos
+              </Button>
+
+              <Button
+                type="button"
+                disabled={isLoading}
+                onClick={handleFinalSubmit}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs font-mono uppercase tracking-wider gap-2 shadow-md shadow-emerald-950/20"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Conectando con ARCA...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Confirmar y Emitir Factura C</span>
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

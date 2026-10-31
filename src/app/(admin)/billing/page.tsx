@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
   ShieldCheck,
   Receipt,
@@ -226,14 +227,15 @@ export default function BillingManagementPage() {
               <span>Importar Manual</span>
             </Button>
 
-            <Button
-              size="sm"
-              onClick={() => setIsDirectModalOpen(true)}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs font-mono tracking-wider uppercase shadow-md shadow-emerald-950/20 gap-1.5"
-            >
-              <FilePlus className="w-3.5 h-3.5" />
-              <span>Emitir Factura C</span>
-            </Button>
+            <Link href="/billing/new">
+              <Button
+                size="sm"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs font-mono tracking-wider uppercase shadow-md shadow-emerald-950/20 gap-1.5"
+              >
+                <FilePlus className="w-3.5 h-3.5" />
+                <span>Emitir Factura C</span>
+              </Button>
+            </Link>
           </div>
         }
       />

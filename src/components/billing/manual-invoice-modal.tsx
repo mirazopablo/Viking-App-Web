@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Download, AlertCircle, FileText } from "lucide-react";
+import { Download, AlertCircle, FileText, ShieldAlert, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import {
   ImportManualInvoiceRequest,
   InvoiceResponse,
@@ -46,6 +47,7 @@ function getTodayAfipDate(): string {
 
 /**
  * ManualInvoiceModal Component:
+ * Styled with Viking Dark Theme.
  * Registers an invoice emitted externally via ARCA's web portal (RCEL / Facturador)
  * so it is accounted for locally in the unified dashboard and printable receipt.
  */
@@ -122,59 +124,67 @@ export const ManualInvoiceModal: React.FC<ManualInvoiceModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center gap-2 text-slate-900 font-black">
-            <span className="bg-amber-700 text-white text-xs px-2 py-0.5 rounded font-mono">
-              IMPORTACIÓN MANUAL
-            </span>
-            <DialogTitle className="text-base font-bold">
-              Registrar Factura Externa (RCEL / ARCA Web)
+      <DialogContent className="max-w-xl max-h-[92vh] overflow-y-auto bg-card border-border text-foreground shadow-2xl p-6">
+        <DialogHeader className="border-b border-border/60 pb-3">
+          <div className="flex items-center gap-2">
+            <Badge className="bg-amber-500/10 text-amber-400 border border-amber-500/30 font-mono text-[11px] font-bold">
+              RCEL • FACTURADOR ARCA
+            </Badge>
+            <DialogTitle className="text-base font-extrabold uppercase tracking-wide text-foreground">
+              Registrar Factura Externa / Manual
             </DialogTitle>
           </div>
-          <DialogDescription className="text-xs text-slate-500">
-            Ingresa los datos de una Factura C ya emitida manualmente para incluirla en las métricas contables y el comprobante unificado.
+          <DialogDescription className="text-xs text-muted-foreground font-mono">
+            Asienta una Factura C emitida externamente para computarla en las métricas contables y comprobantes unificados.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+        <form onSubmit={handleSubmit} className="space-y-4 pt-1 font-mono">
           {/* Point of Sale & Invoice Number */}
-          <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+          <div className="bg-secondary/10 border border-border/70 rounded-xl p-3.5 grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs font-bold text-slate-700">Punto de Venta</Label>
+              <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
+                Punto de Venta
+              </Label>
               <Input
                 type="number"
                 min="1"
                 value={puntoVenta}
                 onChange={(e) => setPuntoVenta(Number(e.target.value))}
-                className="mt-1 bg-white text-xs font-mono"
+                className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs"
                 required
               />
             </div>
             <div>
-              <Label className="text-xs font-bold text-slate-700">N° de Comprobante</Label>
+              <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
+                N° de Comprobante
+              </Label>
               <Input
                 type="number"
                 min="1"
                 value={numeroCmp}
                 onChange={(e) => setNumeroCmp(e.target.value)}
                 placeholder="Ej: 24"
-                className="mt-1 bg-white text-xs font-mono"
+                className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs"
                 required
               />
             </div>
             <div>
-              <Label className="text-xs font-bold text-slate-700">Fecha Emisión (YYYYMMDD)</Label>
+              <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
+                Fecha Emisión (YYYYMMDD)
+              </Label>
               <Input
                 value={fechaEmision}
                 onChange={(e) => setFechaEmision(e.target.value)}
                 maxLength={8}
-                className="mt-1 bg-white text-xs font-mono"
+                className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs"
                 required
               />
             </div>
             <div>
-              <Label className="text-xs font-bold text-slate-700">Importe Total ($)</Label>
+              <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
+                Importe Total ($)
+              </Label>
               <Input
                 type="number"
                 step="0.01"
@@ -182,41 +192,47 @@ export const ManualInvoiceModal: React.FC<ManualInvoiceModalProps> = ({
                 value={importeTotal}
                 onChange={(e) => setImporteTotal(e.target.value)}
                 placeholder="0.00"
-                className="mt-1 bg-white text-xs font-mono font-bold"
+                className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs font-bold text-emerald-400"
                 required
               />
             </div>
           </div>
 
           {/* Fiscal CAE Data */}
-          <div className="grid grid-cols-2 gap-3 bg-emerald-50/60 p-3 rounded-lg border border-emerald-200">
+          <div className="bg-emerald-950/20 border border-emerald-500/30 rounded-xl p-3.5 grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs font-bold text-emerald-950">Número de CAE Oficial</Label>
+              <Label className="text-[10px] font-mono uppercase tracking-wider text-emerald-300 font-bold">
+                Número de CAE Oficial
+              </Label>
               <Input
                 value={cae}
                 onChange={(e) => setCae(e.target.value)}
                 placeholder="Ej: 74421122334455"
                 maxLength={14}
-                className="mt-1 bg-white text-xs font-mono font-semibold"
+                className="mt-1 bg-secondary/20 border-emerald-500/40 focus:border-emerald-400 text-emerald-300 font-semibold text-xs"
                 required
               />
             </div>
             <div>
-              <Label className="text-xs font-bold text-emerald-950">Vto. de CAE (YYYYMMDD)</Label>
+              <Label className="text-[10px] font-mono uppercase tracking-wider text-emerald-300 font-bold">
+                Vto. de CAE (YYYYMMDD)
+              </Label>
               <Input
                 value={caeVto}
                 onChange={(e) => setCaeVto(e.target.value)}
                 maxLength={8}
-                className="mt-1 bg-white text-xs font-mono"
+                className="mt-1 bg-secondary/20 border-emerald-500/40 focus:border-emerald-400 text-foreground text-xs"
                 required
               />
             </div>
           </div>
 
           {/* Customer / Document */}
-          <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+          <div className="bg-secondary/10 border border-border/70 rounded-xl p-3.5 grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs font-bold text-slate-700">Tipo de Documento</Label>
+              <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
+                Tipo de Documento
+              </Label>
               <Select
                 value={String(docTipo)}
                 onValueChange={(val) => {
@@ -225,10 +241,10 @@ export const ManualInvoiceModal: React.FC<ManualInvoiceModalProps> = ({
                   if (num === 99) setDocNro("0");
                 }}
               >
-                <SelectTrigger className="mt-1 bg-white text-xs">
+                <SelectTrigger className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs font-mono">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-card border-border text-foreground">
                   <SelectItem value="99">99 - Consumidor Final</SelectItem>
                   <SelectItem value="96">96 - DNI</SelectItem>
                   <SelectItem value="80">80 - CUIT</SelectItem>
@@ -237,41 +253,55 @@ export const ManualInvoiceModal: React.FC<ManualInvoiceModalProps> = ({
               </Select>
             </div>
             <div>
-              <Label className="text-xs font-bold text-slate-700">N° Documento</Label>
+              <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
+                N° Documento
+              </Label>
               <Input
                 disabled={docTipo === 99}
                 value={docNro}
                 onChange={(e) => setDocNro(e.target.value)}
-                className="mt-1 bg-white text-xs font-mono"
+                className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs"
               />
             </div>
             <div className="col-span-2">
-              <Label className="text-xs font-bold text-slate-700">Observaciones o Motivo</Label>
+              <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
+                Observaciones o Motivo
+              </Label>
               <Input
                 value={observaciones}
                 onChange={(e) => setObservaciones(e.target.value)}
                 placeholder="Ej: Emitida por caída de conectividad"
-                className="mt-1 bg-white text-xs"
+                className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs"
               />
             </div>
           </div>
 
-          <DialogFooter className="pt-2 border-t border-slate-200">
+          <DialogFooter className="pt-3 border-t border-border/60">
             <Button
               type="button"
               variant="outline"
               disabled={isLoading}
               onClick={() => onOpenChange(false)}
+              className="text-xs font-mono border-border"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               disabled={isLoading}
-              className="bg-amber-600 hover:bg-amber-500 text-white font-bold gap-1.5"
+              className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs font-mono uppercase tracking-wider gap-2 shadow-sm"
             >
-              <Download className="w-4 h-4" />
-              {isLoading ? "Registrando..." : "Guardar Factura Externa"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Registrando...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  <span>Guardar Factura Externa</span>
+                </>
+              )}
             </Button>
           </DialogFooter>
         </form>
