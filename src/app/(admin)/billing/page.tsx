@@ -106,7 +106,7 @@ export default function BillingManagementPage() {
   const handlePreviewInvoice = (inv: InvoiceResponse) => {
     const docProps: UnifiedCommercialDocumentProps = {
       documentType: "INVOICE_C",
-      documentNumber: `Punto de Venta: ${String(inv.punto_venta).padStart(5, "0")}   Comp. Nro: ${String(
+      documentNumber: `Comp. Nro: ${String(inv.punto_venta).padStart(5, "0")}-${String(
         inv.numero_cmp
       ).padStart(8, "0")}`,
       issueDate: formatAfipDate(inv.fecha_emision),
@@ -206,7 +206,7 @@ export default function BillingManagementPage() {
       : "bg-emerald-500";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 no-print">
       {/* Page Header */}
       <AdminPageHeader
         title="Facturación & Control Fiscal"

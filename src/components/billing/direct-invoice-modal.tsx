@@ -340,7 +340,7 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
         }
       }}
     >
-      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto bg-card border-border text-foreground shadow-2xl p-6">
+      <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[92vh] overflow-y-auto bg-card border-border text-foreground shadow-2xl p-6">
         <DialogHeader className="border-b border-border/60 pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

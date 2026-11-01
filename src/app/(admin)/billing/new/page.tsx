@@ -316,7 +316,7 @@ export default function NewDirectInvoicePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-12">
+    <div className="max-w-5xl mx-auto space-y-6 pb-12 no-print">
       {/* Top Navigation & Breadcrumbs */}
       <div className="flex items-center justify-between">
         <Link href="/billing">
@@ -1073,7 +1073,7 @@ export default function NewDirectInvoicePage() {
                 onClick={() => {
                   setPreviewDocument({
                     documentType: "INVOICE_C",
-                    documentNumber: `Punto de Venta: ${String(emittedInvoice.punto_venta).padStart(5, "0")}   Comp. Nro: ${String(
+                    documentNumber: `Comp. Nro: ${String(emittedInvoice.punto_venta).padStart(5, "0")}-${String(
                       emittedInvoice.numero_cmp
                     ).padStart(8, "0")}`,
                     issueDate: formatAfipDateDisplay(emittedInvoice.fecha_emision),
