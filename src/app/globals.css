@@ -200,3 +200,95 @@
     color: rgb(255, 255, 255);
   }
 }
+
+/* ==========================================================================
+   OFFICIAL ARCA PRINT / PDF RULES (Normalized Single & Multi-Page A4 Engine)
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+
+  /* Force background colors, borders, and SVGs to print precisely */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    overflow: visible !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Completely isolate the printable document: hide all direct body children EXCEPT our print targets */
+  body > *:not(#viking-printable-commercial-document):not(#viking-printable-budget-document) {
+    display: none !important;
+  }
+
+  /* Completely remove web UI, navigation, and dialogs from the print layout */
+  .no-print,
+  header,
+  footer,
+  nav,
+  aside,
+  [data-slot="dialog-portal"],
+  [data-slot="dialog-overlay"],
+  [data-slot="dialog-content"],
+  [data-radix-portal] {
+    display: none !important;
+  }
+
+  /* Mount the standalone printable document engine directly */
+  #viking-printable-commercial-document,
+  #viking-printable-budget-document {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    overflow: visible !important;
+  }
+
+  #viking-printable-commercial-document *,
+  #viking-printable-budget-document * {
+    overflow: visible !important;
+  }
+
+  /* Repeat table headers on every page in multi-page invoices */
+  thead {
+    display: table-header-group !important;
+  }
+
+  /* Avoid breaking table rows, headers, and key blocks mid-page */
+  tr,
+  td,
+  th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .print-avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Strict page break between copies (Original / Duplicado / Triplicado) */
+  .print-page-break {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+}
