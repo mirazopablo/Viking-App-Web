@@ -263,11 +263,6 @@
     overflow: visible !important;
   }
 
-  #viking-printable-commercial-document *,
-  #viking-printable-budget-document * {
-    overflow: visible !important;
-  }
-
   /* Repeat table headers on every page in multi-page invoices */
   thead {
     display: table-header-group !important;
