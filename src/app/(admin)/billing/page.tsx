@@ -111,16 +111,28 @@ export default function BillingManagementPage() {
       ).padStart(8, "0")}`,
       issueDate: formatAfipDate(inv.fecha_emision),
       client: {
-        name: inv.doc_tipo === 99 ? "Consumidor Final" : `Cliente Doc. ${inv.doc_nro}`,
-        docType: inv.doc_tipo === 80 ? "CUIT" : inv.doc_tipo === 96 ? "DNI" : "Sin Identificar",
+        name:
+          inv.client_name ||
+          (inv.doc_tipo === 99 ? "Consumidor Final" : `Titular Doc. ${inv.doc_nro}`),
+        docType:
+          inv.doc_tipo === 80
+            ? "CUIT"
+            : inv.doc_tipo === 86
+              ? "CUIL"
+              : inv.doc_tipo === 96
+                ? "DNI"
+                : "CUIT / Doc",
         docNumber: inv.doc_nro || 0,
+        address: inv.client_address || undefined,
         vatCondition:
           inv.condicion_iva_receptor_id === 1
             ? "IVA Responsable Inscripto"
             : inv.condicion_iva_receptor_id === 6
-            ? "Responsable Monotributo"
-            : "Consumidor Final",
-        paymentCondition: "Contado / Transferencia",
+              ? "Responsable Monotributo"
+              : inv.condicion_iva_receptor_id === 4
+                ? "IVA Sujeto Exento"
+                : "Consumidor Final",
+        paymentCondition: inv.payment_condition || "Transferencia Bancaria / Contado",
       },
       items:
         inv.items && inv.items.length > 0
@@ -148,6 +160,9 @@ export default function BillingManagementPage() {
         invoiceNumber: inv.numero_cmp,
         cae: inv.cae,
         caeVto: inv.cae_vto,
+        serviceFrom: inv.fch_serv_desde,
+        serviceTo: inv.fch_serv_hasta,
+        paymentDueDate: inv.fch_vto_pago,
         rawInvoice: inv,
       },
       notes: inv.observaciones,

@@ -271,11 +271,19 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
       const invoice = await invoiceService.createInvoice(payload);
 
       if (invoice.resultado === "A" && invoice.cae) {
+        const enrichedInvoice: InvoiceResponse = {
+          ...invoice,
+          client_name: invoice.client_name || clientName || undefined,
+          client_address: invoice.client_address || clientAddress || undefined,
+          fch_serv_desde: invoice.fch_serv_desde || payload.fch_serv_desde,
+          fch_serv_hasta: invoice.fch_serv_hasta || payload.fch_serv_hasta,
+          fch_vto_pago: invoice.fch_vto_pago || payload.fch_vto_pago,
+        };
         toast.success(`¡Factura C emitida con éxito! CAE: ${invoice.cae}`);
         onOpenChange(false);
         setCurrentStep("form");
         if (onSuccess) {
-          onSuccess(invoice);
+          onSuccess(enrichedInvoice);
         }
       } else {
         const obs = invoice.observaciones || "ARCA rechazó el comprobante sin observaciones adicionales.";
