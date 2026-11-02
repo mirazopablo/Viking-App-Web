@@ -69,6 +69,12 @@ export interface InvoiceResponse {
   doc_tipo: InvoiceDocType;
   doc_nro: number;
   condicion_iva_receptor_id?: InvoiceVatCondition;
+  client_name?: string;
+  client_address?: string;
+  payment_condition?: string;
+  fch_serv_desde?: string; // YYYYMMDD
+  fch_serv_hasta?: string; // YYYYMMDD
+  fch_vto_pago?: string; // YYYYMMDD
   importe_total: number;
   cae: string;
   cae_vto: string; // YYYYMMDD

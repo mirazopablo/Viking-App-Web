@@ -13,11 +13,14 @@ export type CommercialCopyType = "ORIGINAL" | "DUPLICADO" | "TRIPLICADO";
 
 export interface UnifiedCommercialDocumentItem {
   id?: string | number;
+  code?: string;
   description: string;
   itemType?: "SPARE_PART" | "LABOR" | "SERVICE";
   unitOfMeasure?: string;
   quantity: number;
   unitPrice: number;
+  discountPercentage?: number;
+  discountAmount?: number;
   totalPrice?: number;
   isDiscount?: boolean;
 }
@@ -107,13 +110,16 @@ export interface UnifiedCommercialDocumentProps {
 
 /**
  * Static Emisor Tax & Commercial Profile (Pablo Gabriel Mirazo - Responsable Monotributo)
+ * Synchronized with official ARCA / RCEL fiscal registration.
  */
 export const EMISOR_PROFILE = {
-  fullName: "PABLO GABRIEL MIRAZO",
-  cuit: "20-41795241-2",
-  vatCondition: "RESPONSABLE MONOTRIBUTO",
-  commercialAddress: "Alemania 1896, San Rafael, Mendoza",
-  activityStart: "09/2026",
+  fullName: "MIRAZO PABLO GABRIEL",
+  tradeName: "EL VIKINGO STORE",
+  cuit: "20417952412",
+  grossIncome: "20417952412",
+  vatCondition: "Responsable Monotributo",
+  commercialAddress: "Alemania 1896 - San Rafael, Mendoza",
+  activityStart: "05/10/2026",
   phone: "2604845489",
   email: "elvikingosr@gmail.com",
 };
@@ -291,25 +297,40 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
       {/* Official Master Document Container (A4 Printable Layout) */}
       <div
         id="unified-commercial-document"
-        className="bg-white text-slate-900 font-sans p-6 sm:p-8 rounded-lg shadow-sm border border-slate-300 print:border-none print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none text-xs flex flex-col justify-between print:min-h-[270mm] min-h-[720px] space-y-3"
+        className="bg-white text-slate-900 font-sans p-6 sm:p-8 rounded-lg shadow-sm border border-slate-300 print:border-none print:shadow-none print:p-0 print:m-0 print:w-full print:max-w-none text-xs flex flex-col justify-between print:min-h-[270mm] min-h-[720px] space-y-2.5"
       >
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {/* =================================================================== */}
-          {/* 1. TOP HEADER SECTION (RG 1415 Normalized Tri-Panel Header)         */}
+          {/* 1. TOP HEADER SECTION (ARCA RG 1415 + Viking Imprint)               */}
           {/* =================================================================== */}
-          <div className="border-2 border-slate-900 rounded-md overflow-hidden flex min-h-[125px] print-avoid-break bg-white">
-            {/* 1.1 Left Panel: Emisor Fiscal & Commercial Data */}
-            <div className="flex-1 flex flex-col justify-between min-w-0">
-              {/* Copy Designation Header Band (Edge-to-edge RG 1415) */}
-              <div className="border-b-2 border-slate-900 py-1 px-3 flex items-center justify-center text-center bg-slate-50/50">
-                <span className="font-black text-xs uppercase tracking-widest text-slate-900 font-mono">
-                  {copyType}
-                </span>
+          <div className="border-2 border-slate-900 rounded-md overflow-hidden print-avoid-break bg-white">
+            {/* 1.0 Full-Width Copy Designation Banner (ORIGINAL / DUPLICADO / TRIPLICADO) */}
+            <div className="border-b-2 border-slate-900 py-1 px-3 flex items-center justify-center text-center bg-slate-100/80">
+              <span className="font-black text-xs sm:text-sm uppercase tracking-[0.2em] text-slate-950 font-mono">
+                {copyType}
+              </span>
+            </div>
+
+            {/* 1.1 Main Split Header Body (Emisor | [ C ] | Comprobante) */}
+            <div className="relative flex min-h-[132px]">
+              {/* Center Floating Letter Box [ C ] / [ X ] anchored to top-center divider */}
+              <div className="w-16 sm:w-20 shrink-0 flex flex-col items-center self-stretch">
+                <div className="w-full border-x-2 border-b-2 border-slate-900 bg-slate-50 py-1.5 px-1 flex flex-col items-center justify-center text-center shadow-2xs">
+                  <span className="font-black text-2xl sm:text-3xl text-slate-950 leading-none">
+                    {headerLetter}
+                  </span>
+                  <span className="text-[7px] font-extrabold uppercase tracking-tight text-slate-800 mt-1 leading-tight">
+                    {letterCode}
+                  </span>
+                </div>
+                {/* Central Vertical Divider Line below [ C ] Box */}
+                <div className="flex-1 w-0 border-r-2 border-slate-900" />
               </div>
 
-              <div className="px-3 py-2 flex-1 flex flex-col justify-between">
+              {/* Left Panel: Emisor Identity & Fiscal Address (Ordered first visually via order) */}
+              <div className="flex-1 order-first px-3 py-2.5 flex flex-col justify-between min-w-0">
                 <div className="flex items-center gap-3">
-                  {/* Black Box Logo Container */}
+                  {/* Viking Signature Black Box Logo */}
                   <div className="bg-black p-1 rounded-lg border border-slate-800 shrink-0 w-14 h-14 flex items-center justify-center shadow-xs">
                     <Image
                       src={logoImg}
@@ -321,9 +342,9 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
                     />
                   </div>
 
-                  <div className="py-1 space-y-0.5 min-w-0 flex-1">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block font-mono">
-                      Razón Social:
+                  <div className="space-y-0.5 min-w-0 flex-1">
+                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block font-mono">
+                      {EMISOR_PROFILE.tradeName}
                     </span>
                     <h1 className="font-black text-sm sm:text-base tracking-tight text-slate-950 uppercase leading-snug">
                       {EMISOR_PROFILE.fullName}
@@ -331,151 +352,171 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
                   </div>
                 </div>
 
-                <div className="text-[9px] font-mono text-slate-600 space-y-0.5 pt-1.5 border-t border-slate-200 mt-1.5">
+                <div className="text-[9.5px] text-slate-800 space-y-0.5 pt-2 mt-1.5 border-t border-slate-200">
                   <p>
-                    <span className="font-semibold text-slate-700">Dom. Comercial:</span> {EMISOR_PROFILE.commercialAddress}
+                    <span className="font-bold text-slate-950">Razón Social:</span>{" "}
+                    {EMISOR_PROFILE.fullName}
                   </p>
                   <p>
-                    <span className="font-semibold text-slate-700">Tel:</span> {EMISOR_PROFILE.phone} • <span className="font-semibold text-slate-700">Email:</span> {EMISOR_PROFILE.email}
+                    <span className="font-bold text-slate-950">Domicilio Comercial:</span>{" "}
+                    {EMISOR_PROFILE.commercialAddress}
+                  </p>
+                  <p className="text-[8.5px] font-mono text-slate-600">
+                    <span className="font-bold text-slate-800">Tel:</span> {EMISOR_PROFILE.phone} •{" "}
+                    <span className="font-bold text-slate-800">Email:</span> {EMISOR_PROFILE.email}
                   </p>
                   <p>
-                    <span className="font-semibold text-slate-700">Inicio de Actividades:</span> {EMISOR_PROFILE.activityStart}
+                    <span className="font-bold text-slate-950">Condición frente al IVA:</span>{" "}
+                    <span className="font-bold text-slate-950">{EMISOR_PROFILE.vatCondition}</span>
                   </p>
                 </div>
               </div>
-            </div>
 
-            {/* 1.2 Center Panel: Normalized Letter Box [ C ] vs [ X ] (RG 1415) */}
-            <div className="w-24 shrink-0 border-x-2 border-slate-900 bg-slate-50 flex flex-col items-center justify-center p-2 text-center self-stretch">
-              <div className="w-12 h-12 border-2 border-slate-900 bg-white rounded flex items-center justify-center shadow-xs">
-                <span className="font-black text-2xl text-slate-950 leading-none">{headerLetter}</span>
-              </div>
-              <span className="text-[7.5px] font-extrabold uppercase tracking-tight text-slate-900 mt-1.5 leading-tight">
-                {letterCode}
-              </span>
-            </div>
-
-            {/* 1.3 Right Panel: Document Identification, Date & Period (Normalized AFIP/RG 1415 Left Alignment) */}
-            <div className="flex-1 px-3 py-2 pl-4 flex flex-col justify-between text-left min-w-0">
-              <div className="space-y-1">
+              {/* Right Panel: Document Type, Point of Sale, Number & Issuer Tax IDs */}
+              <div className="flex-1 px-3 py-2.5 pl-4 flex flex-col justify-between text-left min-w-0">
                 <div>
-                  <h2 className="font-black text-base uppercase tracking-wider text-slate-950 leading-tight">
+                  <h2 className="font-black text-lg sm:text-xl uppercase tracking-wider text-slate-950 leading-none">
                     {documentTypeLabel}
                   </h2>
-                  <p className="font-mono font-black text-xs text-slate-950 mt-0.5 tracking-wide">
-                    {formattedSerial}
+
+                  {isFiscal ? (
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-0.5 mt-1.5 text-[10px] font-mono text-slate-950">
+                      <p>
+                        <span className="font-bold">Punto de Venta:</span>{" "}
+                        <span className="font-black">{padZero(fiscalData?.pointOfSale || 1, 5)}</span>
+                      </p>
+                      <p>
+                        <span className="font-bold">Comp. Nro:</span>{" "}
+                        <span className="font-black">{padZero(fiscalData?.invoiceNumber || 1, 8)}</span>
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="font-mono font-black text-xs text-slate-950 mt-1 tracking-wide">
+                      {formattedSerial}
+                    </p>
+                  )}
+
+                  <p className="text-[10px] font-mono text-slate-900 mt-1">
+                    <span className="font-bold text-slate-950">Fecha de Emisión:</span>{" "}
+                    <span className="font-black">{displayIssueDate}</span>
                   </p>
                 </div>
 
-                <div className="text-[9.5px] font-mono text-slate-700 space-y-0.5 pt-1">
+                <div className="text-[9.5px] font-mono text-slate-800 space-y-0.5 pt-2 mt-1.5 border-t border-slate-200">
                   <p>
-                    <span className="font-semibold text-slate-600">Fecha de Emisión:</span>{" "}
-                    <span className="font-bold text-slate-950">{displayIssueDate}</span>
+                    <span className="font-bold text-slate-950">CUIT:</span>{" "}
+                    <span className="font-semibold text-slate-900">{EMISOR_PROFILE.cuit}</span>
                   </p>
                   <p>
-                    <span className="font-semibold text-slate-600">CUIT:</span>{" "}
-                    <span className="font-bold text-slate-950">{EMISOR_PROFILE.cuit}</span>
+                    <span className="font-bold text-slate-950">Ingresos Brutos:</span>{" "}
+                    <span className="font-semibold text-slate-900">{EMISOR_PROFILE.grossIncome}</span>
                   </p>
-                  <p className="font-semibold text-slate-700">
-                    {EMISOR_PROFILE.vatCondition}
+                  <p>
+                    <span className="font-bold text-slate-950">Fecha de Inicio de Actividades:</span>{" "}
+                    <span className="font-semibold text-slate-900">{EMISOR_PROFILE.activityStart}</span>
                   </p>
                 </div>
               </div>
+            </div>
 
-              {/* Fiscal Period vs Internal Validity */}
-              <div className="text-[9px] font-mono text-slate-600 space-y-0.5 pt-1.5 border-t border-slate-200 mt-1.5">
-                {isFiscal ? (
-                  <>
-                    <p>
-                      <span className="font-semibold text-slate-700">Período Facturado:</span>{" "}
-                      <span className="font-bold text-slate-800">
-                        {formatAfipDate(fiscalData?.serviceFrom) || displayIssueDate} al{" "}
-                        {formatAfipDate(fiscalData?.serviceTo) || displayIssueDate}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="font-semibold text-slate-700">Vto. para el Pago:</span>{" "}
-                      <span className="font-bold text-slate-800">
-                        {formatAfipDate(fiscalData?.paymentDueDate) || displayIssueDate}
-                      </span>
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p>Validez de Oferta: 7 días corridos</p>
-                    <p className="text-amber-800 font-semibold">
-                      Comprobante No Válido como Factura
-                    </p>
-                  </>
-                )}
-              </div>
+            {/* 1.2 Full-Width Service Billing Period & Payment Due Strip (ARCA RCEL Standard) */}
+            <div className="border-t-2 border-slate-900 bg-slate-50/90 px-3 py-1.5 flex flex-wrap items-center justify-between gap-2 text-[9.5px] font-mono text-slate-900">
+              {isFiscal ? (
+                <>
+                  <p>
+                    <span className="font-bold text-slate-950">Período Facturado Desde:</span>{" "}
+                    <span>{formatAfipDate(fiscalData?.serviceFrom) || displayIssueDate}</span>
+                  </p>
+                  <p>
+                    <span className="font-bold text-slate-950">Hasta:</span>{" "}
+                    <span>{formatAfipDate(fiscalData?.serviceTo) || displayIssueDate}</span>
+                  </p>
+                  <p>
+                    <span className="font-bold text-slate-950">Fecha de Vto. para el pago:</span>{" "}
+                    <span>{formatAfipDate(fiscalData?.paymentDueDate) || displayIssueDate}</span>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p>
+                    <span className="font-bold text-slate-950">Validez de Oferta:</span> 7 días corridos
+                  </p>
+                  <p className="text-amber-800 font-bold uppercase">
+                    Comprobante No Válido como Factura
+                  </p>
+                </>
+              )}
             </div>
           </div>
 
           {/* =================================================================== */}
-          {/* 2. RECEPTOR / CLIENT SECTION                                        */}
+          {/* 2. RECEPTOR / CLIENT SECTION (Corporate & Consumer Support)         */}
           {/* =================================================================== */}
-          <div className="border-2 border-slate-900 rounded-md p-3 bg-slate-50/50 space-y-1.5 text-[10px] print-avoid-break">
+          <div className="border-2 border-slate-900 rounded-md p-3 bg-slate-50/40 space-y-1.5 text-[10px] print-avoid-break">
             <div className="grid grid-cols-12 gap-2">
-              <div className="col-span-7">
-                <span className="font-bold text-slate-500 uppercase mr-1">Razón Social / Titular:</span>
-                <span className="font-bold text-slate-950 text-[11px]">{client.name}</span>
+              <div className="col-span-5">
+                <span className="font-bold text-slate-950 mr-1">
+                  {client.docType ? `${client.docType}:` : "CUIT / Doc:"}
+                </span>
+                <span className="font-mono font-semibold text-slate-900">
+                  {client.docNumber && String(client.docNumber) !== "0"
+                    ? client.docNumber
+                    : "Sin Identificar"}
+                </span>
               </div>
-              <div className="col-span-5 text-right">
-                <span className="font-bold text-slate-500 uppercase mr-1">Condición Frente al IVA:</span>
+              <div className="col-span-7">
+                <span className="font-bold text-slate-950 mr-1">
+                  Apellido y Nombre / Razón Social:
+                </span>
+                <span className="font-bold text-slate-950 text-[10.5px]">
+                  {client.name || "Consumidor Final"}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-12 gap-2 pt-1 border-t border-slate-200">
+              <div className="col-span-5">
+                <span className="font-bold text-slate-950 mr-1">Condición frente al IVA:</span>
                 <span className="font-semibold text-slate-900">
                   {client.vatCondition || "Consumidor Final"}
                 </span>
               </div>
+              <div className="col-span-7">
+                <span className="font-bold text-slate-950 mr-1">Domicilio:</span>
+                <span className="font-medium text-slate-900">
+                  {client.address || "-"}
+                </span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-12 gap-2 pt-1 border-t border-slate-300">
-              <div className="col-span-7">
-                <span className="font-bold text-slate-500 uppercase mr-1">
-                  {client.docType ? `Doc (${client.docType}):` : "Documento / CUIT:"}
+            <div className="grid grid-cols-12 gap-2 pt-1 border-t border-slate-200">
+              <div className="col-span-5">
+                <span className="font-bold text-slate-950 mr-1">Condición de venta:</span>
+                <span className="font-semibold text-slate-900">
+                  {client.paymentCondition || "Contado / Transferencia Bancaria"}
                 </span>
-                <span className="font-mono font-semibold text-slate-900">
-                  {client.docNumber || "Sin Identificar"}
-                </span>
+              </div>
+              <div className="col-span-7 flex flex-wrap items-center gap-x-4">
                 {client.phone && (
-                  <span className="ml-3 text-slate-600">
-                    Tel: <span className="font-mono">{client.phone}</span>
+                  <span>
+                    <strong className="text-slate-950">Tel:</strong>{" "}
+                    <span className="font-mono text-slate-800">{client.phone}</span>
+                  </span>
+                )}
+                {client.deviceModel && (
+                  <span>
+                    <strong className="text-slate-950">Equipo:</strong>{" "}
+                    <span className="font-semibold text-slate-900">{client.deviceModel}</span>
+                  </span>
+                )}
+                {client.workOrderNumber && (
+                  <span>
+                    <strong className="text-slate-950">OT:</strong>{" "}
+                    <span className="font-mono font-bold text-slate-900">{client.workOrderNumber}</span>
                   </span>
                 )}
               </div>
-              <div className="col-span-5 text-right">
-                <span className="font-bold text-slate-500 uppercase mr-1">Condición de Venta:</span>
-                <span className="font-semibold text-slate-900">
-                  {client.paymentCondition || "Contado / Transferencia"}
-                </span>
-              </div>
             </div>
-
-            {client.address && (
-              <div className="pt-1 border-t border-slate-300">
-                <span className="font-bold text-slate-500 uppercase mr-1">Domicilio Comercial / Fiscal:</span>
-                <span className="font-medium text-slate-900">{client.address}</span>
-              </div>
-            )}
-
-            {(client.deviceModel || client.workOrderNumber) && (
-              <div className="grid grid-cols-12 gap-2 pt-1 border-t border-slate-300 text-slate-700">
-                {client.deviceModel && (
-                  <div className="col-span-7">
-                    <span className="font-bold text-slate-500 uppercase mr-1">Equipo en Taller:</span>
-                    <span className="font-semibold text-slate-900">{client.deviceModel}</span>
-                  </div>
-                )}
-                {client.workOrderNumber && (
-                  <div className="col-span-5 text-right">
-                    <span className="font-bold text-slate-500 uppercase mr-1">Orden de Trabajo:</span>
-                    <span className="font-mono font-bold text-slate-900">
-                      {client.workOrderNumber}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Optional Document Title / Work Order Scope */}
@@ -488,42 +529,56 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
           )}
 
           {/* =================================================================== */}
-          {/* 3. LINE ITEMS / SERVICES & SPARE PARTS TABLE                        */}
+          {/* 3. LINE ITEMS / SERVICES & SPARE PARTS TABLE (Full 8-Col ARCA Grid) */}
           {/* =================================================================== */}
           <div className="overflow-hidden border-2 border-slate-900 rounded-md">
-            <table className="w-full border-collapse text-[10.5px]">
+            <table className="w-full border-collapse text-[10px]">
               <thead className="print:table-header-group">
-                <tr className="bg-slate-900 text-white font-bold uppercase text-[9px] tracking-wider">
-                  <th className="p-2 text-left">Descripción de Productos / Servicios</th>
-                  <th className="p-2 text-center w-16">Cant.</th>
-                  <th className="p-2 text-center w-24">U. Medida</th>
-                  <th className="p-2 text-right w-28">Precio Unit.</th>
-                  <th className="p-2 text-right w-28">Importe</th>
+                <tr className="bg-slate-900 text-white font-bold uppercase text-[8.5px] tracking-wider">
+                  <th className="p-2 text-center w-14 border-r border-slate-700">Código</th>
+                  <th className="p-2 text-left border-r border-slate-700">Producto / Servicio</th>
+                  <th className="p-2 text-right w-16 border-r border-slate-700">Cantidad</th>
+                  <th className="p-2 text-center w-20 border-r border-slate-700">U. Medida</th>
+                  <th className="p-2 text-right w-24 border-r border-slate-700">Precio Unit.</th>
+                  <th className="p-2 text-right w-16 border-r border-slate-700">% Bonif</th>
+                  <th className="p-2 text-right w-20 border-r border-slate-700">Imp. Bonif.</th>
+                  <th className="p-2 text-right w-24">Subtotal</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {items && items.length > 0 ? (
                   items.map((item, idx) => {
+                    const qty = item.quantity || 1;
+                    const unitPrice = item.unitPrice || 0;
+                    const bonusPct = item.discountPercentage || 0;
+                    const bonusAmt = item.discountAmount || 0;
                     const lineTotal =
                       item.totalPrice !== undefined
                         ? item.totalPrice
-                        : (item.quantity || 1) * (item.unitPrice || 0);
+                        : qty * unitPrice - bonusAmt;
 
                     const unitMeasureLabel =
                       item.unitOfMeasure ||
                       (item.itemType === "LABOR" || item.itemType === "SERVICE"
-                        ? "otras unidades"
+                        ? "unidades"
                         : "unidades");
+
+                    const itemCode = item.code || padZero(idx + 1, 3);
 
                     return (
                       <tr
                         key={item.id || idx}
                         className={`print-avoid-break ${item.isDiscount ? "bg-emerald-50 text-emerald-950" : "hover:bg-slate-50"}`}
                       >
+                        <td className="p-2 text-center font-mono text-[9px] text-slate-600">
+                          {itemCode}
+                        </td>
                         <td className="p-2">
-                          <span className="font-medium text-slate-900">{item.description}</span>
+                          <span className="font-medium text-slate-900 whitespace-pre-line">
+                            {item.description}
+                          </span>
                           {item.itemType && (
-                            <span className="ml-2 text-[8.5px] uppercase font-mono px-1 py-0.2 bg-slate-100 text-slate-600 rounded border border-slate-200">
+                            <span className="ml-2 text-[8px] uppercase font-mono px-1 py-0.2 bg-slate-100 text-slate-600 rounded border border-slate-200">
                               {item.itemType === "SPARE_PART"
                                 ? "REPUESTO"
                                 : item.itemType === "LABOR"
@@ -532,15 +587,23 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
                             </span>
                           )}
                         </td>
-                        <td className="p-2 text-center font-mono text-slate-700">{item.quantity}</td>
-                        <td className="p-2 text-center font-mono text-[9.5px] text-slate-600 lowercase">
+                        <td className="p-2 text-right font-mono text-slate-800">
+                          {formatArgentineCurrency(qty)}
+                        </td>
+                        <td className="p-2 text-center font-mono text-[9px] text-slate-700">
                           {unitMeasureLabel}
                         </td>
-                        <td className="p-2 text-right font-mono text-slate-700">
-                          {currency} {formatArgentineCurrency(item.unitPrice)}
+                        <td className="p-2 text-right font-mono text-slate-800">
+                          {formatArgentineCurrency(unitPrice)}
                         </td>
-                        <td className="p-2 text-right font-mono font-semibold text-slate-900">
-                          {item.isDiscount ? `-${currency} ` : `${currency} `}
+                        <td className="p-2 text-right font-mono text-slate-600">
+                          {formatArgentineCurrency(bonusPct)}
+                        </td>
+                        <td className="p-2 text-right font-mono text-slate-600">
+                          {formatArgentineCurrency(bonusAmt)}
+                        </td>
+                        <td className="p-2 text-right font-mono font-bold text-slate-950">
+                          {item.isDiscount ? "-" : ""}
                           {formatArgentineCurrency(Math.abs(lineTotal))}
                         </td>
                       </tr>
@@ -548,7 +611,7 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
                   })
                 ) : (
                   <tr>
-                    <td colSpan={5} className="p-4 text-center text-slate-500 italic">
+                    <td colSpan={8} className="p-4 text-center text-slate-500 italic">
                       Sin ítems cargados en el comprobante.
                     </td>
                   </tr>
@@ -556,128 +619,151 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
               </tbody>
             </table>
           </div>
+        </div>
 
-          {/* =================================================================== */}
-          {/* 4. TOTALS SUMMARY BOX                                               */}
-          {/* =================================================================== */}
-          <div className="flex justify-end pt-1 print-avoid-break">
-            <div className="w-72 bg-slate-50 border-2 border-slate-900 rounded-md p-2.5 space-y-1 text-[10.5px]">
-              <div className="flex justify-between text-slate-600">
-                <span>Subtotal Neto:</span>
-                <span className="font-mono">
-                  {currency} {formatArgentineCurrency(totals.subtotal)}
+        {/* =================================================================== */}
+        {/* 4. BOTTOM TOTALS, OBSERVATIONS & ARCA VALIDATION BLOCK              */}
+        {/* =================================================================== */}
+        <div className="space-y-2.5 mt-auto pt-2 print-avoid-break">
+          {/* 4.1 Official ARCA Full-Width Totals Box */}
+          <div className="border-2 border-slate-900 rounded-md p-3 bg-slate-50/70 flex justify-end">
+            <div className="w-72 space-y-1 text-[10.5px]">
+              <div className="flex justify-between text-slate-800 font-semibold">
+                <span>Subtotal: {currency}</span>
+                <span className="font-mono font-bold text-slate-950">
+                  {formatArgentineCurrency(totals.subtotal)}
                 </span>
               </div>
 
               {totals.discount !== undefined && totals.discount > 0 && (
-                <div className="flex justify-between text-emerald-700 font-medium border-t border-slate-200 pt-1">
-                  <span>Bonificaciones / Descuentos:</span>
+                <div className="flex justify-between text-emerald-700 font-semibold">
+                  <span>Bonificaciones / Descuentos: {currency}</span>
                   <span className="font-mono">
-                    -{currency} {formatArgentineCurrency(totals.discount)}
+                    -{formatArgentineCurrency(totals.discount)}
                   </span>
                 </div>
               )}
 
-              <div className="flex justify-between font-black text-sm text-slate-950 border-t-2 border-slate-900 pt-1 mt-1">
-                <span>TOTAL {isFiscal ? "A PAGAR" : "FINAL"}:</span>
+              <div className="flex justify-between text-slate-800 font-semibold">
+                <span>Importe Otros Tributos: {currency}</span>
+                <span className="font-mono font-bold text-slate-950">
+                  {formatArgentineCurrency(0)}
+                </span>
+              </div>
+
+              <div className="flex justify-between font-black text-xs sm:text-sm text-slate-950 border-t-2 border-slate-900 pt-1.5 mt-1">
+                <span>Importe Total: {currency}</span>
                 <span className="font-mono">
-                  {currency} {formatArgentineCurrency(totals.totalAmount)}
+                  {formatArgentineCurrency(totals.totalAmount)}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* =================================================================== */}
-          {/* 5. NOTES AND WARRANTY CONDITIONS                                    */}
-          {/* =================================================================== */}
-          {(notes || termsAndConditions) && (
-            <div className="border-t border-slate-300 pt-2 space-y-1.5 text-[9.5px] text-slate-600 print-avoid-break">
-              {notes && (
-                <div>
-                  <span className="font-bold text-slate-800 uppercase text-[9px] mr-1">
-                    Observaciones:
-                  </span>
-                  <span className="whitespace-pre-line">{notes}</span>
+          {/* 4.2 Observations / Emitter Legend Box (Matching ARCA Middle Strip) */}
+          {(notes || termsAndConditions || isFiscal) && (
+            <div className="border border-slate-400 rounded px-3 py-1.5 text-[9.5px] text-slate-700 bg-white">
+              {notes || termsAndConditions ? (
+                <div className="space-y-1">
+                  {notes && (
+                    <div>
+                      <span className="font-bold text-slate-900 uppercase text-[9px] mr-1">
+                        Observaciones:
+                      </span>
+                      <span className="whitespace-pre-line">{notes}</span>
+                    </div>
+                  )}
+                  {termsAndConditions && (
+                    <div>
+                      <span className="font-bold text-slate-900 uppercase text-[9px] mr-1">
+                        Términos y Garantía:
+                      </span>
+                      <span className="whitespace-pre-line">{termsAndConditions}</span>
+                    </div>
+                  )}
                 </div>
-              )}
-              {termsAndConditions && (
-                <div>
-                  <span className="font-bold text-slate-800 uppercase text-[9px] mr-1">
-                    Términos y Garantía:
-                  </span>
-                  <span className="whitespace-pre-line">{termsAndConditions}</span>
-                </div>
+              ) : (
+                <p className="text-center italic font-medium text-slate-800">
+                  &ldquo;Pablo Gabriel Mirazo • El Vikingo Store&rdquo;
+                </p>
               )}
             </div>
           )}
 
-        </div>
-
-        {/* =================================================================== */}
-        {/* 6. BOTTOM FISCAL / ARCA VALIDATION BLOCK (RG 4291 / RG 1415)        */}
-        {/* =================================================================== */}
-        <div className="border-t-2 border-slate-900 pt-3 mt-auto print-avoid-break">
-          {isFiscal && fiscalData?.cae ? (
-            <div className="flex items-center justify-between gap-4 bg-slate-50/90 border-2 border-slate-900 rounded-lg p-3">
-              {/* Left: Official QR Code, ARCA Logo & Statutory Disclaimer */}
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="shrink-0">
-                  <AfipQrCode
-                    invoice={fiscalData.rawInvoice}
-                    size={105}
-                    className="bg-white p-1 rounded border border-slate-300 shadow-xs"
-                  />
+          {/* 4.3 Official ARCA QR, Page Counter & CAE Block */}
+          <div className="pt-1">
+            {isFiscal && fiscalData?.cae ? (
+              <div className="flex items-center justify-between gap-4 bg-slate-50/90 border-2 border-slate-900 rounded-lg p-3">
+                {/* Left: Official QR Code, ARCA Logo & Statutory Disclaimer */}
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="shrink-0">
+                    <AfipQrCode
+                      invoice={fiscalData.rawInvoice}
+                      size={100}
+                      className="bg-white p-1 rounded border border-slate-300 shadow-xs"
+                    />
+                  </div>
+                  <div className="space-y-1 min-w-0">
+                    <img
+                      src="/ARCA_logo.png"
+                      alt="ARCA - Agencia de Recaudación y Control Aduanero"
+                      className="h-8 sm:h-9 max-w-[190px] w-auto object-contain"
+                    />
+                    <div className="space-y-0.5">
+                      <p className="font-black italic text-[10.5px] text-slate-950 tracking-wide">
+                        Comprobante Autorizado
+                      </p>
+                      <p className="text-[7.5px] italic font-semibold text-slate-700 leading-tight max-w-[290px]">
+                        Esta Agencia no se responsabiliza por los datos ingresados en el detalle de la operación
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-1.5 min-w-0">
-                  <img
-                    src="/ARCA_logo.png"
-                    alt="ARCA - Agencia de Recaudación y Control Aduanero"
-                    className="h-8 sm:h-9 max-w-[200px] w-auto object-contain"
-                  />
+
+                {/* Center: Page Counter (Pág. 1/1) */}
+                <div className="hidden sm:flex flex-col items-center justify-center shrink-0 px-2">
+                  <span className="font-bold text-[10.5px] text-slate-950 font-mono">
+                    Pág. 1/1
+                  </span>
+                </div>
+
+                {/* Right: CAE Number & Due Date */}
+                <div className="text-right space-y-1 shrink-0 min-w-[190px]">
                   <div className="space-y-0.5">
-                    <p className="font-black italic text-[10.5px] text-slate-900 tracking-wide">
-                      Comprobante Autorizado
-                    </p>
+                    <span className="text-[9.5px] font-bold text-slate-950">
+                      CAE N°:{" "}
+                    </span>
+                    <span className="font-mono font-normal text-[11px] text-slate-950 tracking-wide">
+                      {fiscalData.cae}
+                    </span>
+                  </div>
+                  <div className="space-y-0.5 pt-1 border-t border-slate-200">
+                    <span className="text-[9.5px] font-bold text-slate-950">
+                      Fecha de Vto. de CAE:{" "}
+                    </span>
+                    <span className="font-mono font-normal text-[11px] text-slate-950">
+                      {formatAfipDate(fiscalData.caeVto)}
+                    </span>
                   </div>
                 </div>
               </div>
-
-              {/* Right: CAE Number & Due Date */}
-              <div className="text-right space-y-1 shrink-0 min-w-[195px]">
-                <div className="space-y-0.5">
-                  <span className="text-[8.5px] font-bold text-slate-500 uppercase block">
-                    CAE N° (Autorización Electrónica):
-                  </span>
-                  <span className="font-mono font-black text-xs sm:text-sm text-slate-950 tracking-wider block">
-                    {fiscalData.cae}
+            ) : (
+              <div className="flex items-center justify-between text-[9px] font-mono text-slate-500 py-1 border-t border-slate-300">
+                <div className="flex items-center gap-1.5 text-amber-900">
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span className="font-semibold">
+                    DOCUMENTO NO VÁLIDO COMO FACTURA • REGISTRO DE TALLER
                   </span>
                 </div>
-                <div className="space-y-0.5 pt-1 border-t border-slate-200">
-                  <span className="text-[8.5px] font-bold text-slate-500 uppercase block">
-                    Fecha de Vto. de CAE:
-                  </span>
-                  <span className="font-mono font-bold text-xs text-slate-900 block">
-                    {formatAfipDate(fiscalData.caeVto)}
-                  </span>
-                </div>
+                <p>Emitido por: {staffName}</p>
               </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between text-[9px] font-mono text-slate-500 py-1">
-              <div className="flex items-center gap-1.5 text-amber-900">
-                <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                <span className="font-semibold">
-                  DOCUMENTO NO VÁLIDO COMO FACTURA • REGISTRO DE TALLER
-                </span>
-              </div>
-              <p>Emitido por: {staffName}</p>
-            </div>
-          )}
+            )}
 
-          {/* Micro Footer Sign-off */}
-          <div className="flex justify-between items-center text-[8px] font-mono text-slate-400 pt-2 border-t border-slate-200 mt-2">
-            <span>Viking-App Service System • Software de Gestión</span>
-            <span className="font-semibold text-slate-600 uppercase">¡Muchas Gracias Por Su Confianza!</span>
+            {/* Micro Footer Sign-off */}
+            <div className="flex justify-between items-center text-[8px] font-mono text-slate-400 pt-1.5 border-t border-slate-200 mt-1.5">
+              <span>Viking-App Service System • Software de Gestión</span>
+              <span className="font-semibold text-slate-600 uppercase">¡Muchas Gracias Por Su Confianza!</span>
+            </div>
           </div>
         </div>
       </div>
