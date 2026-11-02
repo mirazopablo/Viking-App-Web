@@ -303,7 +303,7 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
           {/* =================================================================== */}
           {/* 1. TOP HEADER SECTION (ARCA RG 1415 + Viking Imprint)               */}
           {/* =================================================================== */}
-          <div className="border-2 border-slate-900 rounded-md overflow-hidden print-avoid-break bg-white">
+          <div className="border-2 border-slate-900 rounded-none overflow-hidden print-avoid-break bg-white">
             {/* 1.0 Full-Width Copy Designation Banner (ORIGINAL / DUPLICADO / TRIPLICADO) */}
             <div className="border-b-2 border-slate-900 py-1 px-3 flex items-center justify-center text-center bg-slate-100/80">
               <span className="font-black text-xs sm:text-sm uppercase tracking-[0.2em] text-slate-950 font-mono">
@@ -452,7 +452,7 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
           {/* =================================================================== */}
           {/* 2. RECEPTOR / CLIENT SECTION (Corporate & Consumer Support)         */}
           {/* =================================================================== */}
-          <div className="border-2 border-slate-900 rounded-md p-3 bg-slate-50/40 space-y-1.5 text-[10px] print-avoid-break">
+          <div className="border-2 border-slate-900 rounded-none p-3 bg-slate-50/40 space-y-1.5 text-[10px] print-avoid-break">
             <div className="grid grid-cols-12 gap-2">
               <div className="col-span-5">
                 <span className="font-bold text-slate-950 mr-1">
@@ -531,7 +531,7 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
           {/* =================================================================== */}
           {/* 3. LINE ITEMS / SERVICES & SPARE PARTS TABLE (Full 8-Col ARCA Grid) */}
           {/* =================================================================== */}
-          <div className="overflow-hidden border-2 border-slate-900 rounded-md">
+          <div className="overflow-hidden border-2 border-slate-900 rounded-none">
             <table className="w-full border-collapse text-[10px]">
               <thead className="print:table-header-group">
                 <tr className="bg-slate-900 text-white font-bold uppercase text-[8.5px] tracking-wider">
@@ -626,7 +626,7 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
         {/* =================================================================== */}
         <div className="space-y-2.5 mt-auto pt-2 print-avoid-break">
           {/* 4.1 Official ARCA Full-Width Totals Box */}
-          <div className="border-2 border-slate-900 rounded-md p-3 bg-slate-50/70 flex justify-end">
+          <div className="border-2 border-slate-900 rounded-none p-3 bg-slate-50/70 flex justify-end">
             <div className="w-72 space-y-1 text-[10.5px]">
               <div className="flex justify-between text-slate-800 font-semibold">
                 <span>Subtotal: {currency}</span>
@@ -662,7 +662,7 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
 
           {/* 4.2 Observations / Emitter Legend Box (Matching ARCA Middle Strip) */}
           {(notes || termsAndConditions || isFiscal) && (
-            <div className="border border-slate-400 rounded px-3 py-1.5 text-[9.5px] text-slate-700 bg-white">
+            <div className="border border-slate-400 rounded-none px-3 py-1.5 text-[9.5px] text-slate-700 bg-white">
               {notes || termsAndConditions ? (
                 <div className="space-y-1">
                   {notes && (
@@ -693,7 +693,7 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
           {/* 4.3 Official ARCA QR, Page Counter & CAE Block */}
           <div className="pt-1">
             {isFiscal && fiscalData?.cae ? (
-              <div className="flex items-center justify-between gap-4 bg-slate-50/90 border-2 border-slate-900 rounded-lg p-3">
+              <div className="flex items-center justify-between gap-4 bg-slate-50/90 border-2 border-slate-900 rounded-none p-3">
                 {/* Left: Official QR Code, ARCA Logo & Statutory Disclaimer */}
                 <div className="flex items-center gap-3.5 min-w-0">
                   <div className="shrink-0">
