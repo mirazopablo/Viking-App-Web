@@ -1,8 +1,22 @@
+import axios from "axios"
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+/**
+ * Extracts a human-readable error message from an unknown error (AxiosError, Error, etc.).
+ */
+export function getApiErrorMessage(error: unknown, fallback = "Error inesperado"): string {
+  if (axios.isAxiosError<{ message?: string; error?: string }>(error)) {
+    return error.response?.data?.message || error.response?.data?.error || error.message || fallback;
+  }
+  if (error instanceof Error) {
+    return error.message || fallback;
+  }
+  return fallback;
 }
 
 /**
