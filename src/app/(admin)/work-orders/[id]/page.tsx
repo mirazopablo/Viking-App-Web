@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useState, use, useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { workOrderService } from "@/services/work-order.service";
+import { getApiErrorMessage } from "@/lib/utils";
 import { diagnosticService } from "@/services/diagnostic.service";
 import { budgetService } from "@/services/budget.service";
 import { WorkOrderResponseDTO, SecurityCodeResponseDTO } from "@/types/work-order";
@@ -61,27 +62,36 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
   const [isDiagnosticModalOpen, setIsDiagnosticModalOpen] = useState<boolean>(false);
   const [regeneratedOrder, setRegeneratedOrder] = useState<SecurityCodeResponseDTO | WorkOrderResponseDTO | null>(null);
   const [isRegeneratingCode, setIsRegeneratingCode] = useState<boolean>(false);
-  const [savedBudgetInfo, setSavedBudgetInfo] = useState<{ title?: string; total?: number; mode?: string } | null>(null);
+  const [localBudgetCleared, setLocalBudgetCleared] = useState<boolean>(false);
 
-  React.useEffect(() => {
-    if (typeof window !== 'undefined' && workOrderId) {
-      try {
-        const raw = localStorage.getItem(`viking_budget_${workOrderId}`);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          const total = (parsed.items || []).reduce((acc: number, i: any) => acc + (i.quantity || 0) * (i.unitPrice || 0), 0) +
-            (parsed.labors || []).reduce((acc: number, l: any) => acc + (l.amount || 0), 0);
-          setSavedBudgetInfo({
-            title: parsed.title,
-            total,
-            mode: parsed.mode,
-          });
-        }
-      } catch (err) {
-        console.warn('Could not read local budget:', err);
-      }
+  const rawLocalBudget = useSyncExternalStore(
+    () => () => {},
+    () => (workOrderId ? localStorage.getItem(`viking_budget_${workOrderId}`) : null),
+    () => null
+  );
+
+  const savedBudgetInfo = useMemo<{ title?: string; total?: number; mode?: string } | null>(() => {
+    if (localBudgetCleared || !rawLocalBudget) return null;
+    try {
+      const parsed = JSON.parse(rawLocalBudget) as {
+        title?: string;
+        mode?: string;
+        items?: Array<{ quantity?: number; unitPrice?: number }>;
+        labors?: Array<{ amount?: number }>;
+      };
+      const total =
+        (parsed.items || []).reduce((acc, i) => acc + (i.quantity || 0) * (i.unitPrice || 0), 0) +
+        (parsed.labors || []).reduce((acc, l) => acc + (l.amount || 0), 0);
+      return {
+        title: parsed.title,
+        total,
+        mode: parsed.mode,
+      };
+    } catch (err) {
+      console.warn("Could not read local budget:", err);
+      return null;
     }
-  }, [workOrderId]);
+  }, [localBudgetCleared, rawLocalBudget]);
 
   // 1. Fetch Work Order Details
   const {
@@ -144,15 +154,15 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
       }
 
       localStorage.removeItem(`viking_budget_${workOrderId}`);
-      setSavedBudgetInfo(null);
+      setLocalBudgetCleared(true);
       toast.success("Presupuesto e hito de bitácora eliminados permanentemente");
       queryClient.invalidateQueries({ queryKey: ["budget", workOrderId] });
       queryClient.invalidateQueries({ queryKey: ["diagnostic-points", workOrderId] });
       refetchBudget();
       refetchPoints();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Delete budget failed:", err);
-      toast.error(err?.response?.data?.error || "Error al eliminar el presupuesto");
+      toast.error(getApiErrorMessage(err, "Error al eliminar el presupuesto"));
     } finally {
       setIsDeletingBudget(false);
       setIsDeleteDialogOpen(false);

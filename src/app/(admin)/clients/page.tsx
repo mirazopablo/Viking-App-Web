@@ -50,11 +50,6 @@ export default function ClientsDirectoryPage() {
 
   const debouncedSearch = searchTerm.trim().length >= 2 ? searchTerm.trim() : undefined;
 
-  // Reset page when search term changes
-  React.useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch]);
-
   const { data = { data: [], total: 0, page: 1, limit: 20 }, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ["users-directory", debouncedSearch, page],
     queryFn: () => userService.getUsers(debouncedSearch, undefined, page, 20),
@@ -151,7 +146,10 @@ export default function ClientsDirectoryPage() {
       {/* Search Input */}
       <VikingSearchBar
         value={searchTerm}
-        onChange={setSearchTerm}
+        onChange={(val) => {
+          setSearchTerm(val);
+          setPage(1);
+        }}
         placeholder="Buscar por DNI, nombre, email o teléfono..."
         variant="client"
         minChars={2}

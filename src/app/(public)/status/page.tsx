@@ -48,27 +48,30 @@ export default function PublicStatusPage() {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [result, setResult] = useState<WorkOrderPublicStatusResponseDTO | null>(null);
-  const [publicBudget, setPublicBudget] = useState<any>(null);
+  const [publicBudget, setPublicBudget] = useState<Record<string, unknown> | null>(null);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState<boolean>(false);
 
   // Fetch public budget when an active work order result is loaded
   useEffect(() => {
-    if (result?.workOrder?.id) {
-      budgetService
-        .getBudgetByWorkOrder(result.workOrder.id, true)
-        .then((data) => setPublicBudget(data))
-        .catch(() => {
-          // Local fallback for offline / development testing
-          try {
-            const raw = localStorage.getItem(`viking_budget_${result.workOrder.id}`);
-            if (raw) setPublicBudget(JSON.parse(raw));
-          } catch {
-            setPublicBudget(null);
-          }
-        });
-    } else {
-      setPublicBudget(null);
-    }
+    if (!result?.workOrder?.id) return;
+    let active = true;
+    budgetService
+      .getBudgetByWorkOrder(result.workOrder.id, true)
+      .then((data) => {
+        if (active) setPublicBudget(data as unknown as Record<string, unknown>);
+      })
+      .catch(() => {
+        // Local fallback for offline / development testing
+        try {
+          const raw = localStorage.getItem(`viking_budget_${result.workOrder.id}`);
+          if (active) setPublicBudget(raw ? (JSON.parse(raw) as Record<string, unknown>) : null);
+        } catch {
+          if (active) setPublicBudget(null);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, [result]);
 
   // Morning / Offline Sync: Auto-hydrate work order if active session is stored in localStorage

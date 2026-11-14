@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { quickQuoteFormSchema, QuickQuoteFormSchemaType } from '@/lib/validations/quick-quote';
@@ -57,16 +57,12 @@ export const QuickQuoteBuilder: React.FC<QuickQuoteBuilderProps> = ({
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [resolvedStaffName, setResolvedStaffName] = useState(staffName);
-
-  useEffect(() => {
-    if (!resolvedStaffName && typeof window !== 'undefined') {
-      const storedName = localStorage.getItem('viking_user_name');
-      if (storedName) {
-        setResolvedStaffName(storedName);
-      }
-    }
-  }, [resolvedStaffName]);
+  const storedStaffName = useSyncExternalStore(
+    () => () => {},
+    () => localStorage.getItem('viking_user_name') || '',
+    () => ''
+  );
+  const resolvedStaffName = staffName || storedStaffName;
 
   const handleDeleteConfirm = async () => {
     if (!onDelete) return;
