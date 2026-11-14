@@ -1,3 +1,4 @@
+import axios from "axios";
 import { apiClient } from "@/lib/api-client";
 import { BudgetResponseDTO } from "@/types/budget";
 import { BudgetFormSchemaType } from "@/lib/validations/budget";
@@ -38,14 +39,18 @@ export const budgetService = {
       console.log('✅ [budgetService.getBudgetByWorkOrder] Response status:', response.status);
       console.log('📦 [budgetService.getBudgetByWorkOrder] Response data:', response.data);
       return response.data;
-    } catch (error: any) {
-      console.error('❌ [budgetService.getBudgetByWorkOrder] Request failed:', {
-        endpoint,
-        status: error?.response?.status,
-        statusText: error?.response?.statusText,
-        data: error?.response?.data,
-        message: error?.message,
-      });
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.error('❌ [budgetService.getBudgetByWorkOrder] Request failed:', {
+          endpoint,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          message: error.message,
+        });
+      } else {
+        console.error('❌ [budgetService.getBudgetByWorkOrder] Request failed:', error);
+      }
       throw error;
     }
   },
