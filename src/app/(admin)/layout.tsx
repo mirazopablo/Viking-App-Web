@@ -27,7 +27,7 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
 
     const token = localStorage.getItem("viking_jwt_token");
     if (!token) {
-      window.location.href = "/login?reason=expired";
+      window.location.href = "/login?reason=unauthorized";
       return;
     }
 
