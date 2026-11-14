@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { Printer, ExternalLink, AlertCircle } from "lucide-react";
-import logoImg from "@/components/images/LOGO.png";
+import logoImg from "@/components/images/LOGO_pulido.png";
 import { AfipQrCode } from "@/components/common/afip-qr-code";
 import { InvoiceResponse } from "@/types/invoice";
 import { SaleNoteResponse, SaleNoteItem } from "@/types/sales-note";
@@ -15,7 +15,7 @@ export interface UnifiedCommercialDocumentItem {
   id?: string | number;
   code?: string;
   description: string;
-  itemType?: "SPARE_PART" | "LABOR" | "SERVICE";
+  itemType?: "SPARE_PART" | "LABOR" | "ACCESSORY" | "SERVICE";
   unitOfMeasure?: string;
   quantity: number;
   unitPrice: number;
@@ -337,6 +337,7 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
                       alt="Logo El Vikingo Store"
                       width={48}
                       height={48}
+                      unoptimized
                       className="w-12 h-12 object-contain"
                       priority
                     />
@@ -434,6 +435,15 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
                   <p>
                     <span className="font-bold text-slate-950">Fecha de Vto. para el pago:</span>{" "}
                     <span>{formatAfipDate(fiscalData?.paymentDueDate) || displayIssueDate}</span>
+                  </p>
+                </>
+              ) : documentType === "SALE_NOTE" ? (
+                <>
+                  <p>
+                    <span className="font-bold text-slate-950">Garantía de Servicio:</span> 90 días sobre mano de obra
+                  </p>
+                  <p className="text-amber-800 font-bold uppercase">
+                    Documento No Válido como Factura
                   </p>
                 </>
               ) : (
@@ -583,7 +593,9 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
                                 ? "REPUESTO"
                                 : item.itemType === "LABOR"
                                   ? "MANO DE OBRA"
-                                  : "SERVICIO"}
+                                  : item.itemType === "ACCESSORY"
+                                    ? "ACCESORIO"
+                                    : "SERVICIO"}
                             </span>
                           )}
                         </td>

@@ -69,6 +69,7 @@ export function BrandLogo({
           alt="Viking App Official Logo"
           width={currentSize.imgWidth}
           height={currentSize.imgHeight}
+          unoptimized
           className={`${currentSize.imgClass} object-contain`}
           priority
         />

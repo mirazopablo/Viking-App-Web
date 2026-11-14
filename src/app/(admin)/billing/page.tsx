@@ -32,6 +32,10 @@ import { AccountingDashboardResponse } from "@/types/accounting";
 import { invoiceService } from "@/services/invoice.service";
 import { salesNoteService } from "@/services/sales-note.service";
 import { accountingService } from "@/services/accounting.service";
+import {
+  mapSaleNoteToCommercialDocument,
+  SALE_NOTE_PAYMENT_METHOD_LABELS,
+} from "@/lib/sales-note-document";
 
 /**
  * Helper to format currency values in ARS.
@@ -171,44 +175,17 @@ export default function BillingManagementPage() {
     setPreviewDocument(docProps);
   };
 
-  // Open Preview for a Sale Note
-  const handlePreviewSaleNote = (sn: SaleNoteResponse) => {
-    const docProps: UnifiedCommercialDocumentProps = {
-      documentType: "SALE_NOTE",
-      documentNumber: sn.number,
-      issueDate: new Date(sn.created_at).toLocaleDateString("es-AR"),
-      client: {
-        name: sn.client_name,
-        docType: sn.client_dni ? "DNI" : "Sin Identificar",
-        docNumber: sn.client_dni || 0,
-        phone: sn.client_phone || undefined,
-        paymentCondition: sn.payment_method,
-      },
-      items:
-        sn.items && sn.items.length > 0
-          ? sn.items.map((it) => ({
-              description: it.description,
-              itemType: it.item_type,
-              quantity: it.quantity,
-              unitPrice: it.unit_price,
-              totalPrice: (it.quantity || 1) * (it.unit_price || 0),
-            }))
-          : [
-              {
-                description: "Venta / Mano de Obra",
-                quantity: 1,
-                unitPrice: sn.total_amount,
-                totalPrice: sn.total_amount,
-              },
-            ],
-      totals: {
-        subtotal: sn.total_amount,
-        totalAmount: sn.total_amount,
-      },
-      notes: sn.notes || undefined,
-    };
-
-    setPreviewDocument(docProps);
+  // Open Preview for a Sale Note (fetches full detail if items are omitted in list response)
+  const handlePreviewSaleNote = async (sn: SaleNoteResponse) => {
+    let detail = sn;
+    if (!sn.items || sn.items.length === 0) {
+      try {
+        detail = await salesNoteService.getSaleNoteById(sn.id);
+      } catch {
+        // Fallback to list item if detail fetch fails
+      }
+    }
+    setPreviewDocument(mapSaleNoteToCommercialDocument(detail));
   };
 
   // Monotributo progress bar color calculations
@@ -241,6 +218,17 @@ export default function BillingManagementPage() {
               <Download className="w-3.5 h-3.5 text-amber-500" />
               <span>Importar Manual</span>
             </Button>
+
+            <Link href="/billing/sales-notes/new">
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10 font-bold text-xs font-mono tracking-wider uppercase gap-1.5"
+              >
+                <Receipt className="w-3.5 h-3.5" />
+                <span>Nueva Nota de Venta [ X ]</span>
+              </Button>
+            </Link>
 
             <Link href="/billing/new">
               <Button
@@ -489,7 +477,7 @@ export default function BillingManagementPage() {
                         </td>
                         <td className="p-3">
                           <Badge variant="outline" className="text-[10px] font-mono">
-                            {sn.payment_method}
+                            {SALE_NOTE_PAYMENT_METHOD_LABELS[sn.payment_method] || sn.payment_method}
                           </Badge>
                         </td>
                         <td className="p-3 text-center">
