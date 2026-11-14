@@ -13,6 +13,10 @@ import { DiagnosticTimeline } from "@/components/work-orders/diagnostic-timeline
 import { StatusUpdater } from "@/components/work-orders/status-updater";
 import { AddDiagnosticPointModal } from "@/components/work-orders/add-diagnostic-point-modal";
 import { SecurityCodeModal } from "@/components/work-orders/security-code-modal";
+import { ConvertBudgetModal } from "@/components/billing/convert-budget-modal";
+import { ReceiptPreviewDialog } from "@/components/billing/receipt-preview-dialog";
+import { UnifiedCommercialDocumentProps } from "@/components/billing/unified-commercial-document";
+import { mapSaleNoteToCommercialDocument } from "@/lib/sales-note-document";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -41,6 +46,8 @@ import {
   FileText,
   Trash2,
   Edit3,
+  Receipt,
+  CheckCircle2,
 } from "lucide-react";
 
 interface WorkOrderDetailPageProps {
@@ -115,6 +122,8 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [isDeletingBudget, setIsDeletingBudget] = useState<boolean>(false);
+  const [isConvertBudgetOpen, setIsConvertBudgetOpen] = useState<boolean>(false);
+  const [previewSaleNoteDoc, setPreviewSaleNoteDoc] = useState<UnifiedCommercialDocumentProps | null>(null);
 
   const handleDeleteBudget = async () => {
     const targetId = existingBudget?.id;
@@ -268,6 +277,25 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
                   <span>Editar Presupuesto</span>
                 </Button>
               </Link>
+
+              {existingBudget?.status === "APPROVED" && (
+                <Button
+                  onClick={() => setIsConvertBudgetOpen(true)}
+                  className="bg-amber-600 hover:bg-amber-500 text-white font-bold tracking-wider uppercase text-xs h-9 px-4 shadow-md gap-1.5"
+                >
+                  <Receipt className="w-4 h-4" />
+                  <span>Convertir a Nota de Venta [ X ]</span>
+                </Button>
+              )}
+
+              {existingBudget?.status === "CONVERTED" && (
+                <Link href="/billing">
+                  <Badge className="bg-amber-500/15 text-amber-400 border border-amber-500/40 font-mono text-xs h-9 px-3 gap-1.5 cursor-pointer hover:bg-amber-500/25">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Convertido a Comprobante [ X ]</span>
+                  </Badge>
+                </Link>
+              )}
 
               <Button
                 variant="destructive"
@@ -486,6 +514,25 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
         securityCode={regeneratedOrder?.securityCode || ""}
         clientName={regeneratedOrder?.clientName || workOrder?.clientName || "Cliente"}
         workOrderId={regeneratedOrder?.id || workOrderId}
+      />
+
+      <ConvertBudgetModal
+        open={isConvertBudgetOpen}
+        onOpenChange={setIsConvertBudgetOpen}
+        budget={existingBudget || null}
+        onSuccess={(saleNote) => {
+          queryClient.invalidateQueries({ queryKey: ["budget", workOrderId] });
+          refetchBudget();
+          setPreviewSaleNoteDoc(mapSaleNoteToCommercialDocument(saleNote));
+        }}
+      />
+
+      <ReceiptPreviewDialog
+        open={!!previewSaleNoteDoc}
+        onOpenChange={(open) => {
+          if (!open) setPreviewSaleNoteDoc(null);
+        }}
+        documentProps={previewSaleNoteDoc}
       />
 
       {/* Critical Hard Delete Confirmation Modal */}
