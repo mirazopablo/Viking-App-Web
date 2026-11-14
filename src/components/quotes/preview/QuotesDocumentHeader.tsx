@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Cpu, Wrench, Calendar, User, Laptop, Phone, MapPin, IdCard } from 'lucide-react';
 import { BudgetMode } from '@/types/budget';
-import logoImg from '@/components/images/LOGO.png';
+import logoImg from '@/components/images/LOGO_pulido.png';
 
 interface QuotesDocumentHeaderProps {
   title: string;
@@ -47,6 +47,7 @@ export const QuotesDocumentHeader: React.FC<QuotesDocumentHeaderProps> = ({
               alt="Logo Oficial Viking App"
               width={40}
               height={40}
+              unoptimized
               className="w-10 h-10 object-contain"
               priority
             />
