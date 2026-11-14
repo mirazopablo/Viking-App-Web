@@ -456,7 +456,7 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
                         console.warn("Could not delete budget row:", budgetErr);
                       }
                       localStorage.removeItem(`viking_budget_${workOrderId}`);
-                      setSavedBudgetInfo(null);
+                      setLocalBudgetCleared(true);
                     }
 
                     await diagnosticService.deleteDiagnosticPoint(pointId);

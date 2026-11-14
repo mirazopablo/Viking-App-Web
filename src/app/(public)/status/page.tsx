@@ -7,6 +7,7 @@ import * as z from "zod";
 import { publicWorkOrderService } from "@/services/public-work-order.service";
 import { publicNotificationService } from "@/services/public-notification.service";
 import { budgetService } from "@/services/budget.service";
+import { BudgetResponseDTO } from "@/types/budget";
 import { PublicBudgetModal } from "@/components/budgets/public/PublicBudgetModal";
 import { WorkOrderPublicStatusResponseDTO } from "@/types/work-order";
 import { StatusBadge } from "@/components/common/status-badge";
@@ -48,7 +49,7 @@ export default function PublicStatusPage() {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [result, setResult] = useState<WorkOrderPublicStatusResponseDTO | null>(null);
-  const [publicBudget, setPublicBudget] = useState<Record<string, unknown> | null>(null);
+  const [publicBudget, setPublicBudget] = useState<BudgetResponseDTO | Record<string, unknown> | null>(null);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState<boolean>(false);
 
   // Fetch public budget when an active work order result is loaded
@@ -58,7 +59,7 @@ export default function PublicStatusPage() {
     budgetService
       .getBudgetByWorkOrder(result.workOrder.id, true)
       .then((data) => {
-        if (active) setPublicBudget(data as unknown as Record<string, unknown>);
+        if (active) setPublicBudget(data);
       })
       .catch(() => {
         // Local fallback for offline / development testing
