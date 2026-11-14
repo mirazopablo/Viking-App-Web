@@ -19,7 +19,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Search, ShieldCheck, User, Smartphone, AlertCircle, ArrowLeft, Loader2, FileText, Eye, Printer } from "lucide-react";
+import { applyFieldErrors, notifyApiError } from "@/lib/error-alerts";
+import { Search, ShieldCheck, User, Smartphone, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 
 /**
@@ -106,6 +107,7 @@ export default function PublicStatusPage() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
     reset,
   } = useForm<StatusQueryFormValues>({
@@ -144,10 +146,17 @@ export default function PublicStatusPage() {
         toast.success(t.statusPage.toastSuccess);
       }
     } catch (error: unknown) {
-      console.error("Lookup failed:", error);
-      toast.error(t.statusPage.notFoundTitle, {
-        description: t.statusPage.notFoundDesc,
+      applyFieldErrors(error, setError, {
+        ClientDni: "clientDni",
+        SecurityCode: "securityCode",
       });
+      const resolved = notifyApiError(error);
+      if (resolved.code === "INVALID_SECURITY_CODE") {
+        setError("securityCode", {
+          type: "server",
+          message: resolved.description,
+        });
+      }
       setResult(null);
     } finally {
       setIsLoading(false);

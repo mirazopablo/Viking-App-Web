@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { workOrderService } from "@/services/work-order.service";
 import { WorkOrderResponseDTO, WorkOrderStatusUpdateDTO, RepairStatus } from "@/types/work-order";
 import { toast } from "sonner";
+import { notifyApiError } from "@/lib/error-alerts";
 
 /**
  * Custom TanStack Query Hook: useWorkOrdersQuery
@@ -59,10 +60,11 @@ export const useUpdateWorkOrderStatusMutation = () => {
       });
     },
     onError: (error: unknown) => {
-      console.error("Mutation failed:", error);
-      toast.error("Error de concurrencia", {
-        description: "No se pudo actualizar el estado. Verifique su conexión al servidor.",
-      });
+      const resolved = notifyApiError(error);
+      if (resolved.code === "RESOURCE_CONFLICT") {
+        queryClient.invalidateQueries({ queryKey: ["work-orders"] });
+        queryClient.invalidateQueries({ queryKey: ["work-order"] });
+      }
     },
   });
 };
@@ -82,6 +84,9 @@ export const useRegenerateSecurityCodeMutation = () => {
       toast.success("Código WOVIK regenerado", {
         description: `Nuevo código activo: ${updatedOrder.securityCode}`,
       });
+    },
+    onError: (error: unknown) => {
+      notifyApiError(error);
     },
   });
 };

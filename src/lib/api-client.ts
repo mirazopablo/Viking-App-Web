@@ -1,4 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from "axios";
+import type { ApiErrorResponse } from "@/types/api-error";
 
 /**
  * Base URL for the Viking App Backend API.
@@ -34,20 +35,35 @@ apiClient.interceptors.request.use(
 
 /**
  * Response Interceptor:
- * Handles global HTTP status codes, redirecting to /login upon 401 Unauthorized
- * and normalizing backend error payloads for TanStack Query.
+ * Disambiguates 401 Unauthorized responses using backend error codes so invalid
+ * login credentials or public security codes never trigger a false "session expired" redirect.
  */
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => response,
-  (error: AxiosError<{ message?: string }>) => {
+  (error: AxiosError<ApiErrorResponse>) => {
+    const requestUrl = error.config?.url || "";
+    const errorCode = error.response?.data?.code;
     const isPublicRequest =
-      error.config?.url?.includes("/public/") ||
+      requestUrl.includes("/public/") ||
       error.config?.params?.public === true;
+    const isAuthLogin = requestUrl.includes("/auth/login");
+    const isCredentialOrCodeRejection =
+      errorCode === "AUTH_INVALID_CREDENTIALS" ||
+      errorCode === "INVALID_SECURITY_CODE";
 
-    if (error.response?.status === 401 && typeof window !== "undefined" && !isPublicRequest) {
-      // Clear expired session and redirect to staff login with expired alert
+    if (
+      error.response?.status === 401 &&
+      typeof window !== "undefined" &&
+      !isPublicRequest &&
+      !isAuthLogin &&
+      !isCredentialOrCodeRejection
+    ) {
+      const reason = errorCode === "AUTH_TOKEN_MISSING" ? "unauthorized" : "expired";
       localStorage.removeItem("viking_jwt_token");
-      window.location.href = "/login?reason=expired";
+
+      if (window.location.pathname !== "/login") {
+        window.location.href = `/login?reason=${reason}`;
+      }
     }
     return Promise.reject(error);
   }

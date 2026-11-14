@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { authService } from "@/services/auth.service";
+import { applyFieldErrors, notifyApiError } from "@/lib/error-alerts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,18 +15,23 @@ import { toast } from "sonner";
 import { Lock, Mail, Loader2, ArrowRight } from "lucide-react";
 
 /**
- * Client subcomponent to display toast alert when redirected due to token expiration.
+ * Client subcomponent to display toast alert when redirected due to session expiration or missing auth.
  */
 function LoginReasonListener() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const reason = searchParams.get("reason");
-    if (reason === "expired" || reason === "unauthorized") {
-      toast.error("Sesión Expirada", {
+    if (reason === "expired") {
+      toast.warning("Sesión expirada", {
         description:
-          "Tu turno de 4 horas ha finalizado o el token ha expirado. Por favor, ingresa nuevamente.",
+          "Tu turno o sesión venció. Volvé a iniciar sesión.",
         duration: 6000,
+      });
+    } else if (reason === "unauthorized") {
+      toast.info("Sesión requerida", {
+        description: "Iniciá sesión para continuar.",
+        duration: 5000,
       });
     }
   }, [searchParams]);
@@ -55,6 +61,7 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -79,13 +86,11 @@ export default function LoginPage() {
         router.push("/work-orders");
       }
     } catch (error: unknown) {
-      console.error("Login failed:", error);
-      const errorMessage =
-        (error as { response?: { data?: { message?: string } } }).response?.data?.message ||
-        "Credenciales inválidas o acceso denegado por RBAC.";
-      toast.error("Error de autenticación", {
-        description: errorMessage,
+      applyFieldErrors(error, setError, {
+        Email: "email",
+        Password: "password",
       });
+      notifyApiError(error);
     } finally {
       setIsLoading(false);
     }

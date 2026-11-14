@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { applyFieldErrors, notifyApiError } from "@/lib/error-alerts";
 import { Smartphone, Loader2, Save } from "lucide-react";
 
 const quickDeviceSchema = z.object({
@@ -48,6 +49,7 @@ export const QuickDeviceModal: React.FC<QuickDeviceModalProps> = ({
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
     reset,
   } = useForm<QuickDeviceFormValues>({
@@ -82,9 +84,12 @@ export const QuickDeviceModal: React.FC<QuickDeviceModalProps> = ({
       onSuccess(newDevice);
       onClose();
     } catch (error: unknown) {
-      console.error("Device registration failed:", error);
-      const msg = (error as { response?: { data?: { message?: string } } }).response?.data?.message || "No se pudo registrar el equipo. Número de serie duplicado.";
-      toast.error("Error al registrar equipo", { description: msg });
+      applyFieldErrors(error, setError, {
+        Brand: "brand",
+        Model: "model",
+        SerialNumber: "serialNumber",
+      });
+      notifyApiError(error);
     } finally {
       setIsLoading(false);
     }
