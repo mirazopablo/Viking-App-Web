@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { diagnosticService } from "@/services/diagnostic.service";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { applyFieldErrors, notifyApiError } from "@/lib/error-alerts";
 import { Camera, Upload, X, Loader2, Save } from "lucide-react";
 
 const diagnosticPointSchema = z.object({
@@ -47,14 +48,16 @@ export const AddDiagnosticPointModal: React.FC<AddDiagnosticPointModalProps> = (
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [fileInputKey, setFileInputKey] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const {
     register,
     handleSubmit,
+    control,
+    setError,
     formState: { errors },
     reset,
-    watch,
   } = useForm<DiagnosticPointFormValues>({
     resolver: zodResolver(diagnosticPointSchema),
     defaultValues: {
@@ -63,7 +66,7 @@ export const AddDiagnosticPointModal: React.FC<AddDiagnosticPointModalProps> = (
     },
   });
 
-  const descText = watch("description") || "";
+  const descText = useWatch({ control, name: "description" }) || "";
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -94,7 +97,7 @@ export const AddDiagnosticPointModal: React.FC<AddDiagnosticPointModalProps> = (
     setSelectedFile(null);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    setFileInputKey((prev) => prev + 1);
   };
 
   const onSubmit = async (data: DiagnosticPointFormValues) => {
@@ -118,9 +121,11 @@ export const AddDiagnosticPointModal: React.FC<AddDiagnosticPointModalProps> = (
       onSuccess(newPoint);
       onClose();
     } catch (error: unknown) {
-      console.error("Diagnostic upload failed:", error);
-      const msg = (error as { response?: { data?: { message?: string } } }).response?.data?.message || "Error al subir la evidencia o registrar el hito.";
-      toast.error("Error al registrar diagnóstico", { description: msg });
+      applyFieldErrors(error, setError, {
+        Title: "title",
+        Description: "description",
+      });
+      notifyApiError(error);
     } finally {
       setIsLoading(false);
     }
@@ -192,6 +197,8 @@ export const AddDiagnosticPointModal: React.FC<AddDiagnosticPointModalProps> = (
 
             {previewUrl ? (
               <div className="relative rounded-xl overflow-hidden border-2 border-tertiary/60 bg-black/60 group max-h-56 flex items-center justify-center">
+                {/* Local FileReader/blob preview; next/image does not optimize in-memory URLs */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={previewUrl} alt="Preview" className="max-h-56 w-auto object-contain" />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <Button
@@ -222,6 +229,7 @@ export const AddDiagnosticPointModal: React.FC<AddDiagnosticPointModalProps> = (
             )}
 
             <input
+              key={fileInputKey}
               ref={fileInputRef}
               type="file"
               accept="image/*"

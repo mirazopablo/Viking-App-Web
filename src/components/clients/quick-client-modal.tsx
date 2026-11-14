@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { userService } from "@/services/user.service";
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { applyFieldErrors, notifyApiError } from "@/lib/error-alerts";
 import { UserPlus, Loader2, Save } from "lucide-react";
 
 const quickClientSchema = z.object({
@@ -55,10 +56,10 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     reset,
     setValue,
-    watch,
     setError,
   } = useForm<QuickClientFormValues>({
     resolver: zodResolver(quickClientSchema),
@@ -74,7 +75,7 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
     },
   });
 
-  const selectedRoleId = watch("roleId");
+  const selectedRoleId = useWatch({ control, name: "roleId" });
 
   useEffect(() => {
     if (roles.length > 0 && !selectedRoleId) {
@@ -126,9 +127,24 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
       onSuccess(newClient);
       onClose();
     } catch (error: unknown) {
-      console.error("Client registration failed:", error);
-      const msg = (error as { response?: { data?: { message?: string } } }).response?.data?.message || "No se pudo registrar el usuario. DNI o Email en uso.";
-      toast.error("Error al registrar usuario", { description: msg });
+      applyFieldErrors(error, setError, {
+        Name: "name",
+        Dni: "dni",
+        DNI: "dni",
+        Email: "email",
+        PhoneNumber: "phoneNumber",
+        SecondaryPhoneNumber: "secondaryPhoneNumber",
+        Address: "address",
+        RoleId: "roleId",
+        Password: "password",
+      });
+      const resolved = notifyApiError(error);
+      if (resolved.code === "AUTH_EMAIL_EXISTS") {
+        setError("email", {
+          type: "server",
+          message: resolved.description,
+        });
+      }
     } finally {
       setIsLoading(false);
     }
