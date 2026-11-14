@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { BudgetTableRow, DynamicContentBlock } from '@/types/budget';
-import logoSvg from '@/components/assets/images/LOGO.svg';
+import logoImg from '@/components/images/LOGO_pulido.png';
 
 interface PrintableBudgetDocumentProps {
   title: string;
@@ -82,10 +82,11 @@ export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (
           {/* Black Logo Container Box (+10% Enlarged) */}
           <div className="bg-black p-2 rounded-xl border border-slate-800 shadow-md flex items-center justify-center shrink-0 w-20 h-20">
             <Image
-              src={logoSvg}
+              src={logoImg}
               alt="Logo El Vikingo Store"
               width={64}
               height={64}
+              unoptimized
               className="w-16 h-16 object-contain"
               priority
             />
