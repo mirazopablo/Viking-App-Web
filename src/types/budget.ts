@@ -86,7 +86,7 @@ export interface BudgetResponseDTO extends BudgetFormValues {
   id: string;
   createdAt: string;
   updatedAt: string;
-  status: 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED';
+  status: 'DRAFT' | 'SENT' | 'APPROVED' | 'REJECTED' | 'CONVERTED';
   totals: BudgetTotals;
 }
 

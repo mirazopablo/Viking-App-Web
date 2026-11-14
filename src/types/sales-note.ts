@@ -8,21 +8,22 @@ export type SaleNotePaymentMethod =
   | 'CASH'
   | 'TRANSFER'
   | 'MERCADOPAGO'
-  | 'DEBIT_CARD'
-  | 'CREDIT_CARD';
+  | 'DEBIT'
+  | 'CREDIT';
 
-export type SaleNotePaymentStatus = 'PAID' | 'PENDING';
+export type SaleNotePaymentStatus = 'PAID' | 'PENDING' | 'PARTIAL';
 
-export type SaleNoteItemType = 'SPARE_PART' | 'LABOR' | 'SERVICE';
+export type SaleNoteItemType = 'LABOR' | 'SPARE_PART' | 'ACCESSORY' | 'SERVICE';
 
 export interface SaleNoteItem {
   id?: number;
-  sale_note_id?: number;
+  sales_note_id?: number;
   description: string;
   item_type: SaleNoteItemType;
   quantity: number;
   unit_price: number;
   unit_cost: number;
+  total_price?: number;
 }
 
 export interface CreateSaleNoteRequest {
@@ -43,9 +44,13 @@ export interface SaleNoteResponse {
   number: string; // e.g. "NV-0001-00000015"
   budget_id?: string | null;
   work_order_id?: string | null;
+  client_id?: string | null;
+  created_by_staff_id?: string | null;
   client_name: string;
   client_dni?: number | null;
   client_phone?: string | null;
+  subtotal?: number;
+  discount?: number;
   total_amount: number;
   cost_amount: number;
   net_profit: number;
