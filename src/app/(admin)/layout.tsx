@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import { getTokenRemainingTimeMs } from "@/lib/jwt-utils";
 import { Button } from "@/components/ui/button";
-import { Wrench, PlusCircle, List, LogOut, Users, Smartphone, Calculator, Calendar } from "lucide-react";
+import { Wrench, PlusCircle, List, LogOut, Users, Smartphone, Calculator, Calendar, Receipt } from "lucide-react";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { AdminMobileBottomNav } from "@/components/admin/admin-mobile-bottom-nav";
 import packageInfo from "../../../package.json";
@@ -136,6 +136,20 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
               >
                 <Calendar className="w-3.5 h-3.5 mr-1.5 text-warning" />
                 <span className="hidden md:inline">Agenda</span>
+              </Button>
+            </Link>
+
+            <Link href="/billing">
+              <Button
+                variant={pathname.startsWith("/billing") ? "default" : "ghost"}
+                size="sm"
+                className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/billing")
+                  ? "bg-secondary text-foreground font-bold border border-border"
+                  : "text-typography hover:text-foreground"
+                  }`}
+              >
+                <Receipt className="w-3.5 h-3.5 mr-1.5 text-emerald-500" />
+                <span className="hidden md:inline">Facturación</span>
               </Button>
             </Link>
 

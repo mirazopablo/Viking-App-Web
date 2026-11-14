@@ -8,6 +8,6 @@ pnpm run release
 
 # 2. Enviar todo a GitHub (producción)
 echo "☁️ Enviando cambios y tags a GitHub..."
-git push --follow-tags origin main
+git push --follow-tags 
 
 echo "✅ ¡Release completada y en producción!"

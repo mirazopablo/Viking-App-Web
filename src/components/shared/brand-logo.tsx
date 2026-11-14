@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import logoImg from "@/components/assets/images/LOGO.png";
+import logoImg from "@/components/images/LOGO_pulido.png";
 
 export type BrandLogoSize = "sm" | "md" | "lg" | "xl" | "2xl";
 

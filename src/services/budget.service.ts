@@ -67,4 +67,22 @@ export const budgetService = {
   deleteBudget: async (id: string): Promise<void> => {
     await apiClient.delete(`/api/budget/delete/${id}`);
   },
+
+  /**
+   * Converts an approved budget into an internal sales note (Letter [ X ]).
+   * Marks the budget as CONVERTED on the Go backend.
+   * Endpoint: POST /api/budget/:id/convert-to-sale-note
+   * @param id - Budget UUID.
+   * @param data - Payment and conversion metadata.
+   */
+  convertToSaleNote: async (
+    id: string,
+    data: import("@/types/sales-note").ConvertBudgetToSaleNoteRequest
+  ): Promise<import("@/types/sales-note").ConvertBudgetToSaleNoteResponse> => {
+    const response = await apiClient.post<import("@/types/sales-note").ConvertBudgetToSaleNoteResponse>(
+      `/api/budget/${id}/convert-to-sale-note`,
+      data
+    );
+    return response.data;
+  },
 };
