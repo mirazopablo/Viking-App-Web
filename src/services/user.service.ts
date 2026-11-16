@@ -10,15 +10,11 @@ export const userService = {
    * Fast autocomplete lookup returning lightweight projections.
    * Matches GET /api/user/autocomplete?query={term}
    */
-  autocompleteUsers: async (query?: string, page: number = 1, limit: number = 10): Promise<UserAutocompleteDTO[]> => {
-    const response = await apiClient.get<PaginatedResponse<UserAutocompleteDTO>>("/api/user/autocomplete", {
-      params: { 
-        ...(query ? { query } : {}),
-        page,
-        limit 
-      },
+  autocompleteUsers: async (query?: string): Promise<UserAutocompleteDTO[]> => {
+    const response = await apiClient.get<UserAutocompleteDTO[]>("/api/user/autocomplete", {
+      params: query ? { query } : undefined,
     });
-    return response.data?.data || [];
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   /**
