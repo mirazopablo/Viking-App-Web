@@ -29,9 +29,9 @@ export default function RootLayout({
     <html
       lang="es"
       data-scroll-behavior="smooth"
-      className={`${outfitSans.variable} ${jetbrainsMono.variable} h-full antialiased dark scroll-smooth`}
+      className={`${outfitSans.variable} ${jetbrainsMono.variable} h-full antialiased dark scroll-smooth overflow-x-clip`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body className="min-h-full flex flex-col bg-background text-foreground overflow-x-clip">
         <QueryProvider>
           <LanguageProvider defaultLang="es">
             {children}
