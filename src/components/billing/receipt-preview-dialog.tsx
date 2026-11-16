@@ -103,7 +103,7 @@ export const ReceiptPreviewDialog: React.FC<ReceiptPreviewDialogProps> = ({
     <>
       {/* On-Screen Interactive Preview Modal (Full-screen on mobile, Hidden in Print) */}
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-screen h-[100dvh] max-w-none max-h-none rounded-none p-0 flex flex-col gap-0 sm:w-[96vw] sm:max-w-5xl lg:max-w-6xl sm:h-auto sm:max-h-[94vh] sm:rounded-lg bg-slate-100 border-slate-300 shadow-2xl no-print">
+        <DialogContent className="inset-0 top-0 left-0 translate-x-0 translate-y-0 w-full h-[100dvh] max-w-none max-h-none rounded-none p-0 overflow-hidden flex flex-col gap-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[96vw] sm:max-w-5xl lg:max-w-6xl sm:h-auto sm:max-h-[94vh] sm:rounded-lg bg-slate-100 border-slate-300 shadow-2xl no-print">
           <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-200 bg-slate-100 shrink-0 pr-12 sm:pr-12">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
               <div className="min-w-0">
