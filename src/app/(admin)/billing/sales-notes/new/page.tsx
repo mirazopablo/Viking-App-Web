@@ -20,6 +20,10 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  BillingPrefillFromQuote,
+  consumeBillingPrefill,
+} from "@/lib/quote-to-billing";
 import { AdminPageHeader } from "@/components/shared/admin-page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,22 +75,36 @@ const DEFAULT_ITEMS: SaleNoteItem[] = [
 export default function NewDirectSaleNotePage() {
   const router = useRouter();
 
+  const [quotePrefill] = useState<BillingPrefillFromQuote | null>(() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    return params.get("from") === "quote" ? consumeBillingPrefill() : null;
+  });
+
   const [currentStep, setCurrentStep] = useState<"form" | "preview" | "success">("form");
 
   // Client fields
-  const [clientName, setClientName] = useState<string>("");
-  const [clientDni, setClientDni] = useState<string>("");
-  const [clientPhone, setClientPhone] = useState<string>("");
+  const [clientName, setClientName] = useState<string>(
+    () => quotePrefill?.clientName ?? ""
+  );
+  const [clientDni, setClientDni] = useState<string>(
+    () => quotePrefill?.clientDni ?? ""
+  );
+  const [clientPhone, setClientPhone] = useState<string>(
+    () => quotePrefill?.clientPhone ?? ""
+  );
   const [workOrderId, setWorkOrderId] = useState<string>("");
 
   // Payment & notes
   const [paymentMethod, setPaymentMethod] = useState<SaleNotePaymentMethod>("CASH");
   const [paymentStatus, setPaymentStatus] = useState<SaleNotePaymentStatus>("PAID");
-  const [discount, setDiscount] = useState<number>(0);
-  const [notes, setNotes] = useState<string>("");
+  const [discount, setDiscount] = useState<number>(() => quotePrefill?.discount ?? 0);
+  const [notes, setNotes] = useState<string>(() => quotePrefill?.notes ?? "");
 
   // Line items
-  const [items, setItems] = useState<SaleNoteItem[]>(DEFAULT_ITEMS);
+  const [items, setItems] = useState<SaleNoteItem[]>(
+    () => quotePrefill?.saleNoteItems ?? DEFAULT_ITEMS
+  );
 
   // Submission & UI state
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -302,6 +320,21 @@ export default function NewDirectSaleNotePage() {
         icon={Receipt}
         iconClassName="w-8 h-8 text-amber-500"
       />
+
+      {/* Quote Prefill Banner */}
+      {quotePrefill && currentStep === "form" && (
+        <div className="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-xl text-xs flex items-start gap-3">
+          <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-bold text-foreground">
+              Datos importados desde presupuesto: {quotePrefill.sourceTitle}
+            </p>
+            <p className="text-muted-foreground">
+              Revisá los datos del cliente, el medio de pago y los costos antes de emitir la Nota de Venta [ X ].
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Error Alert */}
       {errorMessage && (

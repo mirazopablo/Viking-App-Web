@@ -23,6 +23,10 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import {
+  BillingPrefillFromQuote,
+  consumeBillingPrefill,
+} from "@/lib/quote-to-billing";
 import { AdminPageHeader } from "@/components/shared/admin-page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,15 +83,29 @@ function formatAfipDateDisplay(dateStr?: string): string {
 export default function NewDirectInvoicePage() {
   const router = useRouter();
 
+  const [quotePrefill] = useState<BillingPrefillFromQuote | null>(() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    return params.get("from") === "quote" ? consumeBillingPrefill() : null;
+  });
+
   // Wizard Step: 'form' | 'preview' | 'success'
   const [currentStep, setCurrentStep] = useState<"form" | "preview" | "success">("form");
 
   // Form Fields
-  const [concepto, setConcepto] = useState<InvoiceConcept>(2);
-  const [docTipo, setDocTipo] = useState<InvoiceDocType>(99);
-  const [docNro, setDocNro] = useState<string>("0");
-  const [clientName, setClientName] = useState<string>("");
-  const [clientAddress, setClientAddress] = useState<string>("");
+  const [concepto, setConcepto] = useState<InvoiceConcept>(
+    () => quotePrefill?.invoiceConcept ?? 2
+  );
+  const [docTipo, setDocTipo] = useState<InvoiceDocType>(
+    () => quotePrefill?.docTipo ?? 99
+  );
+  const [docNro, setDocNro] = useState<string>(() => quotePrefill?.docNro ?? "0");
+  const [clientName, setClientName] = useState<string>(
+    () => quotePrefill?.clientName ?? ""
+  );
+  const [clientAddress, setClientAddress] = useState<string>(
+    () => quotePrefill?.clientAddress ?? ""
+  );
   const [condicionIva, setCondicionIva] = useState<InvoiceVatCondition>(5);
 
   // Dates for Services (Natural Date objects for UI, formatted to YYYYMMDD for ARCA)
@@ -99,15 +117,18 @@ export default function NewDirectInvoicePage() {
   const [paymentDueDate, setPaymentDueDate] = useState<Date>(() => new Date());
 
   // Dynamic Line Items
-  const [items, setItems] = useState<InvoiceItem[]>([
-    {
-      description: "Servicio Técnico y Reparación de Equipamiento",
-      item_type: "SERVICE",
-      quantity: 1,
-      unit_price: 15000,
-      total_price: 15000,
-    },
-  ]);
+  const [items, setItems] = useState<InvoiceItem[]>(
+    () =>
+      quotePrefill?.invoiceItems ?? [
+        {
+          description: "Servicio Técnico y Reparación de Equipamiento",
+          item_type: "SERVICE",
+          quantity: 1,
+          unit_price: 15000,
+          total_price: 15000,
+        },
+      ]
+  );
 
   // Request & Success states
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -358,6 +379,23 @@ export default function NewDirectInvoicePage() {
         icon={Receipt}
         iconClassName="w-8 h-8 text-emerald-500"
       />
+
+      {/* Quote Prefill Banner */}
+      {quotePrefill && currentStep === "form" && (
+        <div className="bg-emerald-500/10 border border-emerald-500/30 p-3.5 rounded-xl text-xs flex items-start gap-3">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-bold text-foreground">
+              Datos importados desde presupuesto: {quotePrefill.sourceTitle}
+            </p>
+            <p className="text-muted-foreground">
+              {!docNro || docNro === "0"
+                ? "Completá el DNI o CUIT del receptor (o seleccioná Consumidor Final si corresponde) antes de emitir la Factura C."
+                : "Verificá DNI/CUIT, condición frente al IVA e ítems antes de emitir la Factura C."}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Rejection Alert */}
       {rejectionMessage && (
