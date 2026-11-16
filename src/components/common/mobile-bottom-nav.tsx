@@ -6,17 +6,22 @@ import { usePathname } from "next/navigation";
 import { Home, MessageCircle, Search, User } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 
+const ADMIN_ROUTE_PREFIXES = [
+  "/work-orders",
+  "/clients",
+  "/devices",
+  "/quotes",
+  "/availability",
+  "/billing",
+] as const;
+
 export function MobileBottomNav() {
   const pathname = usePathname();
   const { t } = useLanguage();
 
   // Do not render the public mobile bottom nav on admin routes
-  // since the admin layout provides its own AdminMobileBottomNav
-  if (
-    pathname.startsWith("/work-orders") ||
-    pathname.startsWith("/clients") ||
-    pathname.startsWith("/devices")
-  ) {
+  // since AdminLayout provides its own AdminMobileBottomNav
+  if (ADMIN_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
     return null;
   }
 
@@ -28,7 +33,7 @@ export function MobileBottomNav() {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-t border-border/60 pb-safe">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-t border-border/60 pb-safe no-print">
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
