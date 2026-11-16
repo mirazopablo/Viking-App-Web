@@ -1,9 +1,12 @@
+"use client";
+
 import React from 'react';
 import Image from 'next/image';
 import { BudgetTableRow, DynamicContentBlock } from '@/types/budget';
 import logoImg from '@/components/images/LOGO_pulido.png';
+import { PrintPortal } from '@/components/shared/print-portal';
 
-interface PrintableBudgetDocumentProps {
+export interface PrintableBudgetDocumentProps {
   title: string;
   mode?: 'MAINTENANCE' | 'NEW_EQUIPMENT';
   clientName?: string;
@@ -30,7 +33,6 @@ export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (
   clientDni = '',
   clientAddress = '',
   clientPhoneNumber = '',
-  clientEmail = '',
   deviceModel = '',
   deviceSerialNumber = '',
   blocks = [],
@@ -72,10 +74,11 @@ export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (
   });
 
   return (
-    <div
-      id="viking-printable-budget-document"
-      className="hidden print:block bg-white text-slate-900 font-sans p-6 space-y-4 max-w-4xl mx-auto border-none shadow-none text-xs"
-    >
+    <PrintPortal>
+      <div
+        id="viking-printable-budget-document"
+        className="hidden print:block bg-white text-slate-900 font-sans p-6 space-y-4 max-w-4xl mx-auto border-none shadow-none text-xs"
+      >
       {/* 1. Official Header: SVG Logo (+10% size) on Dark Container + EL VIKINGO STORE + Contact Info */}
       <div className="flex items-start justify-between border-b-2 border-slate-900 pb-3">
         <div className="flex items-start gap-4">
@@ -326,5 +329,6 @@ export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (
         </div>
       </div>
     </div>
+    </PrintPortal>
   );
 };

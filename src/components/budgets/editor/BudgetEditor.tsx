@@ -12,10 +12,6 @@ import {
   ShieldAlert, 
   User, 
   Laptop,
-  Phone,
-  MapPin,
-  IdCard,
-  Mail,
   TrendingUp,
   Coins
 } from 'lucide-react';
@@ -80,34 +76,34 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ diagnosticPoints = [
   return (
     <div className="space-y-6">
       {/* Quick Lookup Toolbar & Mode Switcher */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-muted/40 rounded-xl border">
-        <div className="flex items-center gap-2">
-          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 bg-muted/40 rounded-xl border">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider shrink-0">
             Modo del Presupuesto:
           </Label>
-          <div className="flex items-center p-1 bg-background border rounded-lg">
+          <div className="grid grid-cols-1 sm:flex items-center p-1 bg-background border rounded-lg gap-1 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setValue('mode', 'MAINTENANCE', { shouldDirty: true })}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`flex items-center justify-center sm:justify-start gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                 currentMode === 'MAINTENANCE'
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Wrench className="w-3.5 h-3.5" />
+              <Wrench className="w-3.5 h-3.5 shrink-0" />
               Mantenimiento y Reparación
             </button>
             <button
               type="button"
               onClick={() => setValue('mode', 'NEW_EQUIPMENT', { shouldDirty: true })}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`flex items-center justify-center sm:justify-start gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                 currentMode === 'NEW_EQUIPMENT'
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Cpu className="w-3.5 h-3.5" />
+              <Cpu className="w-3.5 h-3.5 shrink-0" />
               Armado de Equipo Nuevo
             </button>
           </div>
@@ -234,9 +230,9 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ diagnosticPoints = [
 
       {/* Labor Costs & Internal Workshop Profitability Banner */}
       <Card className="border-border/60 shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-primary" />
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3">
+          <CardTitle className="text-base sm:text-lg font-semibold flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-primary shrink-0" />
             Mano de Obra y Costos Adicionales
           </CardTitle>
           <Button
@@ -244,7 +240,7 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ diagnosticPoints = [
             variant="outline"
             size="sm"
             onClick={() => appendLabor({ description: 'Mano de Obra Técnica / Armado', amount: 0 })}
-            className="text-xs"
+            className="text-xs w-full sm:w-auto"
           >
             <Plus className="w-3.5 h-3.5 mr-1" />
             + Mano de Obra
@@ -255,31 +251,33 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ diagnosticPoints = [
             <p className="text-xs text-muted-foreground italic">No se agregaron costos de mano de obra. Haz clic arriba si aplica.</p>
           ) : (
             laborFields.map((field, index) => (
-              <div key={field.id} className="flex items-center gap-3">
+              <div key={field.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-2.5 sm:p-0 rounded-lg border sm:border-0 bg-muted/20 sm:bg-transparent">
                 <Input
                   {...register(`labors.${index}.description`)}
                   placeholder="Descripción del servicio técnico..."
                   className="h-8 text-xs flex-1"
                 />
-                <div className="w-32">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min={0}
-                    {...register(`labors.${index}.amount`, { valueAsNumber: true })}
-                    placeholder="Monto"
-                    className="h-8 text-xs text-right font-semibold"
-                  />
+                <div className="flex items-center gap-2 justify-end">
+                  <div className="flex-1 sm:w-32 sm:flex-none">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      {...register(`labors.${index}.amount`, { valueAsNumber: true })}
+                      placeholder="Monto"
+                      className="h-8 text-xs text-right font-semibold"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeLabor(index)}
+                    className="h-8 w-8 text-destructive shrink-0"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeLabor(index)}
-                  className="h-7 w-7 text-destructive"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
               </div>
             ))
           )}

@@ -29,7 +29,6 @@ export const BudgetItemsTableEditor: React.FC = () => {
     name: 'items',
   });
 
-  const budgetMode = watch('mode');
   const currency = watch('currency') || '$';
 
   const addItemRow = (rowType: TableRowType) => {
@@ -189,18 +188,18 @@ export const BudgetItemsTableEditor: React.FC = () => {
               return (
                 <div
                   key={field.id}
-                  className="flex items-center justify-between p-3 bg-muted/60 border border-primary/20 rounded-lg"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-muted/60 border border-primary/20 rounded-lg"
                 >
-                  <div className="flex items-center gap-2 flex-1">
-                    <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
-                    <span className="text-xs font-bold text-primary uppercase">Divisor de Grupo:</span>
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 flex-1 min-w-0">
+                    <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab shrink-0" />
+                    <span className="text-xs font-bold text-primary uppercase shrink-0">Divisor:</span>
                     <Input
                       {...register(`items.${index}.groupTitle`)}
                       placeholder="Ej. Subtotal Componentes Principales PC"
-                      className="h-8 text-xs font-semibold max-w-xs"
+                      className="h-8 text-xs font-semibold w-full sm:max-w-xs"
                     />
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center justify-end gap-1 shrink-0">
                     <Button
                       type="button"
                       variant="ghost"
@@ -241,7 +240,7 @@ export const BudgetItemsTableEditor: React.FC = () => {
                 className="p-3.5 border rounded-lg bg-card hover:border-border transition-colors space-y-2.5"
               >
                 {/* Header info */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
                     <span
@@ -312,7 +311,7 @@ export const BudgetItemsTableEditor: React.FC = () => {
                     </div>
 
                     {/* 2. Quantity */}
-                    <div className="col-span-3 md:col-span-2">
+                    <div className="col-span-6 sm:col-span-4 md:col-span-2">
                       <Label className="text-[11px] font-semibold text-foreground">2. Cantidad</Label>
                       <Input
                         type="number"
@@ -327,7 +326,7 @@ export const BudgetItemsTableEditor: React.FC = () => {
                     </div>
 
                     {/* 3. Cost Price */}
-                    <div className="col-span-4 md:col-span-2">
+                    <div className="col-span-6 sm:col-span-4 md:col-span-2">
                       <Label className="text-[11px] font-semibold text-foreground">3. Precio Costo ({currency})</Label>
                       <Input
                         type="number"
@@ -344,7 +343,7 @@ export const BudgetItemsTableEditor: React.FC = () => {
                     </div>
 
                     {/* 4. Profit Margin % */}
-                    <div className="col-span-5 md:col-span-2">
+                    <div className="col-span-12 sm:col-span-4 md:col-span-2">
                       <Label className="text-[11px] font-semibold text-foreground">4. % Utilidad</Label>
                       <div className="flex items-center gap-1 mt-0.5">
                         <Input

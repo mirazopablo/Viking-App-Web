@@ -44,7 +44,7 @@ export const BudgetDocumentTable: React.FC<BudgetDocumentTableProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="border rounded-lg overflow-hidden bg-background">
+      <div className="border rounded-lg overflow-x-auto bg-background">
         <table className="w-full text-xs text-left border-collapse">
           <thead>
             <tr className="bg-muted/70 border-b border-border/60 text-muted-foreground font-semibold uppercase tracking-wider">
@@ -97,7 +97,6 @@ export const BudgetDocumentTable: React.FC<BudgetDocumentTableProps> = ({
                 }
 
                 if (item.rowType === 'HIDDEN_UNIT_PRICE_ITEM') {
-                  const lineTotal = (item.quantity || 0) * (item.unitPrice || 0);
                   return (
                     <tr key={item.id} className="hover:bg-muted/20">
                       <td className="py-2 px-3 font-medium">

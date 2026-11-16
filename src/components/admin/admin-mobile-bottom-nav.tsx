@@ -41,30 +41,21 @@ interface NavItem {
  */
 export function AdminMobileBottomNav() {
   const pathname = usePathname();
-  const [drawerState, setDrawerState] = useState<{
-    mode: DrawerMode;
-    pathname: string;
-    showReceiptTypes: boolean;
-  }>({
-    mode: null,
-    pathname,
-    showReceiptTypes: false,
-  });
+  const [activeDrawer, setActiveDrawer] = useState<DrawerMode>(null);
+  const [showReceiptTypes, setShowReceiptTypes] = useState(false);
 
-  const activeDrawer = drawerState.pathname === pathname ? drawerState.mode : null;
-  const showReceiptTypes = drawerState.pathname === pathname ? drawerState.showReceiptTypes : false;
-
-  // Allow closing active drawer with Escape key
+  // Close active drawer with Escape key
   useEffect(() => {
     if (!activeDrawer) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setDrawerState({ mode: null, pathname, showReceiptTypes: false });
+        setActiveDrawer(null);
+        setShowReceiptTypes(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeDrawer, pathname]);
+  }, [activeDrawer]);
 
   const leftNavItems: NavItem[] = [
     {
@@ -109,19 +100,18 @@ export function AdminMobileBottomNav() {
     pathname.startsWith("/availability");
 
   const toggleDrawer = (mode: Exclude<DrawerMode, null>) => {
-    setDrawerState((prev) => {
-      const currentMode = prev.pathname === pathname ? prev.mode : null;
-      const nextMode = currentMode === mode ? null : mode;
-      return {
-        mode: nextMode,
-        pathname,
-        showReceiptTypes: nextMode === "create" && prev.pathname === pathname ? prev.showReceiptTypes : false,
-      };
+    setActiveDrawer((prev) => {
+      const next = prev === mode ? null : mode;
+      if (next !== "create") {
+        setShowReceiptTypes(false);
+      }
+      return next;
     });
   };
 
   const closeDrawer = () => {
-    setDrawerState({ mode: null, pathname, showReceiptTypes: false });
+    setActiveDrawer(null);
+    setShowReceiptTypes(false);
   };
 
   const handleLogout = () => {
@@ -186,6 +176,7 @@ export function AdminMobileBottomNav() {
 
           <Link
             href="/work-orders/new"
+            onClick={closeDrawer}
             className="flex items-center justify-between p-3 rounded-xl bg-secondary/40 hover:bg-secondary/80 border border-border/50 transition-colors"
           >
             <div className="flex items-center gap-3">
@@ -206,6 +197,7 @@ export function AdminMobileBottomNav() {
 
           <Link
             href="/quotes/new"
+            onClick={closeDrawer}
             className="flex items-center justify-between p-3 rounded-xl bg-secondary/40 hover:bg-secondary/80 border border-border/50 transition-colors"
           >
             <div className="flex items-center gap-3">
@@ -228,13 +220,7 @@ export function AdminMobileBottomNav() {
           <div className="rounded-xl bg-secondary/40 border border-border/50 overflow-hidden">
             <button
               type="button"
-              onClick={() =>
-                setDrawerState((prev) => ({
-                  mode: prev.pathname === pathname ? prev.mode : null,
-                  pathname,
-                  showReceiptTypes: prev.pathname === pathname ? !prev.showReceiptTypes : true,
-                }))
-              }
+              onClick={() => setShowReceiptTypes((prev) => !prev)}
               aria-expanded={showReceiptTypes}
               className="w-full flex items-center justify-between p-3 hover:bg-secondary/80 transition-colors text-left"
             >
@@ -262,6 +248,7 @@ export function AdminMobileBottomNav() {
               <div className="grid grid-cols-2 gap-2 px-3 pb-3 pt-1">
                 <Link
                   href="/billing/new"
+                  onClick={closeDrawer}
                   className="flex flex-col gap-1 p-2.5 rounded-lg bg-background/80 hover:bg-background border border-emerald-500/30 transition-colors"
                 >
                   <div className="flex items-center gap-1.5 text-emerald-500">
@@ -275,6 +262,7 @@ export function AdminMobileBottomNav() {
 
                 <Link
                   href="/billing/sales-notes/new"
+                  onClick={closeDrawer}
                   className="flex flex-col gap-1 p-2.5 rounded-lg bg-background/80 hover:bg-background border border-amber-500/30 transition-colors"
                 >
                   <div className="flex items-center gap-1.5 text-amber-500">
@@ -314,6 +302,7 @@ export function AdminMobileBottomNav() {
 
           <Link
             href="/billing"
+            onClick={closeDrawer}
             className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
               pathname.startsWith("/billing")
                 ? "bg-emerald-500/10 border-emerald-500/40"
@@ -336,6 +325,7 @@ export function AdminMobileBottomNav() {
 
           <Link
             href="/clients"
+            onClick={closeDrawer}
             className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
               pathname.startsWith("/clients")
                 ? "bg-info/10 border-info/40"
@@ -358,6 +348,7 @@ export function AdminMobileBottomNav() {
 
           <Link
             href="/availability"
+            onClick={closeDrawer}
             className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
               pathname.startsWith("/availability")
                 ? "bg-warning/10 border-warning/40"
