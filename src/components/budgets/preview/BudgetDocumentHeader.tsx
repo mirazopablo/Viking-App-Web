@@ -39,7 +39,7 @@ export const BudgetDocumentHeader: React.FC<BudgetDocumentHeaderProps> = ({
   return (
     <div className="border-b pb-6 space-y-4">
       {/* Brand & Document Type Bar */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-tertiary/15 border border-tertiary/30 flex items-center justify-center overflow-hidden shadow-md shrink-0">
             <Image
@@ -60,7 +60,7 @@ export const BudgetDocumentHeader: React.FC<BudgetDocumentHeaderProps> = ({
           </div>
         </div>
 
-        <div className="text-right">
+        <div className="text-left sm:text-right">
           <Badge
             variant="outline"
             className={`px-3 py-1 text-xs font-semibold uppercase tracking-wide gap-1.5 shadow-sm ${
@@ -79,7 +79,7 @@ export const BudgetDocumentHeader: React.FC<BudgetDocumentHeaderProps> = ({
               </>
             )}
           </Badge>
-          <p className="text-[11px] text-muted-foreground mt-1 flex items-center justify-end gap-1 font-mono">
+          <p className="text-[11px] text-muted-foreground mt-1 flex items-center justify-start sm:justify-end gap-1 font-mono">
             <Calendar className="w-3 h-3" />
             {currentDate}
           </p>

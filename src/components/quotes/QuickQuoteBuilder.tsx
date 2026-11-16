@@ -151,7 +151,6 @@ export const QuickQuoteBuilder: React.FC<QuickQuoteBuilderProps> = ({
       const currency = data.currency || '$';
 
       if (typeof window !== 'undefined') {
-        // eslint-disable-next-line react-hooks/purity
         const generatedId = quoteId === 'new_quote' ? crypto.randomUUID() : quoteId;
         localStorage.setItem(`viking_quick_quote_${generatedId}`, JSON.stringify(data));
       }
@@ -179,15 +178,16 @@ export const QuickQuoteBuilder: React.FC<QuickQuoteBuilderProps> = ({
     <FormProvider {...methods}>
       <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
         {/* Navigation & Action Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b no-print">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-3 sm:gap-4 pb-4 border-b no-print">
+          <div className="flex items-start sm:items-center gap-2 sm:gap-3 min-w-0">
             {onCancel && (
-              <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-                <ArrowLeft className="w-4 h-4 mr-1" /> Volver
+              <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="shrink-0 px-2 sm:px-3">
+                <ArrowLeft className="w-4 h-4 sm:mr-1" />
+                <span className="hidden sm:inline">Volver</span>
               </Button>
             )}
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-foreground truncate">
                 Presupuestario General
               </h1>
               <p className="text-xs text-muted-foreground">
@@ -196,7 +196,7 @@ export const QuickQuoteBuilder: React.FC<QuickQuoteBuilderProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
             {/* View Mode Toggle Buttons */}
             <div className="hidden lg:flex items-center p-1 bg-muted rounded-lg border">
               <Button
@@ -256,27 +256,15 @@ export const QuickQuoteBuilder: React.FC<QuickQuoteBuilderProps> = ({
           </div>
         </div>
 
-        {/* Main Content Area */}
-        {viewMode === 'split' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Left Column: Form Editor */}
-            <div className="lg:col-span-7 space-y-6 no-print">
-              <QuotesEditor />
-            </div>
-
-            {/* Right Column: Live Visual Simulator */}
-            <div className="lg:col-span-5">
-              <QuotesLivePreview staffName={resolvedStaffName} />
-            </div>
-          </div>
-        ) : (
+        {/* Mobile & Tablet (< lg): Always use Tabs so Editor & Live Preview fit cleanly */}
+        <div className="lg:hidden">
           <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'edit' | 'preview')}>
-            <TabsList className="grid w-full max-w-md grid-cols-2 mb-4 no-print">
+            <TabsList className="grid w-full grid-cols-2 mb-4 no-print">
               <TabsTrigger value="edit" className="gap-2 text-xs">
                 <Edit3 className="w-4 h-4" /> Editor
               </TabsTrigger>
               <TabsTrigger value="preview" className="gap-2 text-xs">
-                <Eye className="w-4 h-4" /> Simulador en Vivo
+                <Eye className="w-4 h-4" /> Simulador
               </TabsTrigger>
             </TabsList>
             <TabsContent value="edit" className="no-print">
@@ -286,7 +274,41 @@ export const QuickQuoteBuilder: React.FC<QuickQuoteBuilderProps> = ({
               <QuotesLivePreview staffName={resolvedStaffName} />
             </TabsContent>
           </Tabs>
-        )}
+        </div>
+
+        {/* Desktop (>= lg): Respect split / tabs toggle */}
+        <div className="hidden lg:block">
+          {viewMode === 'split' ? (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Left Column: Form Editor */}
+              <div className="lg:col-span-7 space-y-6 no-print">
+                <QuotesEditor />
+              </div>
+
+              {/* Right Column: Live Visual Simulator */}
+              <div className="lg:col-span-5">
+                <QuotesLivePreview staffName={resolvedStaffName} />
+              </div>
+            </div>
+          ) : (
+            <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'edit' | 'preview')}>
+              <TabsList className="grid w-full max-w-md grid-cols-2 mb-4 no-print">
+                <TabsTrigger value="edit" className="gap-2 text-xs">
+                  <Edit3 className="w-4 h-4" /> Editor
+                </TabsTrigger>
+                <TabsTrigger value="preview" className="gap-2 text-xs">
+                  <Eye className="w-4 h-4" /> Simulador en Vivo
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="edit" className="no-print">
+                <QuotesEditor />
+              </TabsContent>
+              <TabsContent value="preview">
+                <QuotesLivePreview staffName={resolvedStaffName} />
+              </TabsContent>
+            </Tabs>
+          )}
+        </div>
       </form>
 
       {/* Critical Hard Delete Confirmation Modal */}
