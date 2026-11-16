@@ -9,6 +9,7 @@ import { BudgetLivePreview } from './preview/BudgetLivePreview';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Save, Eye, Edit3, Columns, ArrowLeft, Printer } from 'lucide-react';
+import { useIsDesktop } from '@/hooks/use-is-desktop';
 import { DiagnosticPointResponseDTO } from '@/types/diagnostic';
 import { toast } from 'sonner';
 
@@ -56,6 +57,7 @@ export const BudgetBuilder: React.FC<BudgetBuilderProps> = ({
   onDelete,
   onCancel,
 }) => {
+  const isDesktop = useIsDesktop();
   const [viewMode, setViewMode] = useState<'split' | 'tabs'>('split');
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
@@ -266,15 +268,15 @@ export const BudgetBuilder: React.FC<BudgetBuilderProps> = ({
           </div>
         </div>
 
-        {/* Mobile & Tablet (< lg): Always use Tabs so Editor & Live Preview fit cleanly */}
-        <div className="lg:hidden">
+        {/* Main Content Area: mount Editor and LivePreview only once to keep react-hook-form refs unique */}
+        {!isDesktop || viewMode === 'tabs' ? (
           <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'edit' | 'preview')}>
-            <TabsList className="grid w-full grid-cols-2 mb-4 no-print">
+            <TabsList className="grid w-full lg:max-w-md grid-cols-2 mb-4 no-print">
               <TabsTrigger value="edit" className="gap-2 text-xs">
                 <Edit3 className="w-4 h-4" /> Editor
               </TabsTrigger>
               <TabsTrigger value="preview" className="gap-2 text-xs">
-                <Eye className="w-4 h-4" /> Simulador
+                <Eye className="w-4 h-4" /> {isDesktop ? 'Simulador en Vivo' : 'Simulador'}
               </TabsTrigger>
             </TabsList>
             <TabsContent value="edit" className="no-print">
@@ -284,41 +286,19 @@ export const BudgetBuilder: React.FC<BudgetBuilderProps> = ({
               <BudgetLivePreview staffName={resolvedStaffName} />
             </TabsContent>
           </Tabs>
-        </div>
-
-        {/* Desktop (>= lg): Respect split / tabs toggle */}
-        <div className="hidden lg:block">
-          {viewMode === 'split' ? (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* Left Column: Form Editor */}
-              <div className="lg:col-span-7 space-y-6 no-print">
-                <BudgetEditor diagnosticPoints={diagnosticPoints} />
-              </div>
-
-              {/* Right Column: Live Visual Simulator */}
-              <div className="lg:col-span-5">
-                <BudgetLivePreview staffName={resolvedStaffName} />
-              </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Column: Form Editor */}
+            <div className="lg:col-span-7 space-y-6 no-print">
+              <BudgetEditor diagnosticPoints={diagnosticPoints} />
             </div>
-          ) : (
-            <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'edit' | 'preview')}>
-              <TabsList className="grid w-full max-w-md grid-cols-2 mb-4 no-print">
-                <TabsTrigger value="edit" className="gap-2 text-xs">
-                  <Edit3 className="w-4 h-4" /> Editor
-                </TabsTrigger>
-                <TabsTrigger value="preview" className="gap-2 text-xs">
-                  <Eye className="w-4 h-4" /> Simulador en Vivo
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="edit" className="no-print">
-                <BudgetEditor diagnosticPoints={diagnosticPoints} />
-              </TabsContent>
-              <TabsContent value="preview">
-                <BudgetLivePreview staffName={resolvedStaffName} />
-              </TabsContent>
-            </Tabs>
-          )}
-        </div>
+
+            {/* Right Column: Live Visual Simulator */}
+            <div className="lg:col-span-5">
+              <BudgetLivePreview staffName={resolvedStaffName} />
+            </div>
+          </div>
+        )}
       </form>
 
       {/* Critical Hard Delete Confirmation Modal */}
