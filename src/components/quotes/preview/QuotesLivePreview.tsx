@@ -41,54 +41,9 @@ export const QuotesLivePreview: React.FC<QuotesLivePreviewProps> = ({ staffName 
 
   return (
     <>
-      {/* CSS Rules for Clean A4 PDF Print Isolation */}
-      <style jsx global>{`
-        @media print {
-          @page {
-            size: A4 portrait;
-            margin: 10mm;
-          }
-          html, body {
-            background: white !important;
-            color: #0f172a !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          .no-print,
-          header,
-          footer,
-          nav,
-          aside {
-            display: none !important;
-          }
-          #viking-printable-budget-document {
-            display: block !important;
-            position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100vw !important;
-            min-height: 100vh !important;
-            height: auto !important;
-            z-index: 99999 !important;
-            padding: 20px !important;
-            margin: 0 !important;
-            background: white !important;
-            color: #0f172a !important;
-            box-shadow: none !important;
-            border: none !important;
-            overflow: visible !important;
-            max-height: none !important;
-          }
-          #viking-printable-budget-document * {
-            max-height: none !important;
-            overflow: visible !important;
-          }
-        }
-      `}</style>
-
-      {/* Screen Interactive Visual Simulator */}
+      {/* Screen Interactive Visual Simulator (print isolation handled via PrintPortal + globals.css) */}
       <Card className="border border-border/80 shadow-lg bg-card overflow-hidden sticky top-6 no-print">
-        <div className="bg-muted/60 px-4 py-2 border-b flex items-center justify-between">
+        <div className="bg-muted/60 px-3 sm:px-4 py-2.5 border-b flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             <Eye className="w-3.5 h-3.5 text-primary" />
             Simulador de Documento en Vivo
@@ -105,13 +60,13 @@ export const QuotesLivePreview: React.FC<QuotesLivePreviewProps> = ({ staffName 
               <Printer className="w-3.5 h-3.5" />
               <span>Descargar PDF</span>
             </Button>
-            <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded font-medium">
+            <span className="hidden sm:inline-block text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded font-medium">
               Previsualización PDF Cliente
             </span>
           </div>
         </div>
 
-        <CardContent className="p-6 space-y-6 max-h-[82vh] overflow-y-auto bg-background/50">
+        <CardContent className="p-4 sm:p-6 space-y-6 max-h-[82vh] overflow-y-auto bg-background/50">
           {/* Header with Client PII */}
           <QuotesDocumentHeader
             title={title || ''}

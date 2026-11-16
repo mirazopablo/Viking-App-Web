@@ -3,7 +3,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Printer, X, FileText, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Printer, FileText, ShieldCheck } from 'lucide-react';
 import { BudgetDocumentHeader } from '../preview/BudgetDocumentHeader';
 import { BudgetDocumentBlocks } from '../preview/BudgetDocumentBlocks';
 import { BudgetDocumentTable } from '../preview/BudgetDocumentTable';
@@ -93,19 +93,19 @@ export const PublicBudgetModal: React.FC<PublicBudgetModalProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-3xl lg:max-w-5xl lg:w-[900px] max-h-[92vh] overflow-y-auto bg-card border-border shadow-2xl p-4 sm:p-6 no-print">
-          <DialogHeader className="pb-3 border-b flex flex-row items-center justify-between gap-2">
-            <div>
-              <DialogTitle className="text-base sm:text-lg font-bold uppercase text-foreground flex items-center gap-2">
-                <FileText className="w-5 h-5 text-tertiary" />
-                Presupuesto Oficial de Taller
+        <DialogContent className="w-screen h-[100dvh] max-w-none max-h-none rounded-none p-0 flex flex-col gap-0 sm:w-[90vw] sm:max-w-3xl lg:max-w-5xl sm:h-auto sm:max-h-[92vh] sm:rounded-lg bg-card border-border shadow-2xl no-print">
+          <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b shrink-0 flex flex-row items-center justify-between gap-2 pr-12 sm:pr-12">
+            <div className="min-w-0">
+              <DialogTitle className="text-sm sm:text-lg font-bold uppercase text-foreground flex items-center gap-2 truncate">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-tertiary shrink-0" />
+                <span className="truncate">Presupuesto Oficial</span>
               </DialogTitle>
-              <DialogDescription className="text-xs font-mono text-typography">
+              <DialogDescription className="text-[11px] sm:text-xs font-mono text-typography truncate">
                 Visualización autorizada para cliente (Validez 10 días)
               </DialogDescription>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-2 shrink-0">
               <Button
                 type="button"
                 variant="outline"
@@ -114,13 +114,13 @@ export const PublicBudgetModal: React.FC<PublicBudgetModalProps> = ({
                 className="h-8 text-xs gap-1.5 border-primary/50 text-primary hover:bg-primary/10 font-bold uppercase"
               >
                 <Printer className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Descargar</span> PDF
+                <span>Descargar PDF</span>
               </Button>
             </div>
           </DialogHeader>
 
           {/* Client Document Body (Responsive Mobile Container) */}
-          <div className="space-y-6 pt-3">
+          <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 space-y-6">
             {/* Header with Client PII */}
             <BudgetDocumentHeader
               title={title}
@@ -170,8 +170,8 @@ export const PublicBudgetModal: React.FC<PublicBudgetModalProps> = ({
             )}
           </div>
 
-          {/* Bottom Action Footer for Mobile */}
-          <div className="pt-4 mt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
+          {/* Bottom Action Footer for Mobile & Desktop */}
+          <div className="px-4 py-3 sm:px-6 border-t shrink-0 bg-card flex flex-col sm:flex-row items-center justify-between gap-2.5">
             <p className="text-[11px] font-mono text-muted-foreground text-center sm:text-left">
               Presupuesto emitido por <strong className="text-foreground">{staffName}</strong>
             </p>
