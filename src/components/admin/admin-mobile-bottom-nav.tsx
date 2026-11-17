@@ -21,7 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { authService } from "@/services/auth.service";
-import packageInfo from "../../../package.json";
+import { APP_VERSION } from "@/lib/version";
 
 type DrawerMode = "create" | "more" | null;
 
@@ -371,7 +371,7 @@ export function AdminMobileBottomNav() {
 
           <div className="pt-1 border-t border-border/50 flex items-center justify-between gap-2">
             <span className="text-[10px] font-mono text-typography/50 px-2">
-              v{packageInfo.version}
+              {APP_VERSION}
             </span>
             <button
               type="button"

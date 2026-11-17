@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Wrench, PlusCircle, List, LogOut, Users, Smartphone, Calculator, Calendar, Receipt } from "lucide-react";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { AdminMobileBottomNav } from "@/components/admin/admin-mobile-bottom-nav";
-import packageInfo from "../../../package.json";
+import { APP_VERSION } from "@/lib/version";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -192,7 +192,7 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
       <footer className="w-full border-t border-border/40 py-6 px-4 text-center text-xs text-typography/60 font-mono no-print">
         <div className="max-w-6xl mx-auto flex flex-col items-center justify-center gap-1">
           <p>&copy; {new Date().getFullYear()} Zonda Solutions. Entorno Técnico Protegido.</p>
-          <p className="text-[9px] opacity-50">v{packageInfo.version}</p>
+          <p className="text-[9px] opacity-50">{APP_VERSION}</p>
         </div>
       </footer>
       <AdminMobileBottomNav />
