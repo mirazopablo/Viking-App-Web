@@ -1,0 +1,75 @@
+name: Release and Deploy to Vercel
+
+on:
+  push:
+    branches: [main]
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.svu.outputs.version }}
+      released: ${{ steps.svu.outputs.released }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install svu
+        run: go install github.com/caarlos0/svu@latest
+
+      - name: Calculate next semantic version
+        id: svu
+        run: |
+          export PATH="$PATH:$(go env GOPATH)/bin"
+          CURRENT_VERSION=$(svu current)
+          NEXT_VERSION=$(svu next --force-patch-increment)
+
+          if [ "$CURRENT_VERSION" = "$NEXT_VERSION" ]; then
+            echo "No new version bump detected (current: $CURRENT_VERSION)."
+            echo "released=false" >> "$GITHUB_OUTPUT"
+            echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+          else
+            echo "New version detected: $CURRENT_VERSION -> $NEXT_VERSION"
+            echo "released=true" >> "$GITHUB_OUTPUT"
+            echo "version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release and Tag
+        if: steps.svu.outputs.released == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.svu.outputs.version }}
+          name: ${{ steps.svu.outputs.version }}
+          generate_release_notes: true
+
+  deploy-vercel:
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Project Artifacts with Version
+        env:
+          NEXT_PUBLIC_APP_VERSION: ${{ needs.release.outputs.version }}
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy Project Artifacts to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
