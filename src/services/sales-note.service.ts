@@ -8,6 +8,7 @@ import {
   FiscalizeSaleNoteResponse,
   SalesNotesListResponse,
   SalesNotesFilterParams,
+  RegisterSaleNotePaymentsRequest,
 } from "@/types/sales-note";
 
 /**
@@ -59,6 +60,23 @@ export const salesNoteService = {
    */
   getSaleNoteById: async (id: number | string): Promise<SaleNoteResponse> => {
     const response = await apiClient.get<SaleNoteResponse>(`/api/v1/sales-notes/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Registers one or more payments (supports partial and mixed payment methods)
+   * against a PENDING or PARTIAL internal sales note.
+   * @param id - Sales note ID.
+   * @param data - Array of payment method/amount entries.
+   */
+  registerPayments: async (
+    id: number | string,
+    data: RegisterSaleNotePaymentsRequest
+  ): Promise<SaleNoteResponse> => {
+    const response = await apiClient.post<SaleNoteResponse>(
+      `/api/v1/sales-notes/${id}/payments`,
+      data
+    );
     return response.data;
   },
 

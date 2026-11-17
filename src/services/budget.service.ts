@@ -41,13 +41,16 @@ export const budgetService = {
       return response.data;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        console.error('❌ [budgetService.getBudgetByWorkOrder] Request failed:', {
-          endpoint,
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-          message: error.message,
-        });
+        // 404 is an expected state when a work order does not have a saved budget yet
+        if (error.response?.status !== 404) {
+          console.error('❌ [budgetService.getBudgetByWorkOrder] Request failed:', {
+            endpoint,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            message: error.message,
+          });
+        }
       } else {
         console.error('❌ [budgetService.getBudgetByWorkOrder] Request failed:', error);
       }
