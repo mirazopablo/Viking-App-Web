@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Wallet,
   ArrowDownCircle,
@@ -11,7 +12,6 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -23,9 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type {
-  CashMovement,
   CashMovementCategory,
-  CashMovementSummaryResponse,
   CashMovementType,
 } from "@/types/cash-movement";
 import type { SaleNotePaymentMethod } from "@/types/sales-note";
@@ -47,10 +45,6 @@ const formatCurrency = (val: number) =>
  * filtered ledger of cash_movements, and manual movement creation modal.
  */
 export const CashFlowTab: React.FC = () => {
-  const [movements, setMovements] = useState<CashMovement[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [summary, setSummary] = useState<CashMovementSummaryResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   // Filters
@@ -61,39 +55,53 @@ export const CashFlowTab: React.FC = () => {
   const [methodFilter, setMethodFilter] = useState<"ALL" | SaleNotePaymentMethod>("ALL");
   const [offset, setOffset] = useState(0);
 
-  const loadCashData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const [listRes, summaryRes] = await Promise.all([
-        cashMovementService.getCashMovements({
-          from: fromDate || undefined,
-          to: toDate || undefined,
-          type: typeFilter === "ALL" ? undefined : typeFilter,
-          category: categoryFilter === "ALL" ? undefined : categoryFilter,
-          payment_method: methodFilter === "ALL" ? undefined : methodFilter,
-          limit: PAGE_LIMIT,
-          offset,
-        }),
-        cashMovementService.getCashSummary({
-          from: fromDate || undefined,
-          to: toDate || undefined,
-        }),
-      ]);
+  const {
+    data: movementsRes,
+    isFetching: isLoadingMovements,
+    refetch: refetchMovements,
+  } = useQuery({
+    queryKey: [
+      "cash-movements",
+      fromDate,
+      toDate,
+      typeFilter,
+      categoryFilter,
+      methodFilter,
+      offset,
+    ],
+    queryFn: () =>
+      cashMovementService.getCashMovements({
+        from: fromDate || undefined,
+        to: toDate || undefined,
+        type: typeFilter === "ALL" ? undefined : typeFilter,
+        category: categoryFilter === "ALL" ? undefined : categoryFilter,
+        payment_method: methodFilter === "ALL" ? undefined : methodFilter,
+        limit: PAGE_LIMIT,
+        offset,
+      }),
+  });
 
-      setMovements(listRes.data || []);
-      setTotalCount(listRes.total || 0);
-      setSummary(summaryRes);
-    } catch (error) {
-      console.error("Error loading cash movements:", error);
-      toast.error("No se pudieron cargar los movimientos de caja.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fromDate, toDate, typeFilter, categoryFilter, methodFilter, offset]);
+  const {
+    data: summary,
+    isFetching: isLoadingSummary,
+    refetch: refetchSummary,
+  } = useQuery({
+    queryKey: ["cash-movements-summary", fromDate, toDate],
+    queryFn: () =>
+      cashMovementService.getCashSummary({
+        from: fromDate || undefined,
+        to: toDate || undefined,
+      }),
+  });
 
-  useEffect(() => {
-    loadCashData();
-  }, [loadCashData]);
+  const loadCashData = () => {
+    void refetchMovements();
+    void refetchSummary();
+  };
+
+  const movements = movementsRes?.data || [];
+  const totalCount = movementsRes?.total || 0;
+  const isLoading = isLoadingMovements || isLoadingSummary;
 
   const cashDrawerNet = summary?.by_payment_method?.CASH?.net ?? 0;
   const digitalNet =
@@ -164,8 +172,8 @@ export const CashFlowTab: React.FC = () => {
       </div>
 
       {/* Filters & Actions Toolbar */}
-      <div className="bg-card border border-border/80 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="bg-card border border-border/80 rounded-xl p-3 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full lg:w-auto">
           <Input
             type="date"
             value={fromDate}
@@ -173,7 +181,7 @@ export const CashFlowTab: React.FC = () => {
               setOffset(0);
               setFromDate(e.target.value);
             }}
-            className="h-8 w-36 text-xs font-mono"
+            className="h-8 w-full sm:w-36 text-xs font-mono"
             title="Desde"
           />
           <Input
@@ -183,7 +191,7 @@ export const CashFlowTab: React.FC = () => {
               setOffset(0);
               setToDate(e.target.value);
             }}
-            className="h-8 w-36 text-xs font-mono"
+            className="h-8 w-full sm:w-36 text-xs font-mono"
             title="Hasta"
           />
 
@@ -194,7 +202,7 @@ export const CashFlowTab: React.FC = () => {
               setTypeFilter(val as "ALL" | CashMovementType);
             }}
           >
-            <SelectTrigger className="h-8 w-32 text-xs font-mono">
+            <SelectTrigger className="h-8 w-full sm:w-32 text-xs font-mono">
               <SelectValue placeholder="Tipo" />
             </SelectTrigger>
             <SelectContent className="bg-card border-border text-foreground">
@@ -211,7 +219,7 @@ export const CashFlowTab: React.FC = () => {
               setMethodFilter(val as "ALL" | SaleNotePaymentMethod);
             }}
           >
-            <SelectTrigger className="h-8 w-36 text-xs font-mono">
+            <SelectTrigger className="h-8 w-full sm:w-36 text-xs font-mono">
               <SelectValue placeholder="Medio" />
             </SelectTrigger>
             <SelectContent className="bg-card border-border text-foreground">
@@ -231,7 +239,7 @@ export const CashFlowTab: React.FC = () => {
               setCategoryFilter(val as "ALL" | CashMovementCategory);
             }}
           >
-            <SelectTrigger className="h-8 w-44 text-xs font-mono">
+            <SelectTrigger className="col-span-2 h-8 w-full sm:w-44 text-xs font-mono">
               <SelectValue placeholder="Categoría" />
             </SelectTrigger>
             <SelectContent className="bg-card border-border text-foreground">
@@ -245,14 +253,14 @@ export const CashFlowTab: React.FC = () => {
           </Select>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full lg:w-auto shrink-0">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={loadCashData}
             disabled={isLoading}
-            className="h-8 text-xs font-mono gap-1.5"
+            className="h-8 text-xs font-mono gap-1.5 w-full sm:w-auto"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
             Actualizar
@@ -261,7 +269,7 @@ export const CashFlowTab: React.FC = () => {
             type="button"
             size="sm"
             onClick={() => setIsCreateOpen(true)}
-            className="h-8 text-xs font-mono font-bold gap-1.5"
+            className="h-8 text-xs font-mono font-bold gap-1.5 w-full sm:w-auto"
           >
             <Plus className="w-3.5 h-3.5" />
             Nuevo Movimiento

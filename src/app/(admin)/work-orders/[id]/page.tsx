@@ -28,6 +28,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,11 +53,12 @@ import {
   Calendar,
   Phone,
   RefreshCw,
-  FileText,
   Trash2,
   Edit3,
   Receipt,
   CheckCircle2,
+  ChevronDown,
+  KeyRound,
 } from "lucide-react";
 
 interface WorkOrderDetailPageProps {
@@ -248,117 +258,143 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn pb-12">
       {/* Top Navigation & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link href="/work-orders">
-            <Button variant="outline" size="sm" className="text-xs font-mono tracking-wider uppercase border-border hover:border-tertiary">
-              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-              Main
-            </Button>
-          </Link>
-          <div className="h-4 w-px bg-border/60 hidden sm:block" />
-          <span className="text-xs font-mono text-typography uppercase">
-            UUID: <span className="text-foreground">{workOrder.id.slice(0, 8)}...</span>
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRegenerateCode}
-            disabled={isRegeneratingCode}
-            className="text-xs font-mono uppercase h-9 px-3 border-warning/50 text-warning hover:bg-warning/10"
-            title="Regenerar Código de Seguridad (Staff y Admin)"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isRegeneratingCode ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Regenerar Código</span>
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            className="text-xs font-mono uppercase h-9 px-3 border-border"
-            title="Refrescar vista"
-          >
-            <RefreshCw className="w-3.5 h-3.5 mr-1" />
-            <span className="hidden sm:inline">Refrescar</span>
-          </Button>
-
-          <Button
-            onClick={() => setIsDiagnosticModalOpen(true)}
-            className="bg-tertiary hover:bg-tertiary/90 text-tertiary-foreground font-bold tracking-wider uppercase text-xs h-9 px-4 shadow-md shadow-tertiary/20"
-          >
-            <Plus className="w-4 h-4 mr-1.5" />
-            <span>Adjuntar Avance / Foto</span>
-          </Button>
-
-          {existingBudget || savedBudgetInfo ? (
-            <>
-              <Link href={`/work-orders/${workOrderId}/budget`}>
-                <Button
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold tracking-wider uppercase text-xs h-9 px-4 shadow-md gap-1.5"
-                >
-                  <Edit3 className="w-4 h-4" />
-                  <span>Editar Presupuesto</span>
-                </Button>
-              </Link>
-
-              {existingBudget &&
-                existingBudget.status !== "APPROVED" &&
-                existingBudget.status !== "CONVERTED" && (
-                  <Button
-                    onClick={handleApproveBudget}
-                    disabled={isApprovingBudget}
-                    className="bg-sky-600 hover:bg-sky-500 text-white font-bold tracking-wider uppercase text-xs h-9 px-4 shadow-md gap-1.5"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>{isApprovingBudget ? "Aprobando..." : "Aprobar Presupuesto"}</span>
-                  </Button>
-                )}
-
-              {existingBudget?.status === "APPROVED" && (
-                <Button
-                  onClick={() => setIsConvertBudgetOpen(true)}
-                  className="bg-amber-600 hover:bg-amber-500 text-white font-bold tracking-wider uppercase text-xs h-9 px-4 shadow-md gap-1.5"
-                >
-                  <Receipt className="w-4 h-4" />
-                  <span>Convertir a Nota de Venta [ X ]</span>
-                </Button>
-              )}
-
-              {existingBudget?.status === "CONVERTED" && (
-                <Link href="/billing">
-                  <Badge className="bg-amber-500/15 text-amber-400 border border-amber-500/40 font-mono text-xs h-9 px-3 gap-1.5 cursor-pointer hover:bg-amber-500/25">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Convertido a Comprobante [ X ]</span>
-                  </Badge>
-                </Link>
-              )}
-
-              <Button
-                variant="destructive"
-                onClick={() => setIsDeleteDialogOpen(true)}
-                className="font-bold tracking-wider uppercase text-xs h-9 px-3 shadow-md gap-1.5"
-                title="Eliminar Presupuesto Permanentemente (Hard Delete)"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Eliminar Presupuesto</span>
-              </Button>
-            </>
-          ) : (
-            <Link href={`/work-orders/${workOrderId}/budget`}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        {/* Row 1 on mobile / Left on desktop: Navigation, UUID, Refresh & Actions Dropdown */}
+        <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2 min-w-0">
+            <Link href="/work-orders">
               <Button
                 variant="outline"
-                className="border-primary/60 text-primary hover:bg-primary/10 font-bold tracking-wider uppercase text-xs h-9 px-4 shadow-sm gap-1.5"
+                size="sm"
+                className="text-xs font-mono tracking-wider uppercase border-border hover:border-tertiary h-8 px-2.5 shrink-0"
               >
-                <Plus className="w-4 h-4" />
-                <span>Generar Presupuesto</span>
+                <ArrowLeft className="mr-1 h-3.5 w-3.5" />
+                Main
               </Button>
             </Link>
-          )}
+            <div className="h-4 w-px bg-border/60 hidden sm:block shrink-0" />
+            <span className="text-xs font-mono text-typography uppercase truncate">
+              UUID: <span className="text-foreground">{workOrder.id.slice(0, 8)}...</span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0 sm:ml-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              className="text-xs font-mono uppercase h-8 w-8 p-0 border-border"
+              title="Refrescar vista"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs font-mono uppercase h-8 px-2.5 border-border gap-1"
+                >
+                  <span>Acciones</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 font-mono text-xs">
+                <DropdownMenuLabel className="text-[10px] uppercase text-muted-foreground">
+                  Presupuesto y Comprobantes
+                </DropdownMenuLabel>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    onClick={() => router.push(`/work-orders/${workOrderId}/budget`)}
+                    className="gap-2 cursor-pointer whitespace-nowrap"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span>
+                      {existingBudget || savedBudgetInfo
+                        ? "Editar Presupuesto"
+                        : "Generar Presupuesto"}
+                    </span>
+                  </DropdownMenuItem>
+
+                  {existingBudget &&
+                    existingBudget.status !== "APPROVED" &&
+                    existingBudget.status !== "CONVERTED" && (
+                      <DropdownMenuItem
+                        disabled={isApprovingBudget}
+                        onClick={handleApproveBudget}
+                        className="gap-2 cursor-pointer text-sky-400 focus:text-sky-300 whitespace-nowrap"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        <span>
+                          {isApprovingBudget ? "Aprobando..." : "Aprobar Presupuesto"}
+                        </span>
+                      </DropdownMenuItem>
+                    )}
+
+                  {existingBudget?.status === "APPROVED" && (
+                    <DropdownMenuItem
+                      onClick={() => setIsConvertBudgetOpen(true)}
+                      className="gap-2 cursor-pointer text-amber-400 focus:text-amber-300 whitespace-nowrap"
+                    >
+                      <Receipt className="w-3.5 h-3.5 shrink-0" />
+                      <span>Convertir a Nota [ X ]</span>
+                    </DropdownMenuItem>
+                  )}
+
+                  {existingBudget?.status === "CONVERTED" && (
+                    <DropdownMenuItem
+                      onClick={() => router.push("/billing")}
+                      className="gap-2 cursor-pointer text-amber-400 focus:text-amber-300 whitespace-nowrap"
+                    >
+                      <Receipt className="w-3.5 h-3.5 shrink-0" />
+                      <span>Ver Comprobante [ X ]</span>
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuGroup>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuLabel className="text-[10px] uppercase text-muted-foreground">
+                  Seguridad
+                </DropdownMenuLabel>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    disabled={isRegeneratingCode}
+                    onClick={handleRegenerateCode}
+                    className="gap-2 cursor-pointer text-warning focus:text-warning whitespace-nowrap"
+                  >
+                    <KeyRound className="w-3.5 h-3.5 shrink-0" />
+                    <span>Regenerar Código</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+
+                {(existingBudget || savedBudgetInfo) && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                      className="gap-2 cursor-pointer whitespace-nowrap"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                      <span>Eliminar Presupuesto</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
+
+        {/* Single Primary CTA outside */}
+        <Button
+          onClick={() => setIsDiagnosticModalOpen(true)}
+          className="bg-tertiary hover:bg-tertiary/90 text-tertiary-foreground font-bold tracking-wider uppercase text-xs h-9 px-4 shadow-md shadow-tertiary/20 w-full sm:w-auto"
+        >
+          <Plus className="w-4 h-4 mr-1.5 shrink-0" />
+          <span className="truncate">Adjuntar Avance / Foto</span>
+        </Button>
       </div>
 
       <Card className="bg-card border-border shadow-2xl overflow-hidden">

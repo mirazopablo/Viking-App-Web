@@ -7,14 +7,9 @@ import {
   Receipt,
   FilePlus,
   Download,
-  AlertTriangle,
-  CheckCircle2,
   TrendingUp,
   CreditCard,
-  Building,
-  ArrowUpRight,
   Eye,
-  RefreshCw,
   Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -64,7 +59,6 @@ function formatAfipDate(dateStr?: string): string {
 
 export default function BillingManagementPage() {
   const [activeTab, setActiveTab] = useState<string>("invoices");
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   // Data states
@@ -79,9 +73,8 @@ export default function BillingManagementPage() {
   const [selectedSaleNoteForPayment, setSelectedSaleNoteForPayment] = useState<SaleNoteResponse | null>(null);
   const [previewDocument, setPreviewDocument] = useState<UnifiedCommercialDocumentProps | null>(null);
 
-  const loadData = useCallback(async () => {
+  const fetchBillingData = useCallback(async () => {
     try {
-      setIsRefreshing(true);
       const [accountingRes, invoicesRes, salesNotesRes] = await Promise.allSettled([
         accountingService.getDashboardMetrics(),
         invoiceService.getInvoices({ limit: 50 }),
@@ -101,14 +94,37 @@ export default function BillingManagementPage() {
       console.error("Error loading billing data", e);
       toast.error("Falla al cargar registros contables.");
     } finally {
-      setIsLoading(false);
       setIsRefreshing(false);
     }
   }, []);
 
+  const loadData = useCallback(async () => {
+    setIsRefreshing(true);
+    await fetchBillingData();
+  }, [fetchBillingData]);
+
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    let active = true;
+    Promise.allSettled([
+      accountingService.getDashboardMetrics(),
+      invoiceService.getInvoices({ limit: 50 }),
+      salesNoteService.getSalesNotes({ limit: 50 }),
+    ]).then(([accountingRes, invoicesRes, salesNotesRes]) => {
+      if (!active) return;
+      if (accountingRes.status === "fulfilled") {
+        setDashboardData(accountingRes.value);
+      }
+      if (invoicesRes.status === "fulfilled") {
+        setInvoices(invoicesRes.value.data || []);
+      }
+      if (salesNotesRes.status === "fulfilled") {
+        setSalesNotes(salesNotesRes.value.data || []);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Open Preview for an Invoice
   const handlePreviewInvoice = (inv: InvoiceResponse) => {
@@ -362,18 +378,18 @@ export default function BillingManagementPage() {
       {/* 2. TABS: FACTURAS FISCALES vs. NOTAS DE VENTA INTERNAS              */}
       {/* =================================================================== */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-card border border-border p-1">
-          <TabsTrigger value="invoices" className="text-xs font-mono uppercase gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-500" />
-            Facturas C Oficiales ({invoices.length})
+        <TabsList className="bg-card border border-border p-1 flex flex-wrap sm:inline-flex h-auto w-full sm:w-auto gap-1">
+          <TabsTrigger value="invoices" className="text-xs font-mono uppercase gap-1.5 flex-1 sm:flex-initial">
+            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 shrink-0" />
+            <span className="truncate">Facturas C ({invoices.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="sales_notes" className="text-xs font-mono uppercase gap-2">
-            <Receipt className="w-4 h-4 text-tertiary" />
-            Notas de Venta Internas ({salesNotes.length})
+          <TabsTrigger value="sales_notes" className="text-xs font-mono uppercase gap-1.5 flex-1 sm:flex-initial">
+            <Receipt className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-tertiary shrink-0" />
+            <span className="truncate">Notas [ X ] ({salesNotes.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="cash_flow" className="text-xs font-mono uppercase gap-2">
-            <Wallet className="w-4 h-4 text-sky-400" />
-            Libro de Caja
+          <TabsTrigger value="cash_flow" className="text-xs font-mono uppercase gap-1.5 w-full sm:w-auto sm:flex-initial">
+            <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400 shrink-0" />
+            <span>Libro de Caja</span>
           </TabsTrigger>
         </TabsList>
 
