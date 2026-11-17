@@ -60,10 +60,17 @@ export const ConvertBudgetModal: React.FC<ConvertBudgetModalProps> = ({
 
   if (!budget) return null;
 
-  const formattedTotal = new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-  }).format(budget.totals?.grandTotal || 0);
+  const grandTotal = budget.totals?.grandTotal || 0;
+  const advanceTotal = budget.totals?.advancePaymentTotal || 0;
+  const remainingBalance =
+    typeof budget.totals?.remainingBalance === "number"
+      ? budget.totals.remainingBalance
+      : Math.max(0, grandTotal - advanceTotal);
+
+  const formatARS = (val: number) =>
+    new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(val);
+
+  const requiresPaymentMethod = paymentStatus === "PAID" && remainingBalance > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +79,7 @@ export const ConvertBudgetModal: React.FC<ConvertBudgetModalProps> = ({
     try {
       setIsLoading(true);
       const res = await salesNoteService.convertBudgetToSaleNote(budget.id, {
-        payment_method: paymentMethod,
+        payment_method: requiresPaymentMethod ? paymentMethod : undefined,
         payment_status: paymentStatus,
         notes: notes.trim() || undefined,
       });
@@ -130,8 +137,20 @@ export const ConvertBudgetModal: React.FC<ConvertBudgetModalProps> = ({
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Total a Registrar:</span>
-              <span className="font-black text-amber-400">{formattedTotal}</span>
+              <span className="font-black text-amber-400">{formatARS(grandTotal)}</span>
             </div>
+            {advanceTotal > 0 && (
+              <>
+                <div className="flex justify-between text-sky-400">
+                  <span>Señas / Entregas Previas:</span>
+                  <span className="font-semibold">-{formatARS(advanceTotal)}</span>
+                </div>
+                <div className="flex justify-between border-t border-border/60 pt-1">
+                  <span className="text-muted-foreground font-semibold">Saldo Restante:</span>
+                  <span className="font-black text-sky-300">{formatARS(remainingBalance)}</span>
+                </div>
+              </>
+            )}
           </div>
 
           {errorMessage && (
@@ -144,10 +163,11 @@ export const ConvertBudgetModal: React.FC<ConvertBudgetModalProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-[11px] uppercase text-muted-foreground font-semibold">
-                Medio de Pago
+                Medio de Pago {requiresPaymentMethod ? "" : "(Opcional)"}
               </Label>
               <Select
                 value={paymentMethod}
+                disabled={!requiresPaymentMethod}
                 onValueChange={(val) => setPaymentMethod(val as SaleNotePaymentMethod)}
               >
                 <SelectTrigger className="mt-1 bg-secondary/20 border-border text-xs h-9">
