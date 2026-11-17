@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Plus, Trash2, Loader2, AlertCircle, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -58,42 +58,52 @@ export const RegisterSaleNotePaymentModal: React.FC<RegisterSaleNotePaymentModal
     return Math.max(0, saleNote.total_amount - paid);
   }, [saleNote]);
 
-  const [payments, setPayments] = useState<SaleNotePaymentInput[]>([
-    { payment_method: "CASH", amount: 0, description: "" },
-  ]);
+  const [payments, setPayments] = useState<SaleNotePaymentInput[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (open && saleNote) {
-      setPayments([{ payment_method: "CASH", amount: remainingBalance, description: "" }]);
+  const effectivePayments = useMemo<SaleNotePaymentInput[]>(
+    () =>
+      payments ?? [
+        { payment_method: "CASH", amount: remainingBalance, description: "" },
+      ],
+    [payments, remainingBalance]
+  );
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setPayments(null);
       setErrorMessage(null);
     }
-  }, [open, saleNote, remainingBalance]);
+    onOpenChange(nextOpen);
+  };
 
   if (!saleNote) return null;
 
-  const totalEntered = payments.reduce((acc, p) => acc + Math.max(0, Number(p.amount) || 0), 0);
+  const totalEntered = effectivePayments.reduce(
+    (acc, p) => acc + Math.max(0, Number(p.amount) || 0),
+    0
+  );
   const exceedsBalance = totalEntered > remainingBalance + 0.009;
 
   const handleAddLine = () => {
     const remainingToCover = Math.max(0, remainingBalance - totalEntered);
-    setPayments((prev) => [
-      ...prev,
+    setPayments([
+      ...effectivePayments,
       { payment_method: "TRANSFER", amount: remainingToCover, description: "" },
     ]);
   };
 
   const handleRemoveLine = (index: number) => {
-    setPayments((prev) => prev.filter((_, i) => i !== index));
+    setPayments(effectivePayments.filter((_, i) => i !== index));
   };
 
   const handleUpdateLine = (
     index: number,
     patch: Partial<SaleNotePaymentInput>
   ) => {
-    setPayments((prev) =>
-      prev.map((row, i) => (i === index ? { ...row, ...patch } : row))
+    setPayments(
+      effectivePayments.map((row, i) => (i === index ? { ...row, ...patch } : row))
     );
   };
 
@@ -101,7 +111,7 @@ export const RegisterSaleNotePaymentModal: React.FC<RegisterSaleNotePaymentModal
     e.preventDefault();
     setErrorMessage(null);
 
-    const validPayments = payments
+    const validPayments = effectivePayments
       .map((p) => ({
         payment_method: p.payment_method,
         amount: Number(p.amount) || 0,
@@ -133,6 +143,8 @@ export const RegisterSaleNotePaymentModal: React.FC<RegisterSaleNotePaymentModal
           : `Pago parcial registrado en ${saleNote.number}.`
       );
 
+      setPayments(null);
+      setErrorMessage(null);
       onOpenChange(false);
       onSuccess?.(updated);
     } catch (error: unknown) {
@@ -153,8 +165,8 @@ export const RegisterSaleNotePaymentModal: React.FC<RegisterSaleNotePaymentModal
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg bg-card border-border text-foreground shadow-2xl p-6 font-mono">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="w-[95vw] max-w-lg max-h-[90dvh] overflow-y-auto bg-card border-border text-foreground shadow-2xl p-4 sm:p-6 font-mono">
         <DialogHeader className="border-b border-border/60 pb-3">
           <div className="flex items-center gap-2">
             <Badge className="bg-sky-500/10 text-sky-400 border border-sky-500/30 text-[10px] font-black">
@@ -211,13 +223,13 @@ export const RegisterSaleNotePaymentModal: React.FC<RegisterSaleNotePaymentModal
               </Button>
             </div>
 
-            {payments.map((row, idx) => (
+            {effectivePayments.map((row, idx) => (
               <div
                 key={idx}
                 className="p-2.5 rounded-lg border border-border/60 bg-secondary/15 space-y-2"
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-40 shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className="w-full sm:w-40 shrink-0">
                     <Select
                       value={row.payment_method}
                       onValueChange={(val) =>
@@ -237,29 +249,31 @@ export const RegisterSaleNotePaymentModal: React.FC<RegisterSaleNotePaymentModal
                     </Select>
                   </div>
 
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min={0}
-                    value={row.amount || ""}
-                    onChange={(e) =>
-                      handleUpdateLine(idx, { amount: parseFloat(e.target.value) || 0 })
-                    }
-                    placeholder="Monto"
-                    className="h-8 text-xs text-right font-bold bg-background flex-1"
-                  />
+                  <div className="flex items-center gap-2 flex-1">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={row.amount || ""}
+                      onChange={(e) =>
+                        handleUpdateLine(idx, { amount: parseFloat(e.target.value) || 0 })
+                      }
+                      placeholder="Monto"
+                      className="h-8 text-xs text-right font-bold bg-background flex-1"
+                    />
 
-                  {payments.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemoveLine(idx)}
-                      className="h-8 w-8 text-destructive shrink-0"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
-                  )}
+                    {effectivePayments.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRemoveLine(idx)}
+                        className="h-8 w-8 text-destructive shrink-0"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 <Input

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Loader2, AlertCircle, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -62,17 +62,22 @@ export const CreateCashMovementModal: React.FC<CreateCashMovementModalProps> = (
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (open) {
-      setType("EXPENSE");
-      setCategory("SPARE_PART_PURCHASE");
-      setPaymentMethod("CASH");
-      setAmount("");
-      setDescription("");
-      setWorkOrderId("");
-      setErrorMessage(null);
+  const resetForm = () => {
+    setType("EXPENSE");
+    setCategory("SPARE_PART_PURCHASE");
+    setPaymentMethod("CASH");
+    setAmount("");
+    setDescription("");
+    setWorkOrderId("");
+    setErrorMessage(null);
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      resetForm();
     }
-  }, [open]);
+    onOpenChange(nextOpen);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,6 +112,7 @@ export const CreateCashMovementModal: React.FC<CreateCashMovementModalProps> = (
           ? "Ingreso registrado en Caja."
           : "Egreso registrado en Caja."
       );
+      resetForm();
       onOpenChange(false);
       onSuccess?.(created);
     } catch (error: unknown) {
@@ -127,8 +133,8 @@ export const CreateCashMovementModal: React.FC<CreateCashMovementModalProps> = (
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-card border-border text-foreground shadow-2xl p-6 font-mono">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="w-[95vw] max-w-md max-h-[90dvh] overflow-y-auto bg-card border-border text-foreground shadow-2xl p-4 sm:p-6 font-mono">
         <DialogHeader className="border-b border-border/60 pb-3">
           <DialogTitle className="text-base font-bold">
             Registrar Movimiento de Caja

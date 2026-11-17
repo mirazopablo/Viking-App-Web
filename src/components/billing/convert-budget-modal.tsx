@@ -97,11 +97,15 @@ export const ConvertBudgetModal: React.FC<ConvertBudgetModalProps> = ({
       if (onSuccess && createdNote) {
         onSuccess(createdNote);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errObj = error as {
+        response?: { data?: { error?: string; message?: string } };
+        message?: string;
+      };
       const msg =
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        error?.message ||
+        errObj?.response?.data?.error ||
+        errObj?.response?.data?.message ||
+        errObj?.message ||
         "No se pudo convertir el presupuesto a Nota de Venta.";
       setErrorMessage(msg);
       toast.error("Error al convertir presupuesto.");
@@ -112,7 +116,7 @@ export const ConvertBudgetModal: React.FC<ConvertBudgetModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-card border-border text-foreground shadow-2xl p-6 font-mono">
+      <DialogContent className="w-[95vw] max-w-md max-h-[90dvh] overflow-y-auto bg-card border-border text-foreground shadow-2xl p-4 sm:p-6 font-mono">
         <DialogHeader className="border-b border-border/60 pb-3">
           <div className="flex items-center gap-2">
             <Badge className="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-black">
