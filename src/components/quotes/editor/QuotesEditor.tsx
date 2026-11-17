@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { QuickQuoteFormSchemaType } from '@/lib/validations/quick-quote';
 import { DynamicBlocksEditor } from './DynamicBlocksEditor';
 import { QuotesItemsTableEditor } from './QuotesItemsTableEditor';
+import { AdvancePaymentsEditor } from '@/components/budgets/editor/AdvancePaymentsEditor';
 export const QuotesEditor: React.FC = () => {
   const { register, watch, setValue, control, formState: { errors } } = useFormContext<QuickQuoteFormSchemaType>();
 
@@ -278,6 +279,8 @@ export const QuotesEditor: React.FC = () => {
       </Card>
 
       {/* Notes & Terms */}
+      <AdvancePaymentsEditor />
+
       <Card className="border-border/60 shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">

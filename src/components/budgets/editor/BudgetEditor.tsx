@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BudgetFormSchemaType } from '@/lib/validations/budget';
 import { DynamicBlocksEditor } from './DynamicBlocksEditor';
 import { BudgetItemsTableEditor } from './BudgetItemsTableEditor';
+import { AdvancePaymentsEditor } from './AdvancePaymentsEditor';
 import { DiagnosticPointsDrawer } from './DiagnosticPointsDrawer';
 import { DiagnosticPointResponseDTO } from '@/types/diagnostic';
 
@@ -322,6 +323,8 @@ export const BudgetEditor: React.FC<BudgetEditorProps> = ({ diagnosticPoints = [
       </Card>
 
       {/* Notes & Terms */}
+      <AdvancePaymentsEditor lockPersisted />
+
       <Card className="border-border/60 shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">

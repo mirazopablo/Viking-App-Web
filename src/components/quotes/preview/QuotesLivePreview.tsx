@@ -30,6 +30,7 @@ export const QuotesLivePreview: React.FC<QuotesLivePreviewProps> = ({ staffName 
   const blocks = watch('blocks') || [];
   const items = watch('items') || [];
   const labors = watch('labors') || [];
+  const advancePayments = watch('advancePayments') || [];
   const taxPercentage = watch('taxPercentage') || 0;
   const currency = watch('currency') || '$';
   const notes = watch('notes');
@@ -90,6 +91,7 @@ export const QuotesLivePreview: React.FC<QuotesLivePreviewProps> = ({ staffName 
             items={items as any}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             labors={labors as any}
+            advancePayments={advancePayments}
             taxPercentage={taxPercentage}
             currency={currency}
             mode={mode}
@@ -135,6 +137,7 @@ export const QuotesLivePreview: React.FC<QuotesLivePreviewProps> = ({ staffName 
         items={items as any}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         labors={labors as any}
+        advancePayments={advancePayments}
         taxPercentage={taxPercentage}
         currency={currency}
         notes={notes || ''}
