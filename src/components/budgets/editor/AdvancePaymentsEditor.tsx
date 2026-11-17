@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useRef } from 'react';
+import React from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { Wallet, Plus, Trash2, Lock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,7 @@ const PAYMENT_METHOD_OPTIONS: Array<{ value: SaleNotePaymentMethod; label: strin
 interface AdvancePaymentsEditorProps {
   /**
    * When true (Work Order budgets persisted in Go backend), advance payments that
-   * already have a persisted timestamp/amount on load are locked to prevent 400 Bad Request.
+   * already have a persisted paidAt timestamp are locked to prevent 400 Bad Request.
    */
   lockPersisted?: boolean;
 }
@@ -50,19 +50,9 @@ export const AdvancePaymentsEditor: React.FC<AdvancePaymentsEditorProps> = ({
     name: 'advancePayments',
   });
 
-  // Track IDs that were already saved with amount > 0 when loaded from backend/storage
-  const persistedIdsRef = useRef<Set<string> | null>(null);
-  if (lockPersisted && persistedIdsRef.current === null && advancePayments.length > 0) {
-    persistedIdsRef.current = new Set(
-      advancePayments
-        .filter((p) => (p.amount || 0) > 0 && (Boolean(p.paidAt) || Boolean(p.id)))
-        .map((p) => p.id)
-    );
-  }
-
-  const advanceTotal = useMemo(
-    () => advancePayments.reduce((acc, p) => acc + Math.max(0, Number(p.amount) || 0), 0),
-    [advancePayments]
+  const advanceTotal = advancePayments.reduce(
+    (acc, p) => acc + Math.max(0, Number(p.amount) || 0),
+    0
   );
 
   const handleAddAdvance = () => {
@@ -108,9 +98,7 @@ export const AdvancePaymentsEditor: React.FC<AdvancePaymentsEditorProps> = ({
           <div className="space-y-2.5">
             {fields.map((field, index) => {
               const currentRow = advancePayments[index];
-              const isLocked =
-                lockPersisted &&
-                Boolean(currentRow?.paidAt || (persistedIdsRef.current?.has(currentRow?.id || '') ?? false));
+              const isLocked = lockPersisted && Boolean(currentRow?.paidAt);
 
               return (
                 <div
@@ -130,8 +118,8 @@ export const AdvancePaymentsEditor: React.FC<AdvancePaymentsEditorProps> = ({
                     />
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <div className="w-36 shrink-0">
+                  <div className="grid grid-cols-[1fr_1fr_auto] sm:flex sm:items-center gap-2 w-full md:w-auto">
+                    <div className="min-w-0 sm:w-36 sm:shrink-0">
                       <select
                         {...register(`advancePayments.${index}.paymentMethod`)}
                         disabled={isLocked}
@@ -145,7 +133,7 @@ export const AdvancePaymentsEditor: React.FC<AdvancePaymentsEditorProps> = ({
                       </select>
                     </div>
 
-                    <div className="w-32 shrink-0">
+                    <div className="min-w-0 sm:w-32 sm:shrink-0">
                       <Input
                         type="number"
                         step="0.01"
@@ -153,7 +141,7 @@ export const AdvancePaymentsEditor: React.FC<AdvancePaymentsEditorProps> = ({
                         readOnly={isLocked}
                         {...register(`advancePayments.${index}.amount`, { valueAsNumber: true })}
                         placeholder="Monto"
-                        className={`h-8 text-xs text-right font-semibold bg-background ${
+                        className={`h-8 text-xs text-right font-semibold bg-background w-full ${
                           isLocked ? 'opacity-60 cursor-not-allowed' : ''
                         }`}
                       />
@@ -199,4 +187,3 @@ export const AdvancePaymentsEditor: React.FC<AdvancePaymentsEditorProps> = ({
     </Card>
   );
 };
-
