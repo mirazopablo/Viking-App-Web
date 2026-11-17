@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { budgetAdvancePaymentSchema } from './budget';
 
 export const warningSeveritySchema = z.enum(['info', 'warning', 'important']);
 export const budgetModeSchema = z.enum(['MAINTENANCE', 'NEW_EQUIPMENT']);
@@ -55,6 +56,7 @@ export const quickQuoteFormSchema = z.object({
   blocks: z.array(dynamicContentBlockSchema),
   items: z.array(quickQuoteTableRowSchema),
   labors: z.array(quickQuoteLaborCostSchema),
+  advancePayments: z.array(budgetAdvancePaymentSchema).optional(),
   taxPercentage: z.number().min(0).max(100).optional(),
   notes: z.string().optional(),
   termsAndConditions: z.string().optional(),
