@@ -42,6 +42,22 @@ export const budgetLaborCostSchema = z.object({
   amount: z.number().min(0, 'El monto debe ser positivo'),
 });
 
+export const saleNotePaymentMethodSchema = z.enum([
+  'CASH',
+  'TRANSFER',
+  'MERCADOPAGO',
+  'DEBIT',
+  'CREDIT',
+]);
+
+export const budgetAdvancePaymentSchema = z.object({
+  id: z.string().min(1),
+  description: z.string().optional(),
+  amount: z.number().min(0, 'El monto debe ser mayor o igual a 0'),
+  paymentMethod: saleNotePaymentMethodSchema.optional(),
+  paidAt: z.string().optional(),
+});
+
 export const budgetFormSchema = z.object({
   workOrderId: z.string().min(1, 'Work Order ID es requerido'),
   title: z.string().min(1, 'El título es requerido'),
@@ -56,6 +72,7 @@ export const budgetFormSchema = z.object({
   blocks: z.array(dynamicContentBlockSchema),
   items: z.array(budgetTableRowSchema),
   labors: z.array(budgetLaborCostSchema),
+  advancePayments: z.array(budgetAdvancePaymentSchema).optional(),
   taxPercentage: z.number().min(0).max(100),
   notes: z.string().optional(),
   termsAndConditions: z.string().optional(),

@@ -4,6 +4,8 @@
  * and flexible table row types (regular, bonification, group subtotal, hidden unit price, spare part with margin).
  */
 
+import type { SaleNotePaymentMethod } from './sales-note';
+
 export type BudgetMode = 'MAINTENANCE' | 'NEW_EQUIPMENT';
 
 export type ContentBlockType = 'TEXT_PARAGRAPH' | 'BULLET_LIST' | 'WARNING_NOTE';
@@ -49,6 +51,14 @@ export interface BudgetLaborCost {
   amount: number;
 }
 
+export interface BudgetAdvancePayment {
+  id: string;
+  description?: string;
+  amount: number;
+  paymentMethod?: SaleNotePaymentMethod;
+  paidAt?: string;
+}
+
 export interface BudgetTotals {
   itemsSubtotal: number;
   hiddenPriceSubtotal: number;
@@ -57,6 +67,8 @@ export interface BudgetTotals {
   taxAmount: number;
   taxPercentage: number;
   grandTotal: number;
+  advancePaymentTotal?: number;
+  remainingBalance?: number;
   totalSparePartsCost: number;
   totalSparePartsProfit: number;
   totalEstimatedProfit: number; // Labor total + Spare parts profit
@@ -76,6 +88,7 @@ export interface BudgetFormValues {
   blocks: DynamicContentBlock[];
   items: BudgetTableRow[];
   labors: BudgetLaborCost[];
+  advancePayments?: BudgetAdvancePayment[];
   taxPercentage: number;
   notes?: string;
   termsAndConditions?: string;

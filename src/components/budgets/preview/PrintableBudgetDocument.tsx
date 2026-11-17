@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { BudgetTableRow, DynamicContentBlock } from '@/types/budget';
+import { BudgetAdvancePayment, BudgetTableRow, DynamicContentBlock } from '@/types/budget';
 import logoImg from '@/components/images/LOGO_pulido.png';
 import { PrintPortal } from '@/components/shared/print-portal';
 
@@ -19,6 +19,7 @@ export interface PrintableBudgetDocumentProps {
   blocks?: DynamicContentBlock[];
   items?: BudgetTableRow[];
   labors?: { description: string; amount: number }[];
+  advancePayments?: BudgetAdvancePayment[];
   taxPercentage?: number;
   currency?: string;
   notes?: string;
@@ -38,6 +39,7 @@ export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (
   blocks = [],
   items = [],
   labors = [],
+  advancePayments = [],
   taxPercentage = 0,
   currency = '$',
   notes = '',
@@ -66,6 +68,9 @@ export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (
   const taxableAmount = Math.max(0, itemsSubtotal + laborTotal - totalDiscounts);
   const taxAmount = (taxableAmount * (taxPercentage || 0)) / 100;
   const grandTotal = taxableAmount + taxAmount;
+  const activeAdvancePayments = (advancePayments || []).filter((p) => (p.amount || 0) > 0);
+  const advancePaymentTotal = activeAdvancePayments.reduce((acc, p) => acc + (p.amount || 0), 0);
+  const remainingBalance = Math.max(0, grandTotal - advancePaymentTotal);
 
   const todayStr = new Date().toLocaleDateString('es-ES', {
     day: '2-digit',
@@ -273,6 +278,26 @@ export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (
                 </td>
               </tr>
             ))}
+
+            {/* Advance payments / Entrega */}
+            {activeAdvancePayments.map((advance, idx) => (
+              <tr key={advance.id || `advance_${idx}`} className="border-b border-slate-200 bg-sky-50 text-sky-950">
+                <td colSpan={3} className="p-1.5 font-semibold">
+                  <span className="inline-block mr-2 text-[9px] bg-sky-100 px-1.5 py-0.5 rounded text-sky-900 border border-sky-300 uppercase">
+                    ENTREGA
+                  </span>
+                  {advance.description?.trim() || 'Entrega / Seña a cuenta'}
+                  {advance.paymentMethod && (
+                    <span className="ml-1.5 text-[9px] font-mono text-sky-700">
+                      ({advance.paymentMethod})
+                    </span>
+                  )}
+                </td>
+                <td className="p-1.5 text-right font-mono font-bold text-sky-800">
+                  -{currency} {(advance.amount || 0).toFixed(2)}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -304,6 +329,18 @@ export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (
             <span>TOTAL GENERAL:</span>
             <span className="font-mono text-slate-950">{currency} {grandTotal.toFixed(2)}</span>
           </div>
+          {advancePaymentTotal > 0 && (
+            <>
+              <div className="flex justify-between text-sky-800 font-semibold border-t border-slate-200 pt-1">
+                <span>Entrega / Seña:</span>
+                <span className="font-mono">-{currency} {advancePaymentTotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-extrabold text-sm text-sky-950 border-t border-sky-300 pt-1">
+                <span>SALDO RESTANTE:</span>
+                <span className="font-mono">{currency} {remainingBalance.toFixed(2)}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

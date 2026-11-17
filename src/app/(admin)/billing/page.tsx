@@ -15,6 +15,7 @@ import {
   ArrowUpRight,
   Eye,
   RefreshCw,
+  Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminPageHeader } from "@/components/shared/admin-page-header";
@@ -24,6 +25,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DirectInvoiceModal } from "@/components/billing/direct-invoice-modal";
 import { ManualInvoiceModal } from "@/components/billing/manual-invoice-modal";
 import { FiscalizeSaleNoteModal } from "@/components/billing/fiscalize-sale-note-modal";
+import { RegisterSaleNotePaymentModal } from "@/components/billing/register-sale-note-payment-modal";
+import { CashFlowTab } from "@/components/billing/cash-flow-tab";
 import { ReceiptPreviewDialog } from "@/components/billing/receipt-preview-dialog";
 import { UnifiedCommercialDocumentProps } from "@/components/billing/unified-commercial-document";
 import { InvoiceResponse } from "@/types/invoice";
@@ -73,6 +76,7 @@ export default function BillingManagementPage() {
   const [isDirectModalOpen, setIsDirectModalOpen] = useState<boolean>(false);
   const [isManualModalOpen, setIsManualModalOpen] = useState<boolean>(false);
   const [selectedSaleNoteForFiscalize, setSelectedSaleNoteForFiscalize] = useState<SaleNoteResponse | null>(null);
+  const [selectedSaleNoteForPayment, setSelectedSaleNoteForPayment] = useState<SaleNoteResponse | null>(null);
   const [previewDocument, setPreviewDocument] = useState<UnifiedCommercialDocumentProps | null>(null);
 
   const loadData = useCallback(async () => {
@@ -367,6 +371,10 @@ export default function BillingManagementPage() {
             <Receipt className="w-4 h-4 text-tertiary" />
             Notas de Venta Internas ({salesNotes.length})
           </TabsTrigger>
+          <TabsTrigger value="cash_flow" className="text-xs font-mono uppercase gap-2">
+            <Wallet className="w-4 h-4 text-sky-400" />
+            Libro de Caja
+          </TabsTrigger>
         </TabsList>
 
         {/* Tab 1: Facturas C Oficiales */}
@@ -473,12 +481,34 @@ export default function BillingManagementPage() {
                         </td>
                         <td className="p-3 text-foreground font-medium">{sn.client_name}</td>
                         <td className="p-3 text-right font-black text-foreground">
-                          {formatCurrency(sn.total_amount)}
+                          <div>{formatCurrency(sn.total_amount)}</div>
+                          {(sn.payment_status === "PARTIAL" || sn.payment_status === "PENDING") && (
+                            <div className="text-[10px] font-semibold text-sky-400">
+                              Saldo:{" "}
+                              {formatCurrency(
+                                typeof sn.remaining_balance === "number"
+                                  ? sn.remaining_balance
+                                  : Math.max(0, sn.total_amount - (sn.paid_amount ?? 0))
+                              )}
+                            </div>
+                          )}
                         </td>
                         <td className="p-3">
-                          <Badge variant="outline" className="text-[10px] font-mono">
-                            {SALE_NOTE_PAYMENT_METHOD_LABELS[sn.payment_method] || sn.payment_method}
-                          </Badge>
+                          <div className="flex flex-wrap items-center gap-1">
+                            <Badge variant="outline" className="text-[10px] font-mono">
+                              {SALE_NOTE_PAYMENT_METHOD_LABELS[sn.payment_method] || sn.payment_method}
+                            </Badge>
+                            {sn.payment_status === "PARTIAL" && (
+                              <Badge className="bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[9px]">
+                                PARCIAL
+                              </Badge>
+                            )}
+                            {sn.payment_status === "PENDING" && (
+                              <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px]">
+                                PENDIENTE
+                              </Badge>
+                            )}
+                          </div>
                         </td>
                         <td className="p-3 text-center">
                           {sn.is_fiscal ? (
@@ -492,6 +522,19 @@ export default function BillingManagementPage() {
                           )}
                         </td>
                         <td className="p-3 text-right flex items-center justify-end gap-1.5">
+                          {(sn.payment_status === "PARTIAL" || sn.payment_status === "PENDING") &&
+                            (typeof sn.remaining_balance === "number"
+                              ? sn.remaining_balance
+                              : sn.total_amount - (sn.paid_amount ?? 0)) > 0 && (
+                              <Button
+                                size="sm"
+                                onClick={() => setSelectedSaleNoteForPayment(sn)}
+                                className="h-7 text-xs bg-sky-600 hover:bg-sky-500 text-white font-bold gap-1"
+                              >
+                                <Wallet className="w-3.5 h-3.5" />
+                                Cobrar Saldo
+                              </Button>
+                            )}
                           {!sn.is_fiscal && (
                             <Button
                               size="sm"
@@ -525,6 +568,11 @@ export default function BillingManagementPage() {
             </div>
           </div>
         </TabsContent>
+
+        {/* Tab 3: Libro de Caja */}
+        <TabsContent value="cash_flow" className="space-y-3">
+          <CashFlowTab />
+        </TabsContent>
       </Tabs>
 
       {/* =================================================================== */}
@@ -553,6 +601,17 @@ export default function BillingManagementPage() {
           if (!open) setSelectedSaleNoteForFiscalize(null);
         }}
         saleNote={selectedSaleNoteForFiscalize}
+        onSuccess={() => {
+          loadData();
+        }}
+      />
+
+      <RegisterSaleNotePaymentModal
+        open={!!selectedSaleNoteForPayment}
+        onOpenChange={(open) => {
+          if (!open) setSelectedSaleNoteForPayment(null);
+        }}
+        saleNote={selectedSaleNoteForPayment}
         onSuccess={() => {
           loadData();
         }}

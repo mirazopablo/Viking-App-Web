@@ -52,6 +52,8 @@ export interface SaleNoteResponse {
   subtotal?: number;
   discount?: number;
   total_amount: number;
+  paid_amount?: number;
+  remaining_balance?: number;
   cost_amount: number;
   net_profit: number;
   payment_method: SaleNotePaymentMethod;
@@ -65,9 +67,19 @@ export interface SaleNoteResponse {
 }
 
 export interface ConvertBudgetToSaleNoteRequest {
-  payment_method: SaleNotePaymentMethod;
+  payment_method?: SaleNotePaymentMethod;
   payment_status: SaleNotePaymentStatus;
   notes?: string;
+}
+
+export interface SaleNotePaymentInput {
+  payment_method: SaleNotePaymentMethod;
+  amount: number;
+  description?: string;
+}
+
+export interface RegisterSaleNotePaymentsRequest {
+  payments: SaleNotePaymentInput[];
 }
 
 export interface ConvertBudgetToSaleNoteResponse {

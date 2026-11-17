@@ -132,8 +132,25 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [isDeletingBudget, setIsDeletingBudget] = useState<boolean>(false);
+  const [isApprovingBudget, setIsApprovingBudget] = useState<boolean>(false);
   const [isConvertBudgetOpen, setIsConvertBudgetOpen] = useState<boolean>(false);
   const [previewSaleNoteDoc, setPreviewSaleNoteDoc] = useState<UnifiedCommercialDocumentProps | null>(null);
+
+  const handleApproveBudget = async () => {
+    if (!existingBudget?.id) return;
+    try {
+      setIsApprovingBudget(true);
+      await budgetService.updateBudgetStatus(existingBudget.id, "APPROVED");
+      toast.success("Presupuesto aprobado. Ya podés convertirlo a Nota de Venta [ X ].");
+      await queryClient.invalidateQueries({ queryKey: ["budget", workOrderId] });
+      refetchBudget();
+    } catch (err: unknown) {
+      console.error("Approve budget failed:", err);
+      toast.error(getApiErrorMessage(err, "No se pudo aprobar el presupuesto"));
+    } finally {
+      setIsApprovingBudget(false);
+    }
+  };
 
   const handleDeleteBudget = async () => {
     const targetId = existingBudget?.id;
@@ -287,6 +304,19 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
                   <span>Editar Presupuesto</span>
                 </Button>
               </Link>
+
+              {existingBudget &&
+                existingBudget.status !== "APPROVED" &&
+                existingBudget.status !== "CONVERTED" && (
+                  <Button
+                    onClick={handleApproveBudget}
+                    disabled={isApprovingBudget}
+                    className="bg-sky-600 hover:bg-sky-500 text-white font-bold tracking-wider uppercase text-xs h-9 px-4 shadow-md gap-1.5"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>{isApprovingBudget ? "Aprobando..." : "Aprobar Presupuesto"}</span>
+                  </Button>
+                )}
 
               {existingBudget?.status === "APPROVED" && (
                 <Button

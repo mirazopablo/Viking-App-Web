@@ -12,6 +12,7 @@ export interface BillingPrefillFromQuote {
   clientPhone: string;
   notes: string;
   discount: number;
+  advancePaymentTotal: number;
   invoiceConcept: InvoiceConcept;
   docTipo: InvoiceDocType;
   docNro: string;
@@ -22,6 +23,19 @@ export interface BillingPrefillFromQuote {
 function sanitizeDigits(value: string | number | undefined): string {
   if (value === undefined || value === null) return "";
   return String(value).replace(/\D/g, "");
+}
+
+/**
+ * Strips emojis/pictographs and collapses redundant whitespace so descriptions
+ * and notes remain clean for thermal/PDF printing and ARCA fiscalization.
+ */
+function sanitizeBillingText(value: string | undefined, fallback = ""): string {
+  if (!value) return fallback;
+  const cleaned = value
+    .replace(/[\p{Extended_Pictographic}\p{Emoji_Presentation}\uFE0F]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleaned || fallback;
 }
 
 /**
@@ -67,8 +81,10 @@ export function buildBillingPrefillFromQuote(
 
     hasProducts = true;
 
+    const cleanDescription = sanitizeBillingText(item.description, "Repuesto / Producto");
+
     invoiceItems.push({
-      description: item.description?.trim() || "Repuesto / Producto",
+      description: cleanDescription,
       item_type: "SPARE_PART",
       quantity: qty,
       unit_price: unitPrice,
@@ -76,7 +92,7 @@ export function buildBillingPrefillFromQuote(
     });
 
     saleNoteItems.push({
-      description: item.description?.trim() || "Repuesto / Producto",
+      description: cleanDescription,
       item_type: item.rowType === "SPARE_PART_ITEM" ? "SPARE_PART" : "ACCESSORY",
       quantity: qty,
       unit_price: unitPrice,
@@ -90,8 +106,10 @@ export function buildBillingPrefillFromQuote(
 
     hasServices = true;
 
+    const cleanLaborDesc = sanitizeBillingText(labor.description, "Mano de Obra Técnica");
+
     invoiceItems.push({
-      description: labor.description?.trim() || "Mano de Obra Técnica",
+      description: cleanLaborDesc,
       item_type: "SERVICE",
       quantity: 1,
       unit_price: amount,
@@ -99,7 +117,7 @@ export function buildBillingPrefillFromQuote(
     });
 
     saleNoteItems.push({
-      description: labor.description?.trim() || "Mano de Obra Técnica",
+      description: cleanLaborDesc,
       item_type: "SERVICE",
       quantity: 1,
       unit_price: amount,
@@ -110,7 +128,7 @@ export function buildBillingPrefillFromQuote(
   if (invoiceItems.length === 0) {
     hasServices = true;
     invoiceItems.push({
-      description: quote.title?.trim() || "Servicio Técnico y Reparación",
+      description: sanitizeBillingText(quote.title, "Servicio Técnico y Reparación"),
       item_type: "SERVICE",
       quantity: 1,
       unit_price: 0,
@@ -120,7 +138,7 @@ export function buildBillingPrefillFromQuote(
 
   if (saleNoteItems.length === 0) {
     saleNoteItems.push({
-      description: quote.title?.trim() || "Servicio Técnico y Reparación",
+      description: sanitizeBillingText(quote.title, "Servicio Técnico y Reparación"),
       item_type: "SERVICE",
       quantity: 1,
       unit_price: 0,
@@ -128,17 +146,30 @@ export function buildBillingPrefillFromQuote(
     });
   }
 
+  const advancePaymentTotal = (quote.advancePayments || []).reduce(
+    (acc, payment) => acc + Math.max(0, Number(payment.amount) || 0),
+    0
+  );
+
+  const cleanNotes = sanitizeBillingText(quote.notes);
+  const advanceNote =
+    advancePaymentTotal > 0
+      ? `Entregas previas en presupuesto: $${advancePaymentTotal.toFixed(2)}`
+      : "";
+  const combinedNotes = [cleanNotes, advanceNote].filter(Boolean).join(" | ");
+
   const invoiceConcept: InvoiceConcept =
     hasProducts && hasServices ? 3 : hasProducts ? 1 : 2;
 
   return {
-    sourceTitle: quote.title?.trim() || "Presupuesto",
+    sourceTitle: sanitizeBillingText(quote.title, "Presupuesto"),
     clientName: quote.clientName?.trim() || "",
     clientDni: rawDni,
     clientAddress: quote.clientAddress?.trim() || "",
     clientPhone: quote.clientPhoneNumber?.trim() || "",
-    notes: quote.notes?.trim() || "",
+    notes: combinedNotes,
     discount: totalDiscount,
+    advancePaymentTotal,
     invoiceConcept,
     docTipo,
     docNro,

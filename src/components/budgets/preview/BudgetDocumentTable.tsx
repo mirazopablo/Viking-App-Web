@@ -2,11 +2,12 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { BudgetTableRow, BudgetLaborCost, BudgetMode } from '@/types/budget';
+import { BudgetAdvancePayment, BudgetTableRow, BudgetLaborCost, BudgetMode } from '@/types/budget';
 
 interface BudgetDocumentTableProps {
   items?: BudgetTableRow[];
   labors?: BudgetLaborCost[];
+  advancePayments?: BudgetAdvancePayment[];
   taxPercentage?: number;
   currency?: string;
   mode: BudgetMode;
@@ -15,6 +16,7 @@ interface BudgetDocumentTableProps {
 export const BudgetDocumentTable: React.FC<BudgetDocumentTableProps> = ({
   items = [],
   labors = [],
+  advancePayments = [],
   taxPercentage = 0,
   currency = '$',
   mode,
@@ -41,6 +43,9 @@ export const BudgetDocumentTable: React.FC<BudgetDocumentTableProps> = ({
   const taxableAmount = Math.max(0, itemsSubtotal + laborTotal - totalDiscounts);
   const taxAmount = (taxableAmount * (taxPercentage || 0)) / 100;
   const grandTotal = taxableAmount + taxAmount;
+  const activeAdvancePayments = advancePayments.filter((p) => (p.amount || 0) > 0);
+  const advancePaymentTotal = activeAdvancePayments.reduce((acc, p) => acc + (p.amount || 0), 0);
+  const remainingBalance = Math.max(0, grandTotal - advancePaymentTotal);
 
   return (
     <div className="space-y-4">
@@ -145,6 +150,36 @@ export const BudgetDocumentTable: React.FC<BudgetDocumentTableProps> = ({
                   </td>
                 </tr>
               ))}
+
+            {/* Advance Payments / Entrega */}
+            {activeAdvancePayments.map((advance, idx) => (
+              <tr
+                key={advance.id || `advance_${idx}`}
+                className="bg-sky-500/10 text-sky-900 dark:text-sky-200 border-t"
+              >
+                <td className="py-2 px-3 font-medium">
+                  <Badge
+                    variant="outline"
+                    className="mr-2 text-[9px] bg-sky-100 text-sky-900 border-sky-300 dark:bg-sky-900/40 dark:text-sky-200 dark:border-sky-700"
+                  >
+                    ENTREGA
+                  </Badge>
+                  <span className="font-semibold">
+                    {advance.description?.trim() || 'Entrega / Seña a cuenta'}
+                  </span>
+                  {advance.paymentMethod && (
+                    <span className="ml-1.5 text-[10px] font-mono opacity-80">
+                      ({advance.paymentMethod})
+                    </span>
+                  )}
+                </td>
+                <td className="py-2 px-3 text-center">1</td>
+                {mode !== 'NEW_EQUIPMENT' && <td className="py-2 px-3 text-right">-</td>}
+                <td className="py-2 px-3 text-right font-bold font-mono">
+                  -{currency} {(advance.amount || 0).toFixed(2)}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -184,6 +219,21 @@ export const BudgetDocumentTable: React.FC<BudgetDocumentTableProps> = ({
               {currency} {grandTotal.toFixed(2)}
             </span>
           </div>
+
+          {advancePaymentTotal > 0 && (
+            <>
+              <div className="flex justify-between text-sky-700 dark:text-sky-300 font-medium">
+                <span>Entrega / Seña:</span>
+                <span>-{currency} {advancePaymentTotal.toFixed(2)}</span>
+              </div>
+              <div className="pt-2 border-t border-sky-500/30 flex justify-between items-center text-sm font-bold text-sky-800 dark:text-sky-200">
+                <span>SALDO RESTANTE:</span>
+                <span className="text-base font-extrabold">
+                  {currency} {remainingBalance.toFixed(2)}
+                </span>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
