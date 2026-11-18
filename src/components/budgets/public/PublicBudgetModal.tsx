@@ -1,13 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Printer, FileText, ShieldCheck } from 'lucide-react';
-import { BudgetDocumentHeader } from '../preview/BudgetDocumentHeader';
-import { BudgetDocumentBlocks } from '../preview/BudgetDocumentBlocks';
-import { BudgetDocumentTable } from '../preview/BudgetDocumentTable';
-import { PrintableBudgetDocument } from '../preview/PrintableBudgetDocument';
+import { Printer, FileText } from 'lucide-react';
+import {
+  BudgetPaperContent,
+  PrintableBudgetDocument,
+  printBudgetDocumentWithTitle,
+} from '../preview/PrintableBudgetDocument';
 import { sanitizeBudgetForClient } from '@/types/budget';
 
 interface PublicBudgetModalProps {
@@ -20,6 +21,8 @@ interface PublicBudgetModalProps {
   staffName?: string;
 }
 
+const A4_PREVIEW_WIDTH = 760;
+
 export const PublicBudgetModal: React.FC<PublicBudgetModalProps> = ({
   isOpen,
   onClose,
@@ -27,6 +30,11 @@ export const PublicBudgetModal: React.FC<PublicBudgetModalProps> = ({
   workOrder,
   staffName = 'Técnico Especializado',
 }) => {
+  const [scale, setScale] = useState(1);
+  const [contentHeight, setContentHeight] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
   // Robust JSON parsing for Go/PostgreSQL stringified budget payloads
   let parsedBudgetData = budgetData;
   if (typeof budgetData === 'string') {
@@ -60,13 +68,10 @@ export const PublicBudgetModal: React.FC<PublicBudgetModalProps> = ({
     blocks: [],
     items: [],
     labors: [],
+    advancePayments: [],
   };
 
   const cleanData = sanitizeBudgetForClient(raw) || {};
-
-  console.log('🔍 [PublicBudgetModal] Render State -> isOpen:', isOpen, '| hasBudgetData:', !!budgetData, '| hasWorkOrder:', !!workOrder);
-  console.log('🔍 [PublicBudgetModal] Raw budgetData received:', budgetData);
-  console.log('🔍 [PublicBudgetModal] Clean parsed data for view:', cleanData);
 
   // Robust dual mapping (camelCase & snake_case) to guarantee rendering on all devices
   const title = cleanData.title || cleanData.title_name || 'Presupuesto de Mantenimiento Técnico';
@@ -87,21 +92,70 @@ export const PublicBudgetModal: React.FC<PublicBudgetModalProps> = ({
   const notes = cleanData.notes;
   const termsAndConditions = cleanData.termsAndConditions || cleanData.terms_and_conditions;
 
+  // Proportionally scale A4 budget sheet on narrow mobile viewports so it fits edge-to-edge
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const updateMetrics = () => {
+      const containerEl = containerRef.current;
+      const contentEl = contentRef.current;
+      if (!containerEl || !contentEl) return;
+
+      const availableWidth = containerEl.clientWidth;
+      const nextScale =
+        availableWidth > 0 && availableWidth < A4_PREVIEW_WIDTH
+          ? availableWidth / A4_PREVIEW_WIDTH
+          : 1;
+
+      setScale(nextScale);
+      setContentHeight(contentEl.scrollHeight);
+    };
+
+    updateMetrics();
+
+    const observer = new ResizeObserver(updateMetrics);
+    if (containerRef.current) observer.observe(containerRef.current);
+    if (contentRef.current) observer.observe(contentRef.current);
+
+    return () => observer.disconnect();
+  }, [isOpen, budgetData, workOrder]);
+
   const handlePrintPDF = () => {
-    window.print();
+    printBudgetDocumentWithTitle(clientName, deviceModel);
+  };
+
+  const sharedDocProps = {
+    title,
+    mode,
+    clientName,
+    clientDni,
+    clientAddress,
+    clientPhoneNumber,
+    clientEmail,
+    deviceModel,
+    deviceSerialNumber,
+    blocks,
+    items,
+    labors,
+    advancePayments,
+    taxPercentage,
+    currency,
+    notes,
+    termsAndConditions,
+    staffName,
   };
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="inset-0 top-0 left-0 translate-x-0 translate-y-0 w-full h-[100dvh] max-w-none max-h-none rounded-none p-0 overflow-hidden flex flex-col gap-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[90vw] sm:max-w-3xl lg:max-w-5xl sm:h-auto sm:max-h-[92vh] sm:rounded-lg bg-card border-border shadow-2xl no-print">
-          <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b shrink-0 flex flex-row items-center justify-between gap-2 pr-12 sm:pr-12">
+        <DialogContent className="inset-0 top-0 left-0 translate-x-0 translate-y-0 w-full h-[100dvh] max-w-none max-h-none rounded-none p-0 overflow-hidden flex flex-col gap-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[94vw] sm:max-w-4xl lg:max-w-5xl sm:h-auto sm:max-h-[92vh] sm:rounded-lg bg-slate-100 border-slate-300 shadow-2xl no-print">
+          <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-200 bg-slate-100 shrink-0 flex flex-row items-center justify-between gap-2 pr-12 sm:pr-12">
             <div className="min-w-0">
-              <DialogTitle className="text-sm sm:text-lg font-bold uppercase text-foreground flex items-center gap-2 truncate">
+              <DialogTitle className="text-sm sm:text-base font-bold uppercase text-slate-900 flex items-center gap-2 truncate">
                 <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-tertiary shrink-0" />
                 <span className="truncate">Presupuesto Oficial</span>
               </DialogTitle>
-              <DialogDescription className="text-[11px] sm:text-xs font-mono text-typography truncate">
+              <DialogDescription className="text-[11px] sm:text-xs font-mono text-slate-600 truncate">
                 Visualización autorizada para cliente (Validez 10 días)
               </DialogDescription>
             </div>
@@ -109,10 +163,9 @@ export const PublicBudgetModal: React.FC<PublicBudgetModalProps> = ({
             <div className="hidden sm:flex items-center gap-2 shrink-0">
               <Button
                 type="button"
-                variant="outline"
                 size="sm"
                 onClick={handlePrintPDF}
-                className="h-8 text-xs gap-1.5 border-primary/50 text-primary hover:bg-primary/10 font-bold uppercase"
+                className="h-8 text-xs gap-1.5 bg-tertiary hover:bg-tertiary/90 text-tertiary-foreground font-bold uppercase"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Descargar PDF</span>
@@ -120,62 +173,38 @@ export const PublicBudgetModal: React.FC<PublicBudgetModalProps> = ({
             </div>
           </DialogHeader>
 
-          {/* Client Document Body (Responsive Mobile Container) */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 space-y-6">
-            {/* Header with Client PII */}
-            <BudgetDocumentHeader
-              title={title}
-              mode={mode}
-              clientName={clientName}
-              clientDni={clientDni}
-              clientAddress={clientAddress}
-              clientPhoneNumber={clientPhoneNumber}
-              clientEmail={clientEmail}
-              deviceModel={deviceModel}
-              deviceSerialNumber={deviceSerialNumber}
-              currency={currency}
-            />
-
-            {/* Dynamic Content Blocks */}
-            <BudgetDocumentBlocks blocks={blocks} />
-
-            {/* Table & Totals (Strictly Sanitized Public View) */}
-            <BudgetDocumentTable
-              items={items}
-              labors={labors}
-              advancePayments={advancePayments}
-              taxPercentage={taxPercentage}
-              currency={currency}
-              mode={mode}
-            />
-
-            {/* Notes & Terms */}
-            {(notes || termsAndConditions) && (
-              <div className="pt-4 border-t space-y-3 text-xs">
-                {notes && (
-                  <div className="p-3 bg-muted/30 rounded-lg space-y-1">
-                    <h5 className="font-semibold text-foreground">Aclaraciones y Observaciones</h5>
-                    <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{notes}</p>
-                  </div>
-                )}
-
-                {termsAndConditions && (
-                  <div className="p-3 border border-dashed rounded-lg space-y-1 text-muted-foreground">
-                    <h5 className="font-semibold text-foreground flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
-                      Términos y Condiciones
-                    </h5>
-                    <p className="leading-relaxed whitespace-pre-line text-[11px]">{termsAndConditions}</p>
-                  </div>
-                )}
+          {/* Auto-Scaled A4 Official Document Preview Container */}
+          <div className="flex-1 overflow-y-auto p-3 sm:p-6">
+            <div ref={containerRef} className="w-full max-w-4xl mx-auto">
+              <div
+                className="overflow-hidden mx-auto"
+                style={{
+                  width: scale < 1 ? '100%' : undefined,
+                  height: scale < 1 && contentHeight ? `${contentHeight * scale}px` : undefined,
+                }}
+              >
+                <div
+                  ref={contentRef}
+                  style={
+                    scale < 1
+                      ? {
+                          width: `${A4_PREVIEW_WIDTH}px`,
+                          transform: `scale(${scale})`,
+                          transformOrigin: 'top left',
+                        }
+                      : undefined
+                  }
+                >
+                  <BudgetPaperContent {...sharedDocProps} />
+                </div>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Bottom Action Footer for Mobile & Desktop */}
-          <div className="px-4 py-3 sm:px-6 border-t shrink-0 bg-card flex flex-col sm:flex-row items-center justify-between gap-2.5">
-            <p className="text-[11px] font-mono text-muted-foreground text-center sm:text-left">
-              Presupuesto emitido por <strong className="text-foreground">{staffName}</strong>
+          <div className="px-4 py-3 sm:px-6 border-t border-slate-200 shrink-0 bg-white flex flex-col sm:flex-row items-center justify-between gap-2.5">
+            <p className="text-[11px] font-mono text-slate-600 text-center sm:text-left">
+              Presupuesto emitido por <strong className="text-slate-900">{staffName}</strong>
             </p>
             <Button
               type="button"
@@ -189,27 +218,8 @@ export const PublicBudgetModal: React.FC<PublicBudgetModalProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* High-Contrast A4 Printable Document Engine for Client PDF Downloads */}
-      <PrintableBudgetDocument
-        title={title}
-        mode={mode}
-        clientName={clientName}
-        clientDni={clientDni}
-        clientAddress={clientAddress}
-        clientPhoneNumber={clientPhoneNumber}
-        clientEmail={clientEmail}
-        deviceModel={deviceModel}
-        deviceSerialNumber={deviceSerialNumber}
-        blocks={blocks}
-        items={items}
-        labors={labors}
-        advancePayments={advancePayments}
-        taxPercentage={taxPercentage}
-        currency={currency}
-        notes={notes}
-        termsAndConditions={termsAndConditions}
-        staffName={staffName}
-      />
+      {/* High-Contrast A4 Printable Document Engine for Client PDF Downloads (Only mounted when modal is open) */}
+      {isOpen && <PrintableBudgetDocument {...sharedDocProps} />}
     </>
   );
 };

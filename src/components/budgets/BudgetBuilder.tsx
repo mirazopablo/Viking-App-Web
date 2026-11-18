@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { budgetFormSchema, BudgetFormSchemaType } from '@/lib/validations/budget';
 import { BudgetEditor } from './editor/BudgetEditor';
 import { BudgetLivePreview } from './preview/BudgetLivePreview';
+import { printBudgetDocumentWithTitle } from './preview/PrintableBudgetDocument';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Save, Eye, Edit3, Columns, ArrowLeft, Printer } from 'lucide-react';
@@ -143,7 +144,8 @@ export const BudgetBuilder: React.FC<BudgetBuilderProps> = ({
   }, [workOrderId, methods]);
 
   const handlePrintPDF = () => {
-    window.print();
+    const values = methods.getValues();
+    printBudgetDocumentWithTitle(values.clientName, values.deviceModel);
   };
 
   const onSubmit = async (data: BudgetFormSchemaType) => {
@@ -282,7 +284,7 @@ export const BudgetBuilder: React.FC<BudgetBuilderProps> = ({
             <TabsContent value="edit" className="no-print">
               <BudgetEditor diagnosticPoints={diagnosticPoints} />
             </TabsContent>
-            <TabsContent value="preview">
+            <TabsContent value="preview" forceMount className="data-[state=inactive]:hidden">
               <BudgetLivePreview staffName={resolvedStaffName} />
             </TabsContent>
           </Tabs>

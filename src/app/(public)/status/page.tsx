@@ -284,21 +284,22 @@ export default function PublicStatusPage() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto space-y-6 animate-fadeIn">
+    <div className="w-full max-w-3xl mx-auto space-y-5 sm:space-y-6 animate-fadeIn no-print">
       {/* Top Action Header */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2.5">
         <Button
           variant="outline"
           size="sm"
           onClick={handleResetSearch}
-          className="text-xs font-mono tracking-wider uppercase border-border hover:border-tertiary text-foreground shrink-0"
+          className="text-xs font-mono tracking-wider uppercase border-border hover:border-tertiary text-foreground shrink-0 h-8 px-2.5 sm:px-3"
         >
-          <ArrowLeft className="mr-2 h-3.5 w-3.5" />
+          <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
           {t.statusPage.tryAgainButton}
         </Button>
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-typography uppercase hidden sm:inline">
-            WOVIK: <strong className="text-tertiary font-bold tracking-wider">{workOrder.securityCode}</strong>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span className="text-[11px] sm:text-xs font-mono text-typography uppercase px-2.5 py-1 rounded-md bg-secondary/30 border border-border/60">
+            <span className="hidden xs:inline">WOVIK: </span>
+            <strong className="text-tertiary font-bold tracking-wider">{workOrder.securityCode}</strong>
           </span>
           <NotificationFeed
             workOrderId={workOrder.id}

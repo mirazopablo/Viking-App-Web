@@ -27,7 +27,38 @@ export interface PrintableBudgetDocumentProps {
   staffName?: string;
 }
 
-export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = ({
+export function generateBudgetDocumentFilename(
+  clientName?: string,
+  deviceModel?: string
+): string {
+  const todayStr = new Date()
+    .toLocaleDateString('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    })
+    .replace(/\//g, '-');
+  const rawSubject = (clientName || deviceModel || 'Cliente')
+    .trim()
+    .replace(/[^a-zA-Z0-9_-]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  return `Presupuesto_${rawSubject || 'Taller'}_${todayStr}`;
+}
+
+export function printBudgetDocumentWithTitle(
+  clientName?: string,
+  deviceModel?: string
+): void {
+  if (typeof window === 'undefined') return;
+  const originalTitle = window.document.title;
+  window.document.title = generateBudgetDocumentFilename(clientName, deviceModel);
+  window.print();
+  window.setTimeout(() => {
+    window.document.title = originalTitle;
+  }, 1000);
+}
+
+export const BudgetPaperContent: React.FC<PrintableBudgetDocumentProps> = ({
   title,
   mode = 'MAINTENANCE',
   clientName = '',
@@ -79,11 +110,7 @@ export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (
   });
 
   return (
-    <PrintPortal>
-      <div
-        id="viking-printable-budget-document"
-        className="hidden print:block bg-white text-slate-900 font-sans p-6 space-y-4 max-w-4xl mx-auto border-none shadow-none text-xs"
-      >
+    <div className="bg-white text-slate-900 font-sans p-6 space-y-4 max-w-4xl mx-auto border border-slate-200 shadow-sm print:border-none print:shadow-none print:p-2 text-xs">
       {/* 1. Official Header: SVG Logo (+10% size) on Dark Container + EL VIKINGO STORE + Contact Info */}
       <div className="flex items-start justify-between border-b-2 border-slate-900 pb-3">
         <div className="flex items-start gap-4">
@@ -366,6 +393,18 @@ export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (
         </div>
       </div>
     </div>
+  );
+};
+
+export const PrintableBudgetDocument: React.FC<PrintableBudgetDocumentProps> = (props) => {
+  return (
+    <PrintPortal>
+      <div
+        id="viking-printable-budget-document"
+        className="hidden print:block bg-white text-slate-900 font-sans p-0 m-0 w-full border-none shadow-none text-xs"
+      >
+        <BudgetPaperContent {...props} />
+      </div>
     </PrintPortal>
   );
 };

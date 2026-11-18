@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { quickQuoteFormSchema, QuickQuoteFormSchemaType } from '@/lib/validations/quick-quote';
 import { QuotesEditor } from './editor/QuotesEditor';
 import { QuotesLivePreview } from './preview/QuotesLivePreview';
+import { printBudgetDocumentWithTitle } from '@/components/budgets/preview/PrintableBudgetDocument';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -46,6 +47,13 @@ interface QuickQuoteBuilderProps {
   onSave?: (data: QuickQuoteFormSchemaType) => Promise<void>;
   onDelete?: () => Promise<void> | void;
   onCancel?: () => void;
+}
+
+function createLocalQuoteId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
 export const QuickQuoteBuilder: React.FC<QuickQuoteBuilderProps> = ({
@@ -144,7 +152,8 @@ export const QuickQuoteBuilder: React.FC<QuickQuoteBuilderProps> = ({
   }, [quoteId, methods]);
 
   const handlePrintPDF = () => {
-    window.print();
+    const values = methods.getValues();
+    printBudgetDocumentWithTitle(values.clientName, values.deviceModel);
   };
 
   const handleConvertToBilling = (target: 'sale-note' | 'invoice-c') => {
@@ -175,12 +184,7 @@ export const QuickQuoteBuilder: React.FC<QuickQuoteBuilderProps> = ({
       const currency = data.currency || '$';
 
       if (typeof window !== 'undefined') {
-        const generatedId =
-          quoteId === 'new_quote'
-            ? typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-              ? crypto.randomUUID()
-              : `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
-            : quoteId;
+        const generatedId = quoteId === 'new_quote' ? createLocalQuoteId() : quoteId;
         localStorage.setItem(`viking_quick_quote_${generatedId}`, JSON.stringify(data));
       }
 
@@ -312,7 +316,7 @@ export const QuickQuoteBuilder: React.FC<QuickQuoteBuilderProps> = ({
             <TabsContent value="edit" className="no-print">
               <QuotesEditor />
             </TabsContent>
-            <TabsContent value="preview">
+            <TabsContent value="preview" forceMount className="data-[state=inactive]:hidden">
               <QuotesLivePreview staffName={resolvedStaffName} />
             </TabsContent>
           </Tabs>
