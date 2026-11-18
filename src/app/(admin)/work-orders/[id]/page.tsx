@@ -400,25 +400,25 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
       <Card className="bg-card border-border shadow-2xl overflow-hidden">
         <div className="h-2 w-full bg-tertiary" />
         <CardHeader className="pb-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-mono font-black text-tertiary tracking-widest bg-tertiary/15 px-3 py-1 rounded border border-tertiary/40 uppercase">
+          <div className="space-y-1.5 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs sm:text-sm font-mono font-black text-tertiary tracking-widest bg-tertiary/15 px-2.5 py-1 rounded border border-tertiary/40 uppercase whitespace-nowrap shrink-0">
                 {workOrder.securityCode || "WOVIK-----"}
               </span>
               <StatusBadge status={workOrder.repairStatus} />
             </div>
-            <CardTitle className="text-xl sm:text-2xl font-extrabold uppercase text-foreground tracking-tight pt-1">
+            <CardTitle className="text-xl sm:text-2xl font-extrabold uppercase text-foreground tracking-tight pt-1 break-words">
               {workOrder.deviceBrand} {workOrder.deviceModel}
             </CardTitle>
             <CardDescription className="text-xs font-mono text-typography flex items-center gap-4">
               <span className="flex items-center gap-1" suppressHydrationWarning>
-                <Calendar className="w-3 h-3 text-tertiary" />
+                <Calendar className="w-3 h-3 text-tertiary shrink-0" />
                 Ingresado: {new Date(workOrder.createdAt).toLocaleString("es-AR")}
               </span>
             </CardDescription>
           </div>
 
-          <div className="w-full lg:w-auto min-w-[360px] max-w-xl">
+          <div className="w-full min-w-0 lg:w-auto lg:min-w-[360px] max-w-xl">
             <StatusUpdater
               workOrderId={workOrder.id}
               currentStatus={workOrder.repairStatus}
@@ -437,12 +437,12 @@ export default function WorkOrderDetailPage({ params }: Readonly<WorkOrderDetail
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Client Card */}
             <div className="space-y-3 p-4 rounded-xl bg-secondary/15 border border-border/60">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-xs font-bold text-tertiary uppercase tracking-wider">
-                  <User className="w-4 h-4" />
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="flex items-center gap-1.5 text-xs font-bold text-tertiary uppercase tracking-wider">
+                  <User className="w-4 h-4 shrink-0" />
                   <span>Titular / Propietario</span>
                 </span>
-                <span className="text-[10px] font-mono bg-secondary/50 px-2 py-0.5 rounded text-typography">
+                <span className="text-[10px] font-mono bg-secondary/50 px-2 py-0.5 rounded text-typography whitespace-nowrap shrink-0">
                   DNI: {workOrder.clientDni || "---"}
                 </span>
               </div>

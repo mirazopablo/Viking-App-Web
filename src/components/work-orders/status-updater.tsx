@@ -61,12 +61,14 @@ export const StatusUpdater: React.FC<StatusUpdaterProps> = ({
   const hasChanged = selectedStatus !== currentStatus;
 
   return (
-    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-secondary/20 p-3 rounded-xl border border-border/60">
-      <div className="flex items-center gap-2 px-2 shrink-0">
-        <span className="text-xs font-mono uppercase tracking-wider text-typography">Transición:</span>
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 bg-secondary/20 p-3 rounded-xl border border-border/60 w-full min-w-0">
+      <div className="flex items-center gap-2 px-1 sm:px-2 shrink-0">
+        <span className="text-xs font-mono uppercase tracking-wider text-typography font-semibold">
+          Estado del trabajo:
+        </span>
       </div>
 
-      <div className="flex-1 min-w-[260px]">
+      <div className="flex-1 min-w-0 w-full">
         <select
           value={selectedStatus}
           onChange={(e) => setSelectedStatus(e.target.value as RepairStatus)}
