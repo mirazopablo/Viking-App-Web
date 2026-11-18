@@ -142,8 +142,7 @@ export default function DevicesInventoryPage() {
     <div className="space-y-6 animate-fadeIn pb-12">
       {/* Top Bar */}
       <AdminPageHeader
-        title="Parque de Hardware"
-        subtitle="Inventario histórico de dispositivos y números de serie en taller."
+        title="Equipos de Clientes"
         icon={Smartphone}
         iconClassName="w-7 h-7 text-success"
         onRefresh={() => refetch()}

@@ -76,8 +76,7 @@ export default function QuotesDashboardPage() {
   return (
     <div className="space-y-6 animate-fadeIn pb-12">
       <AdminPageHeader
-        title="Presupuestario General"
-        subtitle="Generador rápido de presupuestos sin necesidad de crear una Orden de Trabajo."
+        title="Presupuestos"
         icon={Calculator}
         iconClassName="w-7 h-7 text-primary"
         onRefresh={loadQuotes}

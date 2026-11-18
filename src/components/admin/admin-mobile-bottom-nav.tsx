@@ -78,12 +78,12 @@ export function AdminMobileBottomNav() {
     },
   ];
 
-  const devicesNavItem: NavItem = {
-    name: "Equipos",
-    href: "/devices",
-    icon: Smartphone,
-    activeColor: "text-success",
-    iconColor: "fill-success/20",
+  const billingNavItem: NavItem = {
+    name: "Facturación",
+    href: "/billing",
+    icon: Receipt,
+    activeColor: "text-emerald-500",
+    iconColor: "fill-emerald-500/20",
     baseColor: "text-typography/70",
     exact: false,
   };
@@ -95,7 +95,7 @@ export function AdminMobileBottomNav() {
     pathname === "/billing/sales-notes/new";
 
   const isMoreRouteActive =
-    pathname === "/billing" ||
+    pathname.startsWith("/devices") ||
     pathname.startsWith("/clients") ||
     pathname.startsWith("/availability");
 
@@ -301,22 +301,22 @@ export function AdminMobileBottomNav() {
           </div>
 
           <Link
-            href="/billing"
+            href="/devices"
             onClick={closeDrawer}
             className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
-              pathname.startsWith("/billing")
-                ? "bg-emerald-500/10 border-emerald-500/40"
+              pathname.startsWith("/devices")
+                ? "bg-success/10 border-success/40"
                 : "bg-secondary/40 hover:bg-secondary/80 border-border/50"
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
-                <Receipt className="w-4 h-4" />
+              <div className="w-9 h-9 rounded-lg bg-success/15 border border-success/30 flex items-center justify-center text-success">
+                <Smartphone className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs font-bold text-foreground">Facturación</p>
+                <p className="text-xs font-bold text-foreground">Equipos</p>
                 <p className="text-[11px] text-typography/70">
-                  Historial de Facturas C, Notas X y control
+                  Inventario de dispositivos registrados
                 </p>
               </div>
             </div>
@@ -414,9 +414,9 @@ export function AdminMobileBottomNav() {
             </button>
           </div>
 
-          {/* Right Items: Equipos, Más */}
+          {/* Right Items: Facturación, Más */}
           <div className="flex-1 flex justify-around items-center h-full">
-            {renderNavItem(devicesNavItem)}
+            {renderNavItem(billingNavItem)}
 
             <button
               type="button"

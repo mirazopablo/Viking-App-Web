@@ -24,6 +24,7 @@ import limpiezaAntesImg from "@/components/assets/images/limpieza2_antes.jpg";
 import limpiezaDespuesImg from "@/components/assets/images/limpieza2_despues.jpg";
 import mantenimientoAntesImg from "@/components/assets/images/mantenimiento_antes.jpg";
 import mantenimientoDespuesImg from "@/components/assets/images/mantenimiento_depues.jpg";
+import { APP_VERSION } from "@/lib/version";
 
 /**
  * Root Landing Page (/):
@@ -363,7 +364,7 @@ export default function HomePage() {
           <p>
             &copy; {new Date().getFullYear()}{" "}
             <a
-              href="http://mirazopablo.github.io/"
+              href="http://pablomirazo.com.ar/"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-tertiary underline transition-colors font-semibold"
@@ -381,6 +382,7 @@ export default function HomePage() {
             </a>
             . {t.home.footer.rightsReserved}
           </p>
+          <p className="text-[12px] opacity-75">{APP_VERSION}</p>
         </div>
       </footer>
     </div>

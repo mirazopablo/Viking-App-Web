@@ -71,7 +71,7 @@ export const DiagnosticTimeline: React.FC<DiagnosticTimelineProps> = ({
 
   return (
     <>
-      <div className="relative border-l-2 border-tertiary/40 ml-4 md:ml-6 pl-6 space-y-6 my-4">
+      <div className="relative border-l-2 border-tertiary/40 ml-2 sm:ml-4 md:ml-6 pl-4 sm:pl-6 space-y-5 sm:space-y-6 my-4">
         {sortedPoints.map((point, index) => {
           const formattedDate = new Date(point.createdAt).toLocaleDateString("es-AR", {
             day: "2-digit",
@@ -84,10 +84,10 @@ export const DiagnosticTimeline: React.FC<DiagnosticTimelineProps> = ({
           return (
             <div key={point.id || index} className="relative group">
               {/* Timeline Node Dot */}
-              <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-tertiary border-4 border-background group-hover:scale-125 transition-transform duration-200" />
+              <div className="absolute -left-[23px] sm:-left-[31px] top-1.5 w-4 h-4 rounded-full bg-tertiary border-4 border-background group-hover:scale-125 transition-transform duration-200" />
 
               <Card className="bg-card/80 backdrop-blur-sm border-border/80 hover:border-tertiary/50 transition-all duration-300 shadow-sm hover:shadow-md">
-                <CardContent className="p-5 space-y-3">
+                <CardContent className="p-3.5 sm:p-5 space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-2.5">
                     <h4 className="font-semibold text-foreground text-base tracking-tight flex items-center gap-2">
                       <span className="w-1.5 h-4 bg-tertiary rounded-full inline-block" />
@@ -123,13 +123,13 @@ export const DiagnosticTimeline: React.FC<DiagnosticTimelineProps> = ({
                         <FileText className="w-4 h-4" />
                         <span>PRESUPUESTO ASOCIADO</span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
                         {isPublic || onViewBudget ? (
                           <Button
                             type="button"
                             onClick={onViewBudget}
                             size="sm"
-                            className="h-8 text-xs font-semibold gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+                            className="w-full sm:w-auto justify-center h-9 sm:h-8 text-xs font-semibold gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                             <span>Ver / Descargar PDF</span>
@@ -137,7 +137,7 @@ export const DiagnosticTimeline: React.FC<DiagnosticTimelineProps> = ({
                         ) : (
                           <a
                             href={`/work-orders/${point.workOrderId}/budget`}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+                            className="w-full sm:w-auto justify-center inline-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 text-xs font-semibold rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                             <span>Ver / Descargar PDF</span>
@@ -195,6 +195,7 @@ export const DiagnosticTimeline: React.FC<DiagnosticTimelineProps> = ({
           </DialogHeader>
           <div className="relative rounded-xl overflow-hidden bg-black/80 flex items-center justify-center max-h-[75vh] border border-border">
             {lightboxImage && (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={getImageUrl(lightboxImage.url)}
                 alt={lightboxImage.title}
