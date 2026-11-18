@@ -161,20 +161,20 @@ export default function BillingManagementPage() {
       items:
         inv.items && inv.items.length > 0
           ? inv.items.map((it) => ({
-              description: it.description,
-              itemType: it.item_type,
-              quantity: it.quantity,
-              unitPrice: it.unit_price,
-              totalPrice: it.total_price,
-            }))
+            description: it.description,
+            itemType: it.item_type,
+            quantity: it.quantity,
+            unitPrice: it.unit_price,
+            totalPrice: it.total_price,
+          }))
           : [
-              {
-                description: "Servicio Técnico Especializado de Taller",
-                quantity: 1,
-                unitPrice: inv.importe_total,
-                totalPrice: inv.importe_total,
-              },
-            ],
+            {
+              description: "Servicio Técnico Especializado de Taller",
+              quantity: 1,
+              unitPrice: inv.importe_total,
+              totalPrice: inv.importe_total,
+            },
+          ],
       totals: {
         subtotal: inv.importe_total,
         totalAmount: inv.importe_total,
@@ -214,15 +214,14 @@ export default function BillingManagementPage() {
     usagePercentage > 85
       ? "bg-rose-500"
       : usagePercentage > 60
-      ? "bg-amber-500"
-      : "bg-emerald-500";
+        ? "bg-amber-500"
+        : "bg-emerald-500";
 
   return (
     <div className="space-y-6 no-print">
       {/* Page Header */}
       <AdminPageHeader
-        title="Facturación & Control Fiscal"
-        subtitle="Gestión unificada de Facturas C (ARCA WSFEv1), Notas de Venta internas y control de Monotributo."
+        title="Facturación"
         icon={Receipt}
         iconClassName="w-7 h-7 text-emerald-500"
         onRefresh={loadData}

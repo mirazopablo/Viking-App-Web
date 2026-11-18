@@ -125,8 +125,7 @@ export default function ClientsDirectoryPage() {
     <div className="space-y-6 animate-fadeIn pb-12">
       {/* Top Bar */}
       <AdminPageHeader
-        title="Directorio de Clientes"
-        subtitle="Gestión centralizada de titulares e información de contacto del taller."
+        title="Clientes"
         icon={Users}
         iconClassName="w-7 h-7 text-info"
         onRefresh={() => refetch()}
