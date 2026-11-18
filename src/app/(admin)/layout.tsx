@@ -70,102 +70,102 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
           <div className="flex items-center gap-2 sm:gap-3 justify-end">
             <div className="hidden md:flex items-center gap-2 sm:gap-3 flex-wrap">
               <Link href="/work-orders">
-              <Button
-                variant={pathname === "/work-orders" ? "default" : "ghost"}
-                size="sm"
-                className={`text-xs font-mono tracking-wider uppercase ${pathname === "/work-orders"
-                  ? "bg-secondary text-foreground font-bold border border-border"
-                  : "text-typography hover:text-foreground"
-                  }`}
-              >
-                <List className="w-3.5 h-3.5 mr-1.5 text-tertiary" />
-                <span className="hidden md:inline">Órdenes</span>
-              </Button>
-            </Link>
+                <Button
+                  variant={pathname === "/work-orders" ? "default" : "ghost"}
+                  size="sm"
+                  className={`text-xs font-mono tracking-wider uppercase ${pathname === "/work-orders"
+                    ? "bg-secondary text-foreground font-bold border border-border"
+                    : "text-typography hover:text-foreground"
+                    }`}
+                >
+                  <List className="w-3.5 h-3.5 mr-1.5 text-tertiary" />
+                  <span className="hidden md:inline">Órdenes</span>
+                </Button>
+              </Link>
 
-            <Link href="/clients">
-              <Button
-                variant={pathname.startsWith("/clients") ? "default" : "ghost"}
-                size="sm"
-                className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/clients")
-                  ? "bg-secondary text-foreground font-bold border border-border"
-                  : "text-typography hover:text-foreground"
-                  }`}
-              >
-                <Users className="w-3.5 h-3.5 mr-1.5 text-info" />
-                <span className="hidden md:inline">Clientes</span>
-              </Button>
-            </Link>
+              <Link href="/clients">
+                <Button
+                  variant={pathname.startsWith("/clients") ? "default" : "ghost"}
+                  size="sm"
+                  className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/clients")
+                    ? "bg-secondary text-foreground font-bold border border-border"
+                    : "text-typography hover:text-foreground"
+                    }`}
+                >
+                  <Users className="w-3.5 h-3.5 mr-1.5 text-info" />
+                  <span className="hidden md:inline">Clientes</span>
+                </Button>
+              </Link>
 
-            <Link href="/devices">
-              <Button
-                variant={pathname.startsWith("/devices") ? "default" : "ghost"}
-                size="sm"
-                className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/devices")
-                  ? "bg-secondary text-foreground font-bold border border-border"
-                  : "text-typography hover:text-foreground"
-                  }`}
-              >
-                <Smartphone className="w-3.5 h-3.5 mr-1.5 text-success" />
-                <span className="hidden md:inline">Equipos</span>
-              </Button>
-            </Link>
+              <Link href="/devices">
+                <Button
+                  variant={pathname.startsWith("/devices") ? "default" : "ghost"}
+                  size="sm"
+                  className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/devices")
+                    ? "bg-secondary text-foreground font-bold border border-border"
+                    : "text-typography hover:text-foreground"
+                    }`}
+                >
+                  <Smartphone className="w-3.5 h-3.5 mr-1.5 text-success" />
+                  <span className="hidden md:inline">Equipos</span>
+                </Button>
+              </Link>
 
-            <Link href="/quotes">
-              <Button
-                variant={pathname.startsWith("/quotes") ? "default" : "ghost"}
-                size="sm"
-                className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/quotes")
-                  ? "bg-secondary text-foreground font-bold border border-border"
-                  : "text-typography hover:text-foreground"
-                  }`}
-              >
-                <Calculator className="w-3.5 h-3.5 mr-1.5 text-primary" />
-                <span className="hidden md:inline">Presupuestos</span>
-              </Button>
-            </Link>
+              <Link href="/quotes">
+                <Button
+                  variant={pathname.startsWith("/quotes") ? "default" : "ghost"}
+                  size="sm"
+                  className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/quotes")
+                    ? "bg-secondary text-foreground font-bold border border-border"
+                    : "text-typography hover:text-foreground"
+                    }`}
+                >
+                  <Calculator className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                  <span className="hidden md:inline">Presupuestos</span>
+                </Button>
+              </Link>
 
-            <Link href="/availability">
-              <Button
-                variant={pathname.startsWith("/availability") ? "default" : "ghost"}
-                size="sm"
-                className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/availability")
-                  ? "bg-secondary text-foreground font-bold border border-border"
-                  : "text-typography hover:text-foreground"
-                  }`}
-              >
-                <Calendar className="w-3.5 h-3.5 mr-1.5 text-warning" />
-                <span className="hidden md:inline">Agenda</span>
-              </Button>
-            </Link>
+              <Link href="/availability">
+                <Button
+                  variant={pathname.startsWith("/availability") ? "default" : "ghost"}
+                  size="sm"
+                  className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/availability")
+                    ? "bg-secondary text-foreground font-bold border border-border"
+                    : "text-typography hover:text-foreground"
+                    }`}
+                >
+                  <Calendar className="w-3.5 h-3.5 mr-1.5 text-warning" />
+                  <span className="hidden md:inline">Agenda</span>
+                </Button>
+              </Link>
 
-            <Link href="/billing">
-              <Button
-                variant={pathname.startsWith("/billing") ? "default" : "ghost"}
-                size="sm"
-                className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/billing")
-                  ? "bg-secondary text-foreground font-bold border border-border"
-                  : "text-typography hover:text-foreground"
-                  }`}
-              >
-                <Receipt className="w-3.5 h-3.5 mr-1.5 text-emerald-500" />
-                <span className="hidden md:inline">Facturación</span>
-              </Button>
-            </Link>
+              <Link href="/billing">
+                <Button
+                  variant={pathname.startsWith("/billing") ? "default" : "ghost"}
+                  size="sm"
+                  className={`text-xs font-mono tracking-wider uppercase ${pathname.startsWith("/billing")
+                    ? "bg-secondary text-foreground font-bold border border-border"
+                    : "text-typography hover:text-foreground"
+                    }`}
+                >
+                  <Receipt className="w-3.5 h-3.5 mr-1.5 text-emerald-500" />
+                  <span className="hidden md:inline">Facturación</span>
+                </Button>
+              </Link>
 
-            <Link href="/work-orders/new">
-              <Button
-                variant={pathname === "/work-orders/new" ? "default" : "outline"}
-                size="sm"
-                className={`text-xs font-mono tracking-wider uppercase ${pathname === "/work-orders/new"
-                  ? "bg-tertiary text-tertiary-foreground font-bold shadow-md shadow-tertiary/20"
-                  : "border-tertiary/40 text-tertiary hover:bg-tertiary/10"
-                  }`}
-              >
-                <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
-                <span>Nueva Orden</span>
-              </Button>
-            </Link>
+              <Link href="/work-orders/new">
+                <Button
+                  variant={pathname === "/work-orders/new" ? "default" : "outline"}
+                  size="sm"
+                  className={`text-xs font-mono tracking-wider uppercase ${pathname === "/work-orders/new"
+                    ? "bg-tertiary text-tertiary-foreground font-bold shadow-md shadow-tertiary/20"
+                    : "border-tertiary/40 text-tertiary hover:bg-tertiary/10"
+                    }`}
+                >
+                  <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
+                  <span>Nueva Orden</span>
+                </Button>
+              </Link>
             </div>
 
             <div className="h-6 w-px bg-border/60 mx-1 hidden sm:block" />
@@ -191,8 +191,8 @@ export default function AdminLayout({ children }: Readonly<AdminLayoutProps>) {
       {/* Workshop Footer */}
       <footer className="w-full border-t border-border/40 py-6 px-4 text-center text-xs text-typography/60 font-mono no-print">
         <div className="max-w-6xl mx-auto flex flex-col items-center justify-center gap-1">
-          <p>&copy; {new Date().getFullYear()} Zonda Solutions. Entorno Técnico Protegido.</p>
-          <p className="text-[9px] opacity-50">{APP_VERSION}</p>
+          <p>&copy; {new Date().getFullYear()} Viking App - Sistema de Gestion de Trabajos Informaticos</p>
+          <p className="text-[12px] opacity-75">{APP_VERSION}</p>
         </div>
       </footer>
       <AdminMobileBottomNav />
