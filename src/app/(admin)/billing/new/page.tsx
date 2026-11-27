@@ -59,6 +59,9 @@ import { UserResponseDTO } from "@/types/user";
 import { AfipQrCode } from "@/components/common/afip-qr-code";
 import { ReceiptPreviewDialog } from "@/components/billing/receipt-preview-dialog";
 import { UnifiedCommercialDocumentProps } from "@/components/billing/unified-commercial-document";
+import { SearchPicker, SearchPickerOption } from "@/components/common/search-picker";
+import { DocumentInput } from "@/components/shared/document-input";
+import { getDocumentDisplayInfo } from "@/lib/document-utils";
 
 function getTodayAfipDate(): string {
   const d = new Date();
@@ -66,13 +69,6 @@ function getTodayAfipDate(): string {
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${year}${month}${day}`;
-}
-
-function getFirstDayOfMonthAfipDate(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  return `${year}${month}01`;
 }
 
 function formatAfipDateDisplay(dateStr?: string): string {
@@ -139,6 +135,48 @@ export default function NewDirectInvoicePage() {
   // Local Viking DB Client Lookup
   const [isSearchingClient, setIsSearchingClient] = useState<boolean>(false);
   const [foundClientMatch, setFoundClientMatch] = useState<UserResponseDTO | null>(null);
+  const [clientPickerCache, setClientPickerCache] = useState<Record<string, UserResponseDTO>>({});
+
+  const applyMatchedClient = (matched: UserResponseDTO) => {
+    const docInfo = getDocumentDisplayInfo(matched.dni);
+    setFoundClientMatch(matched);
+    setClientName(matched.name);
+    if (matched.address) {
+      setClientAddress(matched.address);
+    }
+    if (matched.dni) {
+      setDocNro(String(matched.dni));
+      setDocTipo(docInfo.arcaDocTipo);
+    }
+  };
+
+  const handleFetchWorkshopClients = async (term: string): Promise<SearchPickerOption[]> => {
+    const res = await userService.getUsers(term);
+    const list = res.data || [];
+    const nextCache: Record<string, UserResponseDTO> = {};
+    list.forEach((u) => {
+      nextCache[u.id] = u;
+    });
+    setClientPickerCache((prev) => ({ ...prev, ...nextCache }));
+    return list.map((u) => ({
+      id: u.id,
+      title: u.name,
+      subtitle: `${getDocumentDisplayInfo(u.dni).badgeText} - Tel: ${u.phoneNumber || "S/D"}`,
+      badge: getDocumentDisplayInfo(u.dni).label,
+    }));
+  };
+
+  const handleSelectWorkshopClient = (opt: SearchPickerOption | null) => {
+    if (!opt) {
+      setFoundClientMatch(null);
+      return;
+    }
+    const matched = clientPickerCache[opt.id];
+    if (matched) {
+      applyMatchedClient(matched);
+      toast.success(`Cliente seleccionado: ${matched.name}`, { duration: 2500 });
+    }
+  };
 
   const lookupVikingClient = async (queryNum: string) => {
     const cleanNum = queryNum.trim();
@@ -155,13 +193,7 @@ export default function NewDirectInvoicePage() {
         res.data?.[0];
 
       if (matched) {
-        setFoundClientMatch(matched);
-        if (!clientName || clientName === "Consumidor Final") {
-          setClientName(matched.name);
-        }
-        if (!clientAddress && matched.address) {
-          setClientAddress(matched.address);
-        }
+        applyMatchedClient(matched);
         toast.success(`Cliente encontrado en base del taller: ${matched.name}`, { duration: 3000 });
       } else {
         setFoundClientMatch(null);
@@ -292,11 +324,12 @@ export default function NewDirectInvoicePage() {
         setCurrentStep("form");
         toast.error("ARCA rechazó el comprobante. Revisa los datos ingresados.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errObj = error as { response?: { data?: { error?: string; message?: string } }; message?: string };
       const backendError =
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        error?.message ||
+        errObj?.response?.data?.error ||
+        errObj?.response?.data?.message ||
+        errObj?.message ||
         "Error al conectar con ARCA.";
       setRejectionMessage(backendError);
       setCurrentStep("form");
@@ -447,6 +480,19 @@ export default function NewDirectInvoicePage() {
                 </div>
 
                 <div>
+                  <Label className="text-xs font-mono uppercase text-muted-foreground font-semibold block mb-1">
+                    Seleccionar Cliente del Taller (Nombre / DNI / CUIT)
+                  </Label>
+                  <SearchPicker
+                    label=""
+                    placeholder="Buscar cliente por nombre, DNI o CUIT..."
+                    value={foundClientMatch?.id}
+                    onSelect={handleSelectWorkshopClient}
+                    fetchOptions={handleFetchWorkshopClients}
+                  />
+                </div>
+
+                <div>
                   <Label className="text-xs font-mono uppercase text-muted-foreground font-semibold">
                     Condición Frente al IVA del Cliente
                   </Label>
@@ -506,30 +552,38 @@ export default function NewDirectInvoicePage() {
                       )}
                     </div>
                     <div className="relative mt-1">
-                      <Input
-                        type="number"
-                        disabled={docTipo === 99}
-                        value={docNro}
-                        onChange={(e) => {
-                          setDocNro(e.target.value);
-                          if (foundClientMatch && String(foundClientMatch.dni) !== e.target.value) {
-                            setFoundClientMatch(null);
-                          }
-                        }}
-                        onBlur={() => {
-                          if (docTipo !== 99 && docNro && docNro.length >= 7) {
-                            lookupVikingClient(docNro);
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            lookupVikingClient(docNro);
-                          }
-                        }}
-                        placeholder={docTipo === 99 ? "0 (Consumidor Final)" : "Sin puntos ni guiones"}
-                        className="bg-secondary/20 border-border focus:border-tertiary text-foreground font-mono text-xs h-9 pr-8"
-                      />
+                      {docTipo === 99 ? (
+                        <Input
+                          type="text"
+                          disabled
+                          value="0 (Consumidor Final)"
+                          className="bg-secondary/20 border-border text-muted-foreground font-mono text-xs h-9"
+                        />
+                      ) : (
+                        <DocumentInput
+                          value={docNro === "0" ? "" : docNro}
+                          forcedKind={docTipo === 80 || docTipo === 86 ? "CUIT" : "DNI"}
+                          onKindChange={(kind) => setDocTipo(kind === "CUIT" ? 80 : 96)}
+                          onChange={(clean) => {
+                            setDocNro(clean);
+                            if (foundClientMatch && String(foundClientMatch.dni) !== clean) {
+                              setFoundClientMatch(null);
+                            }
+                          }}
+                          onBlur={() => {
+                            if (docNro && docNro.length >= 7) {
+                              lookupVikingClient(docNro);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              lookupVikingClient(docNro);
+                            }
+                          }}
+                          inputClassName="pr-8"
+                        />
+                      )}
                       {isSearchingClient && (
                         <Loader2 className="w-3.5 h-3.5 animate-spin absolute right-2.5 top-3 text-tertiary" />
                       )}
@@ -537,7 +591,7 @@ export default function NewDirectInvoicePage() {
                     {foundClientMatch && (
                       <span className="text-[10px] text-emerald-400 font-mono mt-1 flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3" />
-                        Cliente vinculado: {foundClientMatch.name}
+                        Cliente vinculado: {foundClientMatch.name} ({getDocumentDisplayInfo(foundClientMatch.dni).badgeText})
                       </span>
                     )}
                   </div>

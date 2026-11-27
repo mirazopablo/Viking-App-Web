@@ -8,10 +8,7 @@ import {
   AlertTriangle,
   ArrowRight,
   ArrowLeft,
-  FileText,
-  User,
   Calendar,
-  DollarSign,
   Loader2,
   Search,
   CheckCircle2,
@@ -47,6 +44,9 @@ import {
 import { invoiceService } from "@/services/invoice.service";
 import { userService } from "@/services/user.service";
 import { UserResponseDTO } from "@/types/user";
+import { SearchPicker, SearchPickerOption } from "@/components/common/search-picker";
+import { DocumentInput } from "@/components/shared/document-input";
+import { getDocumentDisplayInfo } from "@/lib/document-utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -68,13 +68,6 @@ function getTodayAfipDate(): string {
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${year}${month}${day}`;
-}
-
-function getFirstDayOfMonthAfipDate(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  return `${year}${month}01`;
 }
 
 function formatAfipDateDisplay(dateStr?: string): string {
@@ -128,6 +121,48 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
   // Local Viking DB Client Lookup
   const [isSearchingClient, setIsSearchingClient] = useState<boolean>(false);
   const [foundClientMatch, setFoundClientMatch] = useState<UserResponseDTO | null>(null);
+  const [clientPickerCache, setClientPickerCache] = useState<Record<string, UserResponseDTO>>({});
+
+  const applyMatchedClient = (matched: UserResponseDTO) => {
+    const docInfo = getDocumentDisplayInfo(matched.dni);
+    setFoundClientMatch(matched);
+    setClientName(matched.name);
+    if (matched.address) {
+      setClientAddress(matched.address);
+    }
+    if (matched.dni) {
+      setDocNro(String(matched.dni));
+      setDocTipo(docInfo.arcaDocTipo);
+    }
+  };
+
+  const handleFetchWorkshopClients = async (term: string): Promise<SearchPickerOption[]> => {
+    const res = await userService.getUsers(term);
+    const list = res.data || [];
+    const nextCache: Record<string, UserResponseDTO> = {};
+    list.forEach((u) => {
+      nextCache[u.id] = u;
+    });
+    setClientPickerCache((prev) => ({ ...prev, ...nextCache }));
+    return list.map((u) => ({
+      id: u.id,
+      title: u.name,
+      subtitle: `${getDocumentDisplayInfo(u.dni).badgeText} - Tel: ${u.phoneNumber || "S/D"}`,
+      badge: getDocumentDisplayInfo(u.dni).label,
+    }));
+  };
+
+  const handleSelectWorkshopClient = (opt: SearchPickerOption | null) => {
+    if (!opt) {
+      setFoundClientMatch(null);
+      return;
+    }
+    const matched = clientPickerCache[opt.id];
+    if (matched) {
+      applyMatchedClient(matched);
+      toast.success(`Cliente seleccionado: ${matched.name}`, { duration: 2500 });
+    }
+  };
 
   const lookupVikingClient = async (queryNum: string) => {
     const cleanNum = queryNum.trim();
@@ -144,13 +179,7 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
         res.data?.[0];
 
       if (matched) {
-        setFoundClientMatch(matched);
-        if (!clientName || clientName === "Consumidor Final") {
-          setClientName(matched.name);
-        }
-        if (!clientAddress && matched.address) {
-          setClientAddress(matched.address);
-        }
+        applyMatchedClient(matched);
         toast.success(`Cliente encontrado: ${matched.name}`, { duration: 3000 });
       } else {
         setFoundClientMatch(null);
@@ -291,11 +320,12 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
         setCurrentStep("form");
         toast.error("ARCA rechazó el comprobante. Revisa los datos ingresados.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errObj = error as { response?: { data?: { error?: string; message?: string } }; message?: string };
       const backendError =
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        error?.message ||
+        errObj?.response?.data?.error ||
+        errObj?.response?.data?.message ||
+        errObj?.message ||
         "Error al conectar con el servidor.";
       setRejectionMessage(backendError);
       setCurrentStep("form");
@@ -428,6 +458,19 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
                   </Select>
                 </div>
 
+                <div className="col-span-1 sm:col-span-2">
+                  <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold block mb-1">
+                    Seleccionar Cliente del Taller (Nombre / DNI / CUIT)
+                  </Label>
+                  <SearchPicker
+                    label=""
+                    placeholder="Buscar cliente por nombre, DNI o CUIT..."
+                    value={foundClientMatch?.id}
+                    onSelect={handleSelectWorkshopClient}
+                    fetchOptions={handleFetchWorkshopClients}
+                  />
+                </div>
+
                 <div>
                   <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
                     Condición IVA Receptor (RG 5616)
@@ -487,30 +530,38 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
                     )}
                   </div>
                   <div className="relative mt-1">
-                    <Input
-                      type="number"
-                      disabled={docTipo === 99}
-                      value={docNro}
-                      onChange={(e) => {
-                        setDocNro(e.target.value);
-                        if (foundClientMatch && String(foundClientMatch.dni) !== e.target.value) {
-                          setFoundClientMatch(null);
-                        }
-                      }}
-                      onBlur={() => {
-                        if (docTipo !== 99 && docNro && docNro.length >= 7) {
-                          lookupVikingClient(docNro);
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          lookupVikingClient(docNro);
-                        }
-                      }}
-                      placeholder={docTipo === 99 ? "0 (Consumidor Final)" : "Ej: 30712345678"}
-                      className="bg-secondary/20 border-border focus:border-tertiary text-foreground font-mono text-xs placeholder:text-muted-foreground pr-7"
-                    />
+                    {docTipo === 99 ? (
+                      <Input
+                        type="text"
+                        disabled
+                        value="0 (Consumidor Final)"
+                        className="bg-secondary/20 border-border text-muted-foreground font-mono text-xs"
+                      />
+                    ) : (
+                      <DocumentInput
+                        value={docNro === "0" ? "" : docNro}
+                        forcedKind={docTipo === 80 || docTipo === 86 ? "CUIT" : "DNI"}
+                        onKindChange={(kind) => setDocTipo(kind === "CUIT" ? 80 : 96)}
+                        onChange={(clean) => {
+                          setDocNro(clean);
+                          if (foundClientMatch && String(foundClientMatch.dni) !== clean) {
+                            setFoundClientMatch(null);
+                          }
+                        }}
+                        onBlur={() => {
+                          if (docNro && docNro.length >= 7) {
+                            lookupVikingClient(docNro);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            lookupVikingClient(docNro);
+                          }
+                        }}
+                        inputClassName="pr-7"
+                      />
+                    )}
                     {isSearchingClient && (
                       <Loader2 className="w-3 h-3 animate-spin absolute right-2 top-2.5 text-tertiary" />
                     )}

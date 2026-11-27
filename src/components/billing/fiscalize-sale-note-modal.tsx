@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ShieldCheck, AlertCircle, FileCheck, ArrowRight, Loader2 } from "lucide-react";
+import { ShieldCheck, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -25,6 +25,8 @@ import { Badge } from "@/components/ui/badge";
 import { SaleNoteResponse, FiscalizeSaleNoteRequest, FiscalizeSaleNoteResponse } from "@/types/sales-note";
 import { InvoiceDocType, InvoiceVatCondition } from "@/types/invoice";
 import { salesNoteService } from "@/services/sales-note.service";
+import { DocumentInput } from "@/components/shared/document-input";
+import { getDocumentDisplayInfo } from "@/lib/document-utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -42,21 +44,6 @@ interface FiscalizeSaleNoteModalProps {
   onSuccess?: (result: FiscalizeSaleNoteResponse) => void;
 }
 
-function getTodayAfipDate(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}${month}${day}`;
-}
-
-function getFirstDayOfMonthAfipDate(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  return `${year}${month}01`;
-}
-
 /**
  * FiscalizeSaleNoteModal Component:
  * Styled with Viking Dark Theme.
@@ -69,15 +56,15 @@ export const FiscalizeSaleNoteModal: React.FC<FiscalizeSaleNoteModalProps> = ({
   saleNote,
   onSuccess,
 }) => {
-  if (!saleNote) return null;
-
-  const initialDocTipo = saleNote.client_dni ? 96 : 99;
-  const initialDocNro = saleNote.client_dni ? String(saleNote.client_dni) : "0";
+  const initialDocTipo: InvoiceDocType = saleNote?.client_dni
+    ? getDocumentDisplayInfo(saleNote.client_dni).arcaDocTipo
+    : 99;
+  const initialDocNro = saleNote?.client_dni ? String(saleNote.client_dni) : "0";
 
   const [docTipo, setDocTipo] = useState<InvoiceDocType>(initialDocTipo);
   const [docNro, setDocNro] = useState<string>(initialDocNro);
   const [condicionIva, setCondicionIva] = useState<InvoiceVatCondition>(5); // Consumidor Final default
-  const [concepto, setConcepto] = useState<number>(2); // Servicios default
+  const [concepto] = useState<number>(2); // Servicios default
 
   // Service dates (Natural Date objects for UI, formatted to YYYYMMDD for ARCA)
   const [serviceFromDate, setServiceFromDate] = useState<Date>(() => {
@@ -89,6 +76,8 @@ export const FiscalizeSaleNoteModal: React.FC<FiscalizeSaleNoteModalProps> = ({
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  if (!saleNote) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,11 +116,12 @@ export const FiscalizeSaleNoteModal: React.FC<FiscalizeSaleNoteModalProps> = ({
       } else {
         setErrorMessage("ARCA no devolvió el CAE para esta solicitud.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errObj = error as { response?: { data?: { error?: string; message?: string } }; message?: string };
       const msg =
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        error?.message ||
+        errObj?.response?.data?.error ||
+        errObj?.response?.data?.message ||
+        errObj?.message ||
         "Error al conectar con ARCA para fiscalizar la venta.";
       setErrorMessage(msg);
       toast.error("Error al fiscalizar ante ARCA.");
@@ -226,13 +216,21 @@ export const FiscalizeSaleNoteModal: React.FC<FiscalizeSaleNoteModalProps> = ({
               <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
                 Número de Documento
               </Label>
-              <Input
-                disabled={docTipo === 99}
-                value={docNro}
-                onChange={(e) => setDocNro(e.target.value)}
-                placeholder={docTipo === 99 ? "0 (Consumidor Final)" : "Sin puntos ni guiones"}
-                className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs"
-              />
+              {docTipo === 99 ? (
+                <Input
+                  disabled
+                  value="0 (Consumidor Final)"
+                  className="mt-1 bg-secondary/20 border-border text-muted-foreground text-xs"
+                />
+              ) : (
+                <DocumentInput
+                  value={docNro === "0" ? "" : docNro}
+                  forcedKind={docTipo === 80 || docTipo === 86 ? "CUIT" : "DNI"}
+                  onKindChange={(kind) => setDocTipo(kind === "CUIT" ? 80 : 96)}
+                  onChange={setDocNro}
+                  className="mt-1"
+                />
+              )}
             </div>
 
             <div className="col-span-2">
