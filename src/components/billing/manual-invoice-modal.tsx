@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Download, AlertCircle, FileText, ShieldAlert, Loader2 } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -59,10 +59,10 @@ export const ManualInvoiceModal: React.FC<ManualInvoiceModalProps> = ({
   const [puntoVenta, setPuntoVenta] = useState<number>(1);
   const [numeroCmp, setNumeroCmp] = useState<string>("");
   const [fechaEmision, setFechaEmision] = useState<string>(getTodayAfipDate());
-  const [concepto, setConcepto] = useState<InvoiceConcept>(2);
+  const [concepto] = useState<InvoiceConcept>(2);
   const [docTipo, setDocTipo] = useState<InvoiceDocType>(99);
   const [docNro, setDocNro] = useState<string>("0");
-  const [condicionIva, setCondicionIva] = useState<InvoiceVatCondition>(5);
+  const [condicionIva] = useState<InvoiceVatCondition>(5);
   const [importeTotal, setImporteTotal] = useState<string>("");
   const [cae, setCae] = useState<string>("");
   const [caeVto, setCaeVto] = useState<string>(getTodayAfipDate());
@@ -111,10 +111,11 @@ export const ManualInvoiceModal: React.FC<ManualInvoiceModalProps> = ({
       if (onSuccess) {
         onSuccess(invoice);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errObj = error as { response?: { data?: { error?: string } }; message?: string };
       const msg =
-        error?.response?.data?.error ||
-        error?.message ||
+        errObj?.response?.data?.error ||
+        errObj?.message ||
         "Error al registrar la factura manual.";
       toast.error(msg);
     } finally {

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { userService } from "@/services/user.service";
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/shared/phone-input";
 import { toast } from "sonner";
 import { applyFieldErrors, notifyApiError } from "@/lib/error-alerts";
 import { UserPlus, Loader2, Save } from "lucide-react";
@@ -222,12 +223,18 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
               <Label htmlFor="phoneNumber" className="text-xs font-semibold uppercase tracking-wider text-foreground">
                 Teléfono (*)
               </Label>
-              <Input
-                id="phoneNumber"
-                placeholder="Ej: +54 9 11..."
-                disabled={isLoading}
-                className="bg-secondary/20 border-border focus:border-tertiary font-mono"
-                {...register("phoneNumber")}
+              <Controller
+                name="phoneNumber"
+                control={control}
+                render={({ field }) => (
+                  <PhoneInput
+                    id="phoneNumber"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    disabled={isLoading}
+                  />
+                )}
               />
               {errors.phoneNumber && <p className="text-xs text-error font-medium">{errors.phoneNumber.message}</p>}
             </div>
@@ -238,12 +245,19 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
               <Label htmlFor="secondaryPhoneNumber" className="text-xs font-semibold uppercase tracking-wider text-foreground">
                 Teléfono Secundario
               </Label>
-              <Input
-                id="secondaryPhoneNumber"
-                placeholder="Ej: +54 9 11... (Opc.)"
-                disabled={isLoading}
-                className="bg-secondary/20 border-border focus:border-tertiary font-mono"
-                {...register("secondaryPhoneNumber")}
+              <Controller
+                name="secondaryPhoneNumber"
+                control={control}
+                render={({ field }) => (
+                  <PhoneInput
+                    id="secondaryPhoneNumber"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    disabled={isLoading}
+                    placeholder="Opcional"
+                  />
+                )}
               />
             </div>
 

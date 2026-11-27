@@ -8,10 +8,7 @@ import {
   AlertTriangle,
   ArrowRight,
   ArrowLeft,
-  FileText,
-  User,
   Calendar,
-  DollarSign,
   Loader2,
   Search,
   CheckCircle2,
@@ -68,13 +65,6 @@ function getTodayAfipDate(): string {
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${year}${month}${day}`;
-}
-
-function getFirstDayOfMonthAfipDate(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  return `${year}${month}01`;
 }
 
 function formatAfipDateDisplay(dateStr?: string): string {
@@ -291,11 +281,12 @@ export const DirectInvoiceModal: React.FC<DirectInvoiceModalProps> = ({
         setCurrentStep("form");
         toast.error("ARCA rechazó el comprobante. Revisa los datos ingresados.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errObj = error as { response?: { data?: { error?: string; message?: string } }; message?: string };
       const backendError =
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        error?.message ||
+        errObj?.response?.data?.error ||
+        errObj?.response?.data?.message ||
+        errObj?.message ||
         "Error al conectar con el servidor.";
       setRejectionMessage(backendError);
       setCurrentStep("form");

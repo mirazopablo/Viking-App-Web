@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format, formatISO } from "date-fns";
@@ -47,7 +47,7 @@ export default function AvailabilityPage() {
     }
   });
 
-  const selectedDate = form.watch("date");
+  const selectedDate = useWatch({ control: form.control, name: "date" });
 
   // Fetch active blocks
   const { data: blockedPeriods, isLoading } = useQuery({

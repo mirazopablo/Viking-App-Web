@@ -28,6 +28,7 @@ import { AdminPageHeader } from "@/components/shared/admin-page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/shared/phone-input";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -235,11 +236,12 @@ export default function NewDirectSaleNotePage() {
       toast.success(`¡Nota de Venta ${created.number} emitida con éxito!`);
       setEmittedSaleNote(created);
       setCurrentStep("success");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errObj = error as { response?: { data?: { error?: string; message?: string } }; message?: string };
       const backendError =
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        error?.message ||
+        errObj?.response?.data?.error ||
+        errObj?.response?.data?.message ||
+        errObj?.message ||
         "Error al registrar la Nota de Venta.";
       setErrorMessage(backendError);
       setCurrentStep("form");
@@ -419,12 +421,11 @@ export default function NewDirectSaleNotePage() {
                     <Label className="text-xs font-mono uppercase text-muted-foreground font-semibold">
                       Teléfono (Opcional)
                     </Label>
-                    <Input
-                      type="text"
+                    <PhoneInput
                       value={clientPhone}
-                      onChange={(e) => setClientPhone(e.target.value)}
-                      placeholder="Ej: 2604845489"
-                      className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs font-mono h-9"
+                      onChange={setClientPhone}
+                      placeholder="2604845489"
+                      className="mt-1"
                     />
                   </div>
                   <div>
