@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useFormContext, useFieldArray } from 'react-hook-form';
+import { useFormContext, useFieldArray, Controller } from 'react-hook-form';
 import { 
   Wrench, 
   Cpu, 
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PhoneInput } from '@/components/shared/phone-input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { QuickQuoteFormSchemaType } from '@/lib/validations/quick-quote';
@@ -141,7 +142,20 @@ export const QuotesEditor: React.FC = () => {
                 </div>
                 <div className="col-span-2 md:col-span-1">
                   <Label className="text-xs text-muted-foreground uppercase font-mono block mb-1">TELÉFONO</Label>
-                  <Input {...register('clientPhoneNumber')} className="h-8 text-xs font-mono" placeholder="Opcional" />
+                  <Controller
+                    name="clientPhoneNumber"
+                    control={control}
+                    render={({ field }) => (
+                      <PhoneInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        placeholder="Opcional"
+                        triggerClassName="h-8"
+                        inputClassName="h-8"
+                      />
+                    )}
+                  />
                 </div>
                 <div className="col-span-2 md:col-span-1">
                   <Label className="text-xs text-muted-foreground uppercase font-mono block mb-1">DIRECCIÓN</Label>

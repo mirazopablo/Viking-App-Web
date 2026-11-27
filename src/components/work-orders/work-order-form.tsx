@@ -14,6 +14,7 @@ import { SearchPicker, SearchPickerOption } from "@/components/common/search-pic
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/shared/phone-input";
 import { toast } from "sonner";
 import {
   Wrench,
@@ -518,12 +519,10 @@ export const WorkOrderForm: React.FC = () => {
                         <Label htmlFor="clientPhone" className="text-[11px] font-semibold uppercase text-foreground">
                           Teléfono de Contacto (*)
                         </Label>
-                        <Input
+                        <PhoneInput
                           id="clientPhone"
                           value={clientPhone}
-                          onChange={(e) => setClientPhone(e.target.value)}
-                          placeholder="Ej: +54 9 11..."
-                          className="bg-secondary/20 border-border h-9 text-xs font-mono"
+                          onChange={setClientPhone}
                           disabled={isSavingStep1}
                         />
                       </div>
