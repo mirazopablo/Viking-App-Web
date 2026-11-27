@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { userService } from "@/services/user.service";
@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DocumentInput } from "@/components/shared/document-input";
+import { getDocumentDisplayInfo, isValidDniOrCuit } from "@/lib/document-utils";
 import { toast } from "sonner";
 import { applyFieldErrors, notifyApiError } from "@/lib/error-alerts";
 import { UserPlus, Loader2, Save } from "lucide-react";
@@ -20,9 +22,10 @@ const quickClientSchema = z.object({
   name: z.string().min(3, { message: "El nombre completo es requerido" }),
   dni: z
     .string()
-    .min(7, { message: "DNI inválido" })
-    .max(9, { message: "DNI excede límite" })
-    .regex(/^\d+$/, { message: "DNI debe ser numérico" }),
+    .regex(/^\d+$/, { message: "El documento debe ser numérico" })
+    .refine(isValidDniOrCuit, {
+      message: "Ingrese un DNI (7 a 9 dígitos) o CUIT/CUIL (11 dígitos)",
+    }),
   email: z.string().email({ message: "Correo electrónico inválido" }),
   phoneNumber: z.string().min(8, { message: "Teléfono requerido" }),
   secondaryPhoneNumber: z.string().optional(),
@@ -119,8 +122,9 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
         password: data.password && data.password.trim().length > 0 ? data.password.trim() : undefined,
       });
 
+      const docInfo = getDocumentDisplayInfo(newClient.dni);
       toast.success("Usuario registrado con éxito", {
-        description: `${newClient.name} (DNI: ${newClient.dni}) fue agregado al sistema.`,
+        description: `${newClient.name} (${docInfo.badgeText}) fue agregado al sistema.`,
       });
 
       reset();
@@ -206,14 +210,20 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="dni" className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                DNI (*)
+                DNI / CUIT (*)
               </Label>
-              <Input
-                id="dni"
-                placeholder="Ej: 30123456"
-                disabled={isLoading}
-                className="bg-secondary/20 border-border focus:border-tertiary font-mono"
-                {...register("dni")}
+              <Controller
+                name="dni"
+                control={control}
+                render={({ field }) => (
+                  <DocumentInput
+                    id="dni"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    disabled={isLoading}
+                  />
+                )}
               />
               {errors.dni && <p className="text-xs text-error font-medium">{errors.dni.message}</p>}
             </div>

@@ -14,6 +14,8 @@ import { SearchPicker, SearchPickerOption } from "@/components/common/search-pic
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DocumentInput } from "@/components/shared/document-input";
+import { getDocumentDisplayInfo, isValidDniOrCuit } from "@/lib/document-utils";
 import { toast } from "sonner";
 import {
   Wrench,
@@ -116,7 +118,7 @@ export const WorkOrderForm: React.FC = () => {
     return users.map((u) => ({
       id: u.id,
       title: u.name,
-      subtitle: `DNI: ${u.dni} - Tel: ${u.phoneNumber || "S/D"}`,
+      subtitle: `${getDocumentDisplayInfo(u.dni).badgeText} - Tel: ${u.phoneNumber || "S/D"}`,
       badge: "CLIENTE",
     }));
   };
@@ -195,10 +197,10 @@ export const WorkOrderForm: React.FC = () => {
   const handleContinueToStep2 = async () => {
     setStep1Error(null);
 
-    // 1. Validate Client selection or manual DNI input
+    // 1. Validate Client selection or manual DNI/CUIT input
     if (!foundClient) {
-      if (!dniQuery || dniQuery.trim().length < 7 || !/^\d+$/.test(dniQuery.trim())) {
-        setStep1Error("Debe seleccionar un cliente existente de la búsqueda o ingresar un DNI numérico válido para el alta manual.");
+      if (!isValidDniOrCuit(dniQuery)) {
+        setStep1Error("Debe seleccionar un cliente existente de la búsqueda o ingresar un DNI (7-9 dígitos) o CUIT/CUIL (11 dígitos) válido.");
         return;
       }
     }
@@ -458,8 +460,12 @@ export const WorkOrderForm: React.FC = () => {
                       <strong className="text-foreground font-sans">{foundClient.name}</strong>
                     </div>
                     <div>
-                      <span className="text-[10px] font-mono uppercase text-typography block">DNI / CUIT</span>
-                      <strong className="text-foreground font-mono">{foundClient.dni}</strong>
+                      <span className="text-[10px] font-mono uppercase text-typography block">
+                        {getDocumentDisplayInfo(foundClient.dni).label}
+                      </span>
+                      <strong className="text-foreground font-mono">
+                        {getDocumentDisplayInfo(foundClient.dni).formatted}
+                      </strong>
                     </div>
                     <div>
                       <span className="text-[10px] font-mono uppercase text-typography block">Teléfono</span>
@@ -492,12 +498,10 @@ export const WorkOrderForm: React.FC = () => {
                         <Label htmlFor="dniInput" className="text-[11px] font-semibold uppercase text-foreground">
                           DNI / CUIT (*)
                         </Label>
-                        <Input
+                        <DocumentInput
                           id="dniInput"
                           value={dniQuery}
-                          onChange={(e) => setDniQuery(e.target.value)}
-                          placeholder="Ej: 30123456"
-                          className="bg-secondary/20 border-border h-9 text-xs font-mono"
+                          onChange={setDniQuery}
                           disabled={isSavingStep1}
                         />
                       </div>

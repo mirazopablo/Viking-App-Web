@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { userService } from "@/services/user.service";
@@ -14,6 +14,8 @@ import { VikingLoader } from "@/components/shared/viking-loader";
 import { VikingPagination } from "@/components/shared/viking-pagination";
 import { AdminPageHeader } from "@/components/shared/admin-page-header";
 import { EmptyStateCard } from "@/components/shared/empty-state-card";
+import { DocumentInput } from "@/components/shared/document-input";
+import { getDocumentDisplayInfo, isValidDniOrCuit } from "@/lib/document-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,10 +26,16 @@ import { useUserRole } from "@/hooks/use-user-role";
 
 /**
  * Schema for updating user profile.
- * Note: DNI and Email are intentionally excluded or marked readOnly to enforce immutable PII rules.
+ * Supports updating DNI or upgrading to CUIT/CUIL (11 digits) while keeping primary email immutable.
  */
 const editClientSchema = z.object({
   name: z.string().min(3, { message: "Nombre requerido" }),
+  dni: z
+    .string()
+    .regex(/^\d+$/, { message: "El documento debe ser numérico" })
+    .refine(isValidDniOrCuit, {
+      message: "Ingrese un DNI (7 a 9 dígitos) o CUIT/CUIL (11 dígitos)",
+    }),
   phoneNumber: z.string().min(8, { message: "Teléfono requerido" }),
   address: z.string().min(5, { message: "Dirección requerida" }),
 });
@@ -61,6 +69,7 @@ export default function ClientsDirectoryPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
     reset,
@@ -72,6 +81,7 @@ export default function ClientsDirectoryPage() {
     setClientToEdit(client);
     reset({
       name: client.name,
+      dni: String(client.dni || ""),
       phoneNumber: client.phoneNumber || "",
       address: client.address || "",
     });
@@ -83,6 +93,7 @@ export default function ClientsDirectoryPage() {
     try {
       await userService.updateUser(clientToEdit.id, {
         name: data.name,
+        dni: parseInt(data.dni, 10),
         phoneNumber: data.phoneNumber,
         address: data.address,
       });
@@ -165,13 +176,21 @@ export default function ClientsDirectoryPage() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-          {filteredClients.map((client) => (
+          {filteredClients.map((client) => {
+            const docInfo = getDocumentDisplayInfo(client.dni);
+            return (
             <VikingCard
               key={client.id}
               variant="client"
               badgeLeft={
-                <span className="text-xs font-mono font-bold uppercase bg-info/15 text-info px-2.5 py-1 rounded border border-info/30 tracking-wider">
-                  DNI: {client.dni}
+                <span
+                  className={
+                    docInfo.kind === "CUIT"
+                      ? "text-xs font-mono font-bold uppercase bg-tertiary/15 text-tertiary px-2.5 py-1 rounded border border-tertiary/30 tracking-wider"
+                      : "text-xs font-mono font-bold uppercase bg-info/15 text-info px-2.5 py-1 rounded border border-info/30 tracking-wider"
+                  }
+                >
+                  {docInfo.badgeText}
                 </span>
               }
               title={client.name}
@@ -218,7 +237,8 @@ export default function ClientsDirectoryPage() {
                 )}
               </div>
             </VikingCard>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -256,11 +276,32 @@ export default function ClientsDirectoryPage() {
               <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 flex items-start gap-2.5">
                 <ShieldAlert className="w-4 h-4 text-warning shrink-0 mt-0.5" />
                 <div className="text-[11px] font-mono text-typography leading-tight space-y-1">
-                  <p className="font-bold text-foreground">Protección de Datos Privados (PII)</p>
+                  <p className="font-bold text-foreground">Protección de Cuenta</p>
                   <p>
-                    Por políticas de seguridad e inmutabilidad relacional, el **DNI ({clientToEdit.dni})** y el **Correo Electrónico ({clientToEdit.email})** no pueden modificarse desde este panel.
+                    El **Correo Electrónico ({clientToEdit.email})** es el identificador de acceso y no se modifica desde este panel. Podés actualizar el documento entre **DNI** y **CUIT/CUIL**.
                   </p>
                 </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-dni" className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                  DNI / CUIT / CUIL (*)
+                </Label>
+                <Controller
+                  name="dni"
+                  control={control}
+                  render={({ field }) => (
+                    <DocumentInput
+                      id="edit-dni"
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      disabled={isUpdating}
+                      inputClassName="focus:border-info"
+                    />
+                  )}
+                />
+                {errors.dni && <p className="text-xs text-error font-medium">{errors.dni.message}</p>}
               </div>
 
               <div className="space-y-1.5">
