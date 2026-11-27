@@ -19,6 +19,7 @@ import { getDocumentDisplayInfo, isValidDniOrCuit } from "@/lib/document-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/shared/phone-input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Users, Plus, Phone, Mail, MapPin, Edit3, Trash2, ShieldAlert, Loader2, Save } from "lucide-react";
@@ -321,11 +322,19 @@ export default function ClientsDirectoryPage() {
                 <Label htmlFor="edit-phone" className="text-xs font-semibold uppercase tracking-wider text-foreground">
                   Teléfono de Contacto (*)
                 </Label>
-                <Input
-                  id="edit-phone"
-                  disabled={isUpdating}
-                  className="bg-secondary/20 border-border focus:border-info font-mono"
-                  {...register("phoneNumber")}
+                <Controller
+                  name="phoneNumber"
+                  control={control}
+                  render={({ field }) => (
+                    <PhoneInput
+                      id="edit-phone"
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      disabled={isUpdating}
+                      inputClassName="focus:border-info"
+                    />
+                  )}
                 />
                 {errors.phoneNumber && <p className="text-xs text-error font-medium">{errors.phoneNumber.message}</p>}
               </div>

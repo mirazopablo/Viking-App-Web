@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DocumentInput } from "@/components/shared/document-input";
+import { PhoneInput } from "@/components/shared/phone-input";
 import { getDocumentDisplayInfo, isValidDniOrCuit } from "@/lib/document-utils";
 import { toast } from "sonner";
 import { applyFieldErrors, notifyApiError } from "@/lib/error-alerts";
@@ -235,12 +236,18 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
               <Label htmlFor="phoneNumber" className="text-xs font-semibold uppercase tracking-wider text-foreground">
                 Teléfono (*)
               </Label>
-              <Input
-                id="phoneNumber"
-                placeholder="Ej: +54 9 11..."
-                disabled={isLoading}
-                className="bg-secondary/20 border-border focus:border-tertiary font-mono h-9 text-xs"
-                {...register("phoneNumber")}
+              <Controller
+                name="phoneNumber"
+                control={control}
+                render={({ field }) => (
+                  <PhoneInput
+                    id="phoneNumber"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    disabled={isLoading}
+                  />
+                )}
               />
               {errors.phoneNumber && <p className="text-xs text-error font-medium">{errors.phoneNumber.message}</p>}
             </div>
@@ -249,12 +256,19 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
               <Label htmlFor="secondaryPhoneNumber" className="text-xs font-semibold uppercase tracking-wider text-foreground">
                 Teléfono Secundario
               </Label>
-              <Input
-                id="secondaryPhoneNumber"
-                placeholder="Ej: +54 9 11... (Opc.)"
-                disabled={isLoading}
-                className="bg-secondary/20 border-border focus:border-tertiary font-mono h-9 text-xs"
-                {...register("secondaryPhoneNumber")}
+              <Controller
+                name="secondaryPhoneNumber"
+                control={control}
+                render={({ field }) => (
+                  <PhoneInput
+                    id="secondaryPhoneNumber"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    disabled={isLoading}
+                    placeholder="Opcional"
+                  />
+                )}
               />
             </div>
           </div>
