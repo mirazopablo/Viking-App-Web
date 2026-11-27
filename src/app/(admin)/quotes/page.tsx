@@ -5,7 +5,7 @@ import { AdminPageHeader } from "@/components/shared/admin-page-header";
 import { EmptyStateCard } from "@/components/shared/empty-state-card";
 import { VikingCard } from "@/components/shared/viking-card";
 import { Button } from "@/components/ui/button";
-import { Calculator, Plus, Eye, Trash2, Search, ArrowRight } from "lucide-react";
+import { Calculator, Plus, Trash2, Search, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { QuickQuoteFormSchemaType } from "@/lib/validations/quick-quote";
 import { toast } from "sonner";

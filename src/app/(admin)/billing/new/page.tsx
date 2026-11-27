@@ -68,13 +68,6 @@ function getTodayAfipDate(): string {
   return `${year}${month}${day}`;
 }
 
-function getFirstDayOfMonthAfipDate(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  return `${year}${month}01`;
-}
-
 function formatAfipDateDisplay(dateStr?: string): string {
   if (!dateStr || dateStr.length !== 8) return dateStr || "-";
   return `${dateStr.substring(6, 8)}/${dateStr.substring(4, 6)}/${dateStr.substring(0, 4)}`;
@@ -292,11 +285,12 @@ export default function NewDirectInvoicePage() {
         setCurrentStep("form");
         toast.error("ARCA rechazó el comprobante. Revisa los datos ingresados.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errObj = error as { response?: { data?: { error?: string; message?: string } }; message?: string };
       const backendError =
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        error?.message ||
+        errObj?.response?.data?.error ||
+        errObj?.response?.data?.message ||
+        errObj?.message ||
         "Error al conectar con ARCA.";
       setRejectionMessage(backendError);
       setCurrentStep("form");

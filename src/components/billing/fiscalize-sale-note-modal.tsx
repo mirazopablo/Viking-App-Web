@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ShieldCheck, AlertCircle, FileCheck, ArrowRight, Loader2 } from "lucide-react";
+import { ShieldCheck, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -42,21 +42,6 @@ interface FiscalizeSaleNoteModalProps {
   onSuccess?: (result: FiscalizeSaleNoteResponse) => void;
 }
 
-function getTodayAfipDate(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}${month}${day}`;
-}
-
-function getFirstDayOfMonthAfipDate(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  return `${year}${month}01`;
-}
-
 /**
  * FiscalizeSaleNoteModal Component:
  * Styled with Viking Dark Theme.
@@ -69,15 +54,13 @@ export const FiscalizeSaleNoteModal: React.FC<FiscalizeSaleNoteModalProps> = ({
   saleNote,
   onSuccess,
 }) => {
-  if (!saleNote) return null;
-
-  const initialDocTipo = saleNote.client_dni ? 96 : 99;
-  const initialDocNro = saleNote.client_dni ? String(saleNote.client_dni) : "0";
+  const initialDocTipo = saleNote?.client_dni ? 96 : 99;
+  const initialDocNro = saleNote?.client_dni ? String(saleNote.client_dni) : "0";
 
   const [docTipo, setDocTipo] = useState<InvoiceDocType>(initialDocTipo);
   const [docNro, setDocNro] = useState<string>(initialDocNro);
   const [condicionIva, setCondicionIva] = useState<InvoiceVatCondition>(5); // Consumidor Final default
-  const [concepto, setConcepto] = useState<number>(2); // Servicios default
+  const [concepto] = useState<number>(2); // Servicios default
 
   // Service dates (Natural Date objects for UI, formatted to YYYYMMDD for ARCA)
   const [serviceFromDate, setServiceFromDate] = useState<Date>(() => {
@@ -89,6 +72,8 @@ export const FiscalizeSaleNoteModal: React.FC<FiscalizeSaleNoteModalProps> = ({
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  if (!saleNote) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,11 +112,12 @@ export const FiscalizeSaleNoteModal: React.FC<FiscalizeSaleNoteModalProps> = ({
       } else {
         setErrorMessage("ARCA no devolvió el CAE para esta solicitud.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errObj = error as { response?: { data?: { error?: string; message?: string } }; message?: string };
       const msg =
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        error?.message ||
+        errObj?.response?.data?.error ||
+        errObj?.response?.data?.message ||
+        errObj?.message ||
         "Error al conectar con ARCA para fiscalizar la venta.";
       setErrorMessage(msg);
       toast.error("Error al fiscalizar ante ARCA.");

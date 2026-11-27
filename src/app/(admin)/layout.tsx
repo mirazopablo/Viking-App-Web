@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import { getTokenRemainingTimeMs } from "@/lib/jwt-utils";
 import { Button } from "@/components/ui/button";
-import { Wrench, PlusCircle, List, LogOut, Users, Smartphone, Calculator, Calendar, Receipt } from "lucide-react";
+import { PlusCircle, List, LogOut, Users, Smartphone, Calculator, Calendar, Receipt } from "lucide-react";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { AdminMobileBottomNav } from "@/components/admin/admin-mobile-bottom-nav";
 import { APP_VERSION } from "@/lib/version";

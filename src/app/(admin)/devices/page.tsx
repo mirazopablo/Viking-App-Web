@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { deviceService } from "@/services/device.service";
@@ -57,7 +57,7 @@ export default function DevicesInventoryPage() {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors },
     reset,
   } = useForm<CreateDeviceFormValues>({
@@ -69,6 +69,8 @@ export default function DevicesInventoryPage() {
       serialNumber: "",
     },
   });
+
+  const selectedUserId = useWatch({ control, name: "userId" });
 
   const handleFetchClients = async (term: string): Promise<SearchPickerOption[]> => {
     const users = await userService.getUsers(term);
@@ -278,7 +280,7 @@ export default function DevicesInventoryPage() {
               <SearchPicker
                 label=""
                 placeholder="Escriba nombre o DNI..."
-                value={watch("userId")}
+                value={selectedUserId}
                 onSelect={(opt) => setValue("userId", opt ? opt.id : "", { shouldValidate: true })}
                 fetchOptions={handleFetchClients}
                 disabled={isCreating}
