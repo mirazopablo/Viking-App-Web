@@ -98,7 +98,7 @@ export const DocumentInput: React.FC<DocumentInputProps> = ({
             disabled={disabled}
             onClick={() => handleSelectKind("DNI")}
             className={cn(
-              "px-2 h-7 rounded-md text-[11px] font-mono font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
+              "px-2 h-7 rounded-md text-[10px] font-mono font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
               activeKind === "DNI"
                 ? "bg-tertiary text-tertiary-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
@@ -110,14 +110,15 @@ export const DocumentInput: React.FC<DocumentInputProps> = ({
             type="button"
             disabled={disabled}
             onClick={() => handleSelectKind("CUIT")}
+            title="CUIT / CUIL (11 dígitos con formato XX-XXXXXXXX-X)"
             className={cn(
-              "px-2 h-7 rounded-md text-[11px] font-mono font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
+              "px-2 h-7 rounded-md text-[10px] font-mono font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
               activeKind === "CUIT"
                 ? "bg-tertiary text-tertiary-foreground shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            CUIT/CUIL
+            CUIT
           </button>
         </div>
       )}
@@ -134,7 +135,7 @@ export const DocumentInput: React.FC<DocumentInputProps> = ({
         disabled={disabled}
         placeholder={resolvedPlaceholder}
         className={cn(
-          "bg-secondary/20 border-border focus:border-tertiary font-mono h-9 text-xs",
+          "flex-1 min-w-[130px] bg-secondary/20 border-border focus:border-tertiary font-mono h-9 text-xs",
           inputClassName
         )}
       />

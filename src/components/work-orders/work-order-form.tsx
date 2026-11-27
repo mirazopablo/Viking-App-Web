@@ -493,7 +493,7 @@ export const WorkOrderForm: React.FC = () => {
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label htmlFor="dniInput" className="text-[11px] font-semibold uppercase text-foreground">
                           DNI / CUIT (*)
@@ -518,6 +518,8 @@ export const WorkOrderForm: React.FC = () => {
                           disabled={isSavingStep1}
                         />
                       </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="space-y-1">
                         <Label htmlFor="clientPhone" className="text-[11px] font-semibold uppercase text-foreground">
                           Teléfono de Contacto (*)
@@ -531,8 +533,6 @@ export const WorkOrderForm: React.FC = () => {
                           disabled={isSavingStep1}
                         />
                       </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label htmlFor="clientEmail" className="text-[11px] font-semibold uppercase text-foreground">
                           Correo Electrónico (*)

@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { userService } from "@/services/user.service";
 import { authService } from "@/services/auth.service";
+import { getRoleDisplayLabel } from "@/types/auth";
 import { UserResponseDTO } from "@/types/user";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -156,7 +157,7 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md bg-card border-border shadow-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-xl bg-card border-border shadow-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold uppercase text-foreground flex items-center gap-2">
             <UserPlus className="w-5 h-5 text-tertiary" />
@@ -167,67 +168,69 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="roleId" className="text-xs font-semibold uppercase tracking-wider text-foreground">
-              Rol Asignado (*)
-            </Label>
-            <select
-              id="roleId"
-              disabled={isLoading || isLoadingRoles}
-              className="w-full rounded-md bg-neutral-900 border border-border focus:border-tertiary p-2 text-sm text-foreground font-mono uppercase font-semibold"
-              {...register("roleId")}
-            >
-              <option value="" disabled className="bg-neutral-900 text-foreground">
-                {isLoadingRoles ? "Cargando roles..." : "Seleccione un rol..."}
-              </option>
-              {roles.map((r) => {
-                const label = (r as { name?: string; descripcion?: string }).name || (r as { name?: string; descripcion?: string }).descripcion || "ROL";
-                return (
-                  <option key={r.id} value={r.id} className="bg-neutral-900 text-foreground">
-                    {label}
-                  </option>
-                );
-              })}
-            </select>
-            {errors.roleId && <p className="text-xs text-error font-medium">{errors.roleId.message}</p>}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider text-foreground">
-              Nombre Completo (*)
-            </Label>
-            <Input
-              id="name"
-              placeholder="Ej: Ragnar Lodbrok"
-              disabled={isLoading}
-              className="bg-secondary/20 border-border focus:border-tertiary"
-              {...register("name")}
-            />
-            {errors.name && <p className="text-xs text-error font-medium">{errors.name.message}</p>}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="dni" className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                DNI / CUIT (*)
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5 py-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="space-y-1.5 sm:col-span-1">
+              <Label htmlFor="roleId" className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                Rol (*)
               </Label>
-              <Controller
-                name="dni"
-                control={control}
-                render={({ field }) => (
-                  <DocumentInput
-                    id="dni"
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    disabled={isLoading}
-                  />
-                )}
-              />
-              {errors.dni && <p className="text-xs text-error font-medium">{errors.dni.message}</p>}
+              <select
+                id="roleId"
+                disabled={isLoading || isLoadingRoles}
+                className="w-full h-9 rounded-md bg-neutral-900 border border-border focus:border-tertiary px-2.5 text-xs text-foreground font-mono uppercase font-semibold"
+                {...register("roleId")}
+              >
+                <option value="" disabled className="bg-neutral-900 text-foreground">
+                  {isLoadingRoles ? "Cargando..." : "Rol..."}
+                </option>
+                {roles.map((r) => {
+                  const rawCode = (r as { name?: string; descripcion?: string }).name || (r as { name?: string; descripcion?: string }).descripcion || "ROL";
+                  return (
+                    <option key={r.id} value={r.id} className="bg-neutral-900 text-foreground">
+                      {getRoleDisplayLabel(rawCode)}
+                    </option>
+                  );
+                })}
+              </select>
+              {errors.roleId && <p className="text-xs text-error font-medium">{errors.roleId.message}</p>}
             </div>
 
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                Nombre Completo (*)
+              </Label>
+              <Input
+                id="name"
+                placeholder="Ej: Ragnar Lodbrok"
+                disabled={isLoading}
+                className="bg-secondary/20 border-border focus:border-tertiary h-9 text-xs"
+                {...register("name")}
+              />
+              {errors.name && <p className="text-xs text-error font-medium">{errors.name.message}</p>}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="dni" className="text-xs font-semibold uppercase tracking-wider text-foreground">
+              Documento: DNI / CUIT / CUIL (*)
+            </Label>
+            <Controller
+              name="dni"
+              control={control}
+              render={({ field }) => (
+                <DocumentInput
+                  id="dni"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  disabled={isLoading}
+                />
+              )}
+            />
+            {errors.dni && <p className="text-xs text-error font-medium">{errors.dni.message}</p>}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="phoneNumber" className="text-xs font-semibold uppercase tracking-wider text-foreground">
                 Teléfono (*)
@@ -236,14 +239,12 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
                 id="phoneNumber"
                 placeholder="Ej: +54 9 11..."
                 disabled={isLoading}
-                className="bg-secondary/20 border-border focus:border-tertiary font-mono"
+                className="bg-secondary/20 border-border focus:border-tertiary font-mono h-9 text-xs"
                 {...register("phoneNumber")}
               />
               {errors.phoneNumber && <p className="text-xs text-error font-medium">{errors.phoneNumber.message}</p>}
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="secondaryPhoneNumber" className="text-xs font-semibold uppercase tracking-wider text-foreground">
                 Teléfono Secundario
@@ -252,11 +253,13 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
                 id="secondaryPhoneNumber"
                 placeholder="Ej: +54 9 11... (Opc.)"
                 disabled={isLoading}
-                className="bg-secondary/20 border-border focus:border-tertiary font-mono"
+                className="bg-secondary/20 border-border focus:border-tertiary font-mono h-9 text-xs"
                 {...register("secondaryPhoneNumber")}
               />
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-foreground">
                 Correo Electrónico (*)
@@ -266,25 +269,25 @@ export const QuickClientModal: React.FC<QuickClientModalProps> = ({ isOpen, onCl
                 type="email"
                 placeholder="usuario@email.com"
                 disabled={isLoading}
-                className="bg-secondary/20 border-border focus:border-tertiary font-mono"
+                className="bg-secondary/20 border-border focus:border-tertiary font-mono h-9 text-xs"
                 {...register("email")}
               />
               {errors.email && <p className="text-xs text-error font-medium">{errors.email.message}</p>}
             </div>
-          </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="address" className="text-xs font-semibold uppercase tracking-wider text-foreground">
-              Dirección (*)
-            </Label>
-            <Input
-              id="address"
-              placeholder="Ej: Calle Falsa 123, CABA"
-              disabled={isLoading}
-              className="bg-secondary/20 border-border focus:border-tertiary"
-              {...register("address")}
-            />
-            {errors.address && <p className="text-xs text-error font-medium">{errors.address.message}</p>}
+            <div className="space-y-1.5">
+              <Label htmlFor="address" className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                Dirección (*)
+              </Label>
+              <Input
+                id="address"
+                placeholder="Ej: Calle Falsa 123, CABA"
+                disabled={isLoading}
+                className="bg-secondary/20 border-border focus:border-tertiary h-9 text-xs"
+                {...register("address")}
+              />
+              {errors.address && <p className="text-xs text-error font-medium">{errors.address.message}</p>}
+            </div>
           </div>
 
           <div className="space-y-1.5">
