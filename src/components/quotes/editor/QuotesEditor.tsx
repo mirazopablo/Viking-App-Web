@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PhoneInput } from '@/components/shared/phone-input';
 import { Button } from '@/components/ui/button';
+import { DocumentInput } from '@/components/shared/document-input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { QuickQuoteFormSchemaType } from '@/lib/validations/quick-quote';
 import { DynamicBlocksEditor } from './DynamicBlocksEditor';
@@ -138,7 +139,19 @@ export const QuotesEditor: React.FC = () => {
                 </div>
                 <div className="col-span-2 md:col-span-1">
                   <Label className="text-xs text-muted-foreground uppercase font-mono block mb-1">DNI / CUIT</Label>
-                  <Input {...register('clientDni')} className="h-8 text-xs font-mono" placeholder="Opcional" />
+                  <Controller
+                    name="clientDni"
+                    control={control}
+                    render={({ field }) => (
+                      <DocumentInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        placeholder="Opcional"
+                        inputClassName="h-8"
+                      />
+                    )}
+                  />
                 </div>
                 <div className="col-span-2 md:col-span-1">
                   <Label className="text-xs text-muted-foreground uppercase font-mono block mb-1">TELÉFONO</Label>

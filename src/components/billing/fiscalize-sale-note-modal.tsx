@@ -25,6 +25,8 @@ import { Badge } from "@/components/ui/badge";
 import { SaleNoteResponse, FiscalizeSaleNoteRequest, FiscalizeSaleNoteResponse } from "@/types/sales-note";
 import { InvoiceDocType, InvoiceVatCondition } from "@/types/invoice";
 import { salesNoteService } from "@/services/sales-note.service";
+import { DocumentInput } from "@/components/shared/document-input";
+import { getDocumentDisplayInfo } from "@/lib/document-utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -54,7 +56,9 @@ export const FiscalizeSaleNoteModal: React.FC<FiscalizeSaleNoteModalProps> = ({
   saleNote,
   onSuccess,
 }) => {
-  const initialDocTipo = saleNote?.client_dni ? 96 : 99;
+  const initialDocTipo: InvoiceDocType = saleNote?.client_dni
+    ? getDocumentDisplayInfo(saleNote.client_dni).arcaDocTipo
+    : 99;
   const initialDocNro = saleNote?.client_dni ? String(saleNote.client_dni) : "0";
 
   const [docTipo, setDocTipo] = useState<InvoiceDocType>(initialDocTipo);
@@ -212,13 +216,21 @@ export const FiscalizeSaleNoteModal: React.FC<FiscalizeSaleNoteModalProps> = ({
               <Label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold">
                 Número de Documento
               </Label>
-              <Input
-                disabled={docTipo === 99}
-                value={docNro}
-                onChange={(e) => setDocNro(e.target.value)}
-                placeholder={docTipo === 99 ? "0 (Consumidor Final)" : "Sin puntos ni guiones"}
-                className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs"
-              />
+              {docTipo === 99 ? (
+                <Input
+                  disabled
+                  value="0 (Consumidor Final)"
+                  className="mt-1 bg-secondary/20 border-border text-muted-foreground text-xs"
+                />
+              ) : (
+                <DocumentInput
+                  value={docNro === "0" ? "" : docNro}
+                  forcedKind={docTipo === 80 || docTipo === 86 ? "CUIT" : "DNI"}
+                  onKindChange={(kind) => setDocTipo(kind === "CUIT" ? 80 : 96)}
+                  onChange={setDocNro}
+                  className="mt-1"
+                />
+              )}
             </div>
 
             <div className="col-span-2">

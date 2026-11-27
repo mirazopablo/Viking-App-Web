@@ -1,4 +1,5 @@
 import { UnifiedCommercialDocumentProps } from "@/components/billing/unified-commercial-document";
+import { getDocumentDisplayInfo } from "@/lib/document-utils";
 import {
   SaleNotePaymentMethod,
   SaleNotePaymentStatus,
@@ -57,14 +58,16 @@ export function mapSaleNoteToCommercialDocument(
       ? sn.subtotal
       : items.reduce((sum, it) => sum + (it.totalPrice || 0), 0);
 
+  const docInfo = getDocumentDisplayInfo(sn.client_dni);
+
   return {
     documentType: "SALE_NOTE",
     documentNumber: sn.number,
     issueDate: new Date(sn.created_at).toLocaleDateString("es-AR"),
     client: {
       name: sn.client_name || "Consumidor Final",
-      docType: sn.client_dni && sn.client_dni !== 0 ? "DNI / CUIT" : "Sin Identificar",
-      docNumber: sn.client_dni || 0,
+      docType: sn.client_dni && sn.client_dni !== 0 ? docInfo.label : "Sin Identificar",
+      docNumber: sn.client_dni && sn.client_dni !== 0 ? docInfo.formatted : 0,
       phone: sn.client_phone || undefined,
       paymentCondition: `${paymentLabel} (${statusLabel})`,
     },

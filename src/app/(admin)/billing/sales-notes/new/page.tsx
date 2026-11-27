@@ -25,6 +25,9 @@ import {
   consumeBillingPrefill,
 } from "@/lib/quote-to-billing";
 import { AdminPageHeader } from "@/components/shared/admin-page-header";
+import { SearchPicker, SearchPickerOption } from "@/components/common/search-picker";
+import { DocumentInput } from "@/components/shared/document-input";
+import { getDocumentDisplayInfo } from "@/lib/document-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -116,6 +119,38 @@ export default function NewDirectSaleNotePage() {
   // Viking client lookup
   const [isSearchingClient, setIsSearchingClient] = useState<boolean>(false);
   const [foundClientMatch, setFoundClientMatch] = useState<UserResponseDTO | null>(null);
+  const [clientPickerCache, setClientPickerCache] = useState<Record<string, UserResponseDTO>>({});
+
+  const handleFetchWorkshopClients = async (term: string): Promise<SearchPickerOption[]> => {
+    const res = await userService.getUsers(term);
+    const list = res.data || [];
+    const nextCache: Record<string, UserResponseDTO> = {};
+    list.forEach((u) => {
+      nextCache[u.id] = u;
+    });
+    setClientPickerCache((prev) => ({ ...prev, ...nextCache }));
+    return list.map((u) => ({
+      id: u.id,
+      title: u.name,
+      subtitle: `${getDocumentDisplayInfo(u.dni).badgeText} - Tel: ${u.phoneNumber || "S/D"}`,
+      badge: getDocumentDisplayInfo(u.dni).label,
+    }));
+  };
+
+  const handleSelectWorkshopClient = (opt: SearchPickerOption | null) => {
+    if (!opt) {
+      setFoundClientMatch(null);
+      return;
+    }
+    const matched = clientPickerCache[opt.id];
+    if (matched) {
+      setFoundClientMatch(matched);
+      setClientName(matched.name);
+      setClientDni(String(matched.dni || ""));
+      if (matched.phoneNumber) setClientPhone(matched.phoneNumber);
+      toast.success(`Cliente seleccionado: ${matched.name}`, { duration: 2500 });
+    }
+  };
 
   const lookupVikingClient = async (queryNum: string) => {
     const cleanNum = queryNum.trim();
@@ -134,6 +169,7 @@ export default function NewDirectSaleNotePage() {
       if (matched) {
         setFoundClientMatch(matched);
         if (!clientName) setClientName(matched.name);
+        setClientDni(String(matched.dni));
         if (!clientPhone && matched.phoneNumber) setClientPhone(matched.phoneNumber);
         toast.success(`Cliente encontrado en base del taller: ${matched.name}`, { duration: 3000 });
       } else {
@@ -368,6 +404,19 @@ export default function NewDirectSaleNotePage() {
 
               <div className="space-y-3.5">
                 <div>
+                  <Label className="text-xs font-mono uppercase text-muted-foreground font-semibold block mb-1">
+                    Seleccionar Cliente del Taller (Nombre / DNI / CUIT)
+                  </Label>
+                  <SearchPicker
+                    label=""
+                    placeholder="Buscar cliente por nombre, DNI o CUIT..."
+                    value={foundClientMatch?.id}
+                    onSelect={handleSelectWorkshopClient}
+                    fetchOptions={handleFetchWorkshopClients}
+                  />
+                </div>
+
+                <div>
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-mono uppercase text-muted-foreground font-semibold">
                       DNI / CUIT (Opcional)
@@ -385,20 +434,21 @@ export default function NewDirectSaleNotePage() {
                       Buscar en Taller
                     </button>
                   </div>
-                  <Input
-                    type="text"
+                  <DocumentInput
                     value={clientDni}
-                    onChange={(e) => setClientDni(e.target.value.replace(/\D/g, ""))}
+                    onChange={setClientDni}
                     onBlur={() => {
                       if (clientDni.length >= 7) lookupVikingClient(clientDni);
                     }}
                     placeholder="0 para anónimo / Consumidor Final"
-                    className="mt-1 bg-secondary/20 border-border focus:border-tertiary text-foreground text-xs font-mono h-9"
+                    className="mt-1"
                   />
                   {foundClientMatch && (
                     <div className="mt-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded text-[10px] font-mono text-emerald-400 flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                      <span>Cliente encontrado: {foundClientMatch.name}</span>
+                      <span>
+                        Cliente vinculado: {foundClientMatch.name} ({getDocumentDisplayInfo(foundClientMatch.dni).badgeText})
+                      </span>
                     </div>
                   )}
                 </div>
@@ -744,8 +794,12 @@ export default function NewDirectSaleNotePage() {
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-muted-foreground uppercase block">DNI / CUIT</span>
-                <span className="font-bold text-foreground">{clientDni || "0 (Anónimo)"}</span>
+                <span className="text-[10px] text-muted-foreground uppercase block">
+                  {clientDni ? getDocumentDisplayInfo(clientDni).label : "DNI / CUIT"}
+                </span>
+                <span className="font-bold text-foreground">
+                  {clientDni ? getDocumentDisplayInfo(clientDni).formatted : "0 (Anónimo)"}
+                </span>
               </div>
               <div>
                 <span className="text-[10px] text-muted-foreground uppercase block">Teléfono</span>

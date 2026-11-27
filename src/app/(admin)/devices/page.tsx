@@ -14,6 +14,7 @@ import { VikingSearchBar } from "@/components/shared/viking-search-bar";
 import { VikingLoader } from "@/components/shared/viking-loader";
 import { AdminPageHeader } from "@/components/shared/admin-page-header";
 import { EmptyStateCard } from "@/components/shared/empty-state-card";
+import { getDocumentDisplayInfo } from "@/lib/document-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -77,7 +78,7 @@ export default function DevicesInventoryPage() {
     return users.data.map((u) => ({
       id: u.id,
       title: u.name,
-      subtitle: `DNI: ${u.dni} - Tel: ${u.phoneNumber}`,
+      subtitle: `${getDocumentDisplayInfo(u.dni).badgeText} - Tel: ${u.phoneNumber}`,
       badge: "CLIENTE",
     }));
   };
@@ -232,7 +233,10 @@ export default function DevicesInventoryPage() {
                   <div className="flex items-center gap-1.5 text-typography">
                     <CreditCard className="w-3.5 h-3.5 text-tertiary shrink-0" />
                     <span className="truncate">
-                      DNI: <strong className="text-foreground">{dev.userDni ? dev.userDni.toLocaleString("es-AR") : "N/A"}</strong>
+                      {dev.userDni ? getDocumentDisplayInfo(dev.userDni).label : "DNI"}:{" "}
+                      <strong className="text-foreground">
+                        {dev.userDni ? getDocumentDisplayInfo(dev.userDni).formatted : "N/A"}
+                      </strong>
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 text-typography">

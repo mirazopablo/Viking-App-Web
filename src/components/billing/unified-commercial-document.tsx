@@ -6,6 +6,7 @@ import { Printer, AlertCircle } from "lucide-react";
 import logoImg from "@/components/images/LOGO_pulido.png";
 import { AfipQrCode } from "@/components/common/afip-qr-code";
 import { InvoiceResponse } from "@/types/invoice";
+import { getDocumentDisplayInfo } from "@/lib/document-utils";
 
 export type CommercialDocumentType = "BUDGET" | "SALE_NOTE" | "INVOICE_C";
 export type CommercialCopyType = "ORIGINAL" | "DUPLICADO" | "TRIPLICADO";
@@ -469,7 +470,7 @@ export const UnifiedCommercialDocument: React.FC<UnifiedCommercialDocumentProps>
                 </span>
                 <span className="font-mono font-semibold text-slate-900">
                   {client.docNumber && String(client.docNumber) !== "0"
-                    ? client.docNumber
+                    ? getDocumentDisplayInfo(client.docNumber).formatted
                     : "Sin Identificar"}
                 </span>
               </div>
